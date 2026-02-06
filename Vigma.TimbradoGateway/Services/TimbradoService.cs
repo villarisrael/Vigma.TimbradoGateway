@@ -262,6 +262,7 @@ public sealed class TimbradoService : ITimbradoService
 
     private static string NormalizeIniForGateway(string ini)
     {
+       
         var text = NormalizeNewlines(ini);
 
         // A) quitar cfdi= y xml_debug= SIEMPRE
@@ -269,7 +270,7 @@ public sealed class TimbradoService : ITimbradoService
         text = RemoveLinesStartingWith(text, "xml_debug=");
 
         // B) quitar líneas duplicadas exactas consecutivas o repetidas (por pegado doble)
-        //   text = RemoveDuplicateLines(text);
+          text = RemoveDuplicateLines(text);
 
         // C) quitar bloques de sección duplicados (mismo header repetido)
         text = RemoveDuplicateSectionsKeepFirst(text);

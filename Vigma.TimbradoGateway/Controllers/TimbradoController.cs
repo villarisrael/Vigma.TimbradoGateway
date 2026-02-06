@@ -1,6 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Configuration;
+using MySqlConnector;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Xml;
 using Vigma.TimbradoGateway.DTOs;
 using Vigma.TimbradoGateway.Services;
+using Vigma.TimbradoGateway.ViewModels.Timbrados;
 
 namespace Vigma.TimbradoGateway.Controllers;
 
@@ -9,8 +18,11 @@ namespace Vigma.TimbradoGateway.Controllers;
 public class TimbradoController : ControllerBase
 {
     private readonly ITimbradoService _svc;
-
-    public TimbradoController(ITimbradoService svc) => _svc = svc;
+    private readonly string _cs;
+    public TimbradoController(ITimbradoService svc, IConfiguration cfg) 
+        {
+        _cs = cfg.GetConnectionString("MySql")!;
+        _svc = svc; }
 
     private bool TryGetApiKey(out string apiKey)
     {
@@ -98,6 +110,5 @@ public class TimbradoController : ControllerBase
         }
     }
 
-
-
+    
 }

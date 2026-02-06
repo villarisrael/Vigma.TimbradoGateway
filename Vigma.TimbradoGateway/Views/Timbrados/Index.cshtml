@@ -1,0 +1,534 @@
+﻿@model Vigma.TimbradoGateway.ViewModels.Timbrados.TimbradoIndiceVM
+@{
+    ViewData["Title"] = "Índice de Timbrados";
+}
+
+<style>
+    :root {
+        --ok-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+        --gold-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --card-hover-shadow: 0 15px 40px rgba(245, 158, 11, 0.15);
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    .page-header {
+        background: white;
+        border-radius: 20px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        box-shadow: var(--card-shadow);
+        border-left: 5px solid #f59e0b;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 160px;
+            height: 160px;
+            background: var(--gold-gradient);
+            opacity: 0.06;
+            border-radius: 0 20px 0 0;
+        }
+
+    .page-badge {
+        padding: 6px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(251, 191, 36, 0.12) 100%);
+        color: #b45309;
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 16px;
+        box-shadow: var(--card-shadow);
+        border: none;
+        transition: var(--transition-smooth);
+    }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+    .stat-number {
+        font-size: 2.1rem;
+        font-weight: 800;
+        background: var(--gold-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: var(--card-shadow);
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .filter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--gold-gradient);
+        }
+
+    .form-control-sm, .form-select-sm {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        transition: var(--transition-smooth);
+    }
+
+        .form-control-sm:focus, .form-select-sm:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+
+    .btn-gold {
+        background: var(--gold-gradient);
+        border: none;
+        border-radius: 10px;
+        padding: 8px 18px;
+        font-weight: 600;
+        transition: var(--transition-smooth);
+        color: #111827;
+    }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(245, 158, 11, 0.28);
+            color: #111827;
+        }
+
+    .btn-outline-soft {
+        border-radius: 10px;
+        padding: 8px 18px;
+        font-weight: 600;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        transition: var(--transition-smooth);
+        background: white;
+    }
+
+        .btn-outline-soft:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+    .table-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+        padding: 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+    }
+
+        .table thead th {
+            border: none;
+            padding: 14px 12px;
+            font-weight: 800;
+            color: #6b7280;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.55px;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+    .table tbody tr {
+        transition: var(--transition-smooth);
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(16, 185, 129, 0.04) 100%);
+            transform: translateX(4px);
+        }
+
+    .table tbody td {
+        padding: 14px 12px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .mono {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.84rem;
+        color: #374151;
+        background: #f8fafc;
+        padding: 4px 8px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        display: inline-block;
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .pill {
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .pill-ok {
+        background: rgba(16, 185, 129, 0.12);
+        color: #065f46;
+        border-color: rgba(16, 185, 129, 0.22);
+    }
+
+    .pill-cancel {
+        background: rgba(239, 68, 68, 0.10);
+        color: #991b1b;
+        border-color: rgba(239, 68, 68, 0.20);
+    }
+
+    .pill-mid {
+        background: rgba(148, 163, 184, 0.12);
+        color: #475569;
+        border-color: rgba(148, 163, 184, 0.25);
+    }
+
+    .msg {
+        max-width: 520px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #475569;
+        font-size: 0.9rem;
+    }
+
+    .btn-detail {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%);
+        color: #2563eb;
+        border: none;
+        border-radius: 10px;
+        padding: 7px 14px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: var(--transition-smooth);
+    }
+
+        .btn-detail:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.22);
+        }
+
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+        border-radius: 16px;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+        opacity: 0.55;
+    }
+
+    .pagination-nav {
+        background: white;
+        border-radius: 16px;
+        padding: 18px 20px;
+        margin-top: 20px;
+        box-shadow: var(--card-shadow);
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <span class="page-badge mb-3">
+        <i class="bi bi-receipt-cutoff"></i> Timbrados
+    </span>
+
+    <!-- Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-6 fw-bold mb-2">Monitor de Timbrados</h1>
+                <p class="text-muted mb-0">
+                    Últimos timbrados registrados • Ordenados por <strong>created_utc DESC</strong>
+                </p>
+            </div>
+            <div class="col-lg-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number">@((Model.Rows?.Count() ?? 0))</div>
+                            <div class="small text-muted">Resultados</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number">
+                                @Model.CanceladasCount
+                            </div>
+                            <div class="small text-muted">Canceladas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-card">
+        <h5 class="fw-bold mb-4">
+            <i class="bi bi-funnel-fill me-2" style="color:#f59e0b;"></i>Filtros de búsqueda
+        </h5>
+
+        <form asp-action="Index" asp-controller="Timbrados" method="get">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-people me-1"></i> Tenant
+                    </label>
+                    @Html.DropDownListFor(m => m.TenantId, Model.Tenants,
+                    new { @class = "form-select form-select-sm" })
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-building me-1"></i> RFC Emisor
+                    </label>
+                    @Html.TextBoxFor(m => m.RfcEmisor,
+                                        new { @class = "form-control form-control-sm", placeholder = "EKU9003173C9..." })
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-calendar me-1"></i> Fecha inicio
+                    </label>
+                    @Html.TextBoxFor(m => m.FechaInicio, "{0:yyyy-MM-dd}",
+                                        new { @type = "date", @class = "form-control form-control-sm" })
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-calendar-check me-1"></i> Fecha final
+                    </label>
+                    @Html.TextBoxFor(m => m.FechaFinal, "{0:yyyy-MM-dd}",
+                                        new { @type = "date", @class = "form-control form-control-sm" })
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-gold w-100">
+                        <i class="bi bi-search me-2"></i> Buscar
+                    </button>
+                    <a class="btn btn-outline-soft w-100" href="@Url.Action("Index", "Timbrados")">
+                        <i class="bi bi-arrow-clockwise me-2"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <div class="table-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-table me-2"></i>Registro de timbrados
+                </h6>
+                <span class="badge bg-light text-dark">
+                    Mostrando @(Model.Rows?.Count() ?? 0) resultados
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Tenant</th>
+                        <th>RFC Emisor</th>
+                        <th>Origen</th>
+                        <th>Tipo</th>
+                        <th>Serie</th>
+                        <th>Folio</th>
+                        <th>UUID</th>
+                        <th>Mensaje MF</th>
+                        <th>Cancelada</th>
+                        <th>Saldo</th>
+                        <th>Creado (UTC)</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Rows == null || !Model.Rows.Any())
+                    {
+                        <tr>
+                            <td colspan="12">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="bi bi-inbox"></i>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">No se encontraron timbrados</h5>
+                                    <p class="text-muted mb-0">
+                                        Ajusta filtros o selecciona otro rango de fechas.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td><span class="pill pill-mid"><i class="bi bi-person-badge"></i>@r.TenantId</span></td>
+                                <td><code class="mono" title="@r.RfcEmisor">@r.RfcEmisor</code></td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(r.Origen))
+                                    {
+                                        <span class="pill pill-mid"><i class="bi bi-box-arrow-in-right"></i>@r.Origen</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(r.TipoDeComprobante))
+                                    {
+                                        <span class="pill pill-ok"><i class="bi bi-file-earmark-check"></i>@r.TipoDeComprobante</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">N/A</span>
+                                    }
+                                </td>
+                                <td>@(string.IsNullOrWhiteSpace(r.Serie) ? "-" : r.Serie)</td>
+                                <td>@(string.IsNullOrWhiteSpace(r.Folio) ? "-" : r.Folio)</td>
+                                <td><code class="mono" title="@r.Uuid">@r.Uuid</code></td>
+                                <td>
+                                    <div class="msg" title="@r.MensajeMf">@r.MensajeMf</div>
+                                </td>
+                                <td>
+                                    @if (r.Cancelada)
+                                    {
+                                        <span class="pill pill-cancel"><i class="bi bi-x-circle-fill"></i> Sí</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="pill pill-ok"><i class="bi bi-check-circle-fill"></i> No</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (r.Saldo.HasValue)
+                                    {
+                                        <span class="pill pill-mid">
+                                            <i class="bi bi-cash-coin"></i>@r.Saldo.Value.ToString("N2")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="pill pill-mid">
+                                        <i class="bi bi-clock"></i>
+                                        @r.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-detail"
+                                       href="@Url.Action("TimbradosDetalle", "Timbrados", new { id = r.Id })">
+                                        <i class="bi bi-eye me-1"></i> Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer/Paginación -->
+    @if (Model.Rows != null && Model.Rows.Any())
+    {
+        <div class="pagination-nav">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="small text-muted">
+                    Mostrando los últimos timbrados • Puedes agregar paginación / exportación aquí
+                </div>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-outline-soft btn-sm" href="@Url.Action("ExportarCsv", "Timbrados")">
+                        <i class="bi bi-download me-1"></i> Exportar CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach((row, index) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                row.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, index * 35);
+        });
+    });
+</script>
