@@ -1,0 +1,514 @@
+﻿@model Vigma.TimbradoGateway.ViewModels.Errores.TimbradoErrorIndiceVM
+@{
+    ViewData["Title"] = "Índice de Errores de Timbrado";
+}
+
+<style>
+    :root {
+        --error-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        --warning-gradient: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --card-hover-shadow: 0 15px 40px rgba(255, 65, 108, 0.15);
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background: linear-gradient(135deg, #fef7f9 0%, #f9f0ff 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    .error-header {
+        background: white;
+        border-radius: 20px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        box-shadow: var(--card-shadow);
+        border-left: 5px solid #ff416c;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .error-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        height: 150px;
+        background: var(--error-gradient);
+        opacity: 0.05;
+        border-radius: 0 20px 0 0;
+    }
+
+    .error-badge {
+        padding: 6px 16px;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        background: linear-gradient(135deg, rgba(255, 65, 108, 0.1) 0%, rgba(255, 75, 43, 0.1) 100%);
+        color: #ff416c;
+        border: 1px solid rgba(255, 65, 108, 0.2);
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--card-shadow);
+        border: none;
+        transition: var(--transition-smooth);
+    }
+
+    .stats-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-hover-shadow);
+    }
+
+    .stat-number {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: var(--error-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: var(--card-shadow);
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .filter-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: var(--warning-gradient);
+    }
+
+    .form-control-sm, .form-select-sm {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        transition: var(--transition-smooth);
+    }
+
+    .form-control-sm:focus, .form-select-sm:focus {
+        border-color: #ff416c;
+        box-shadow: 0 0 0 3px rgba(255, 65, 108, 0.1);
+    }
+
+    .btn-danger {
+        background: var(--error-gradient);
+        border: none;
+        border-radius: 10px;
+        padding: 8px 24px;
+        font-weight: 500;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 65, 108, 0.3);
+    }
+
+    .btn-outline-light {
+        border-radius: 10px;
+        padding: 8px 24px;
+        font-weight: 500;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-outline-light:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    .error-table-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .table thead th {
+        border: none;
+        padding: 16px 12px;
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .table tbody tr {
+        transition: var(--transition-smooth);
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(255, 65, 108, 0.03) 0%, rgba(255, 75, 43, 0.03) 100%);
+        transform: translateX(4px);
+    }
+
+    .table tbody td {
+        padding: 16px 12px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .error-code-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        background: linear-gradient(135deg, rgba(255, 65, 108, 0.1) 0%, rgba(255, 75, 43, 0.1) 100%);
+        color: #ff416c;
+        display: inline-block;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .rfc-code {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.85rem;
+        color: #475569;
+        background: #f8fafc;
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 16px;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .error-message {
+        max-width: 500px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #475569;
+        font-size: 0.9rem;
+    }
+
+    .btn-detail {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+        color: #3b82f6;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 16px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-detail:hover {
+        background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(59, 130, 246, 0.2);
+    }
+
+    .time-badge {
+        font-size: 0.8rem;
+        color: #64748b;
+        background: #f8fafc;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0;
+        font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    .tenant-badge {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: linear-gradient(135deg, rgba(203, 213, 225, 0.1) 0%, rgba(226, 232, 240, 0.1) 100%);
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+
+    .pagination-nav {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: var(--card-shadow);
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <!-- Header con estadísticas -->
+    <div class="error-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="error-badge mb-3">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Errores de Timbrado
+                </span>
+                <h1 class="display-6 fw-bold mb-2">Monitor de Errores</h1>
+                <p class="text-muted mb-0">
+                    Últimos 100 errores registrados • Ordenados por <strong>creado_utc DESC</strong>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number">100</div>
+                            <div class="small text-muted">Total de errores</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number">24</div>
+                            <div class="small text-muted">Últimas 24h</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-card">
+        <h5 class="fw-bold mb-4">
+            <i class="bi bi-funnel-fill me-2 text-warning"></i>Filtros de búsqueda
+        </h5>
+        <form asp-action="Index" asp-controller="Errores" method="get">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-people me-1"></i> Tenant
+                    </label>
+                    @Html.DropDownListFor(m => m.TenantId, Model.Tenants, 
+                        new { @class = "form-select form-select-sm", @style = "border-radius: 10px;" })
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-building me-1"></i> RFC Emisor
+                    </label>
+                    @Html.TextBoxFor(m => m.RfcEmisor, 
+                        new { @class = "form-control form-control-sm", 
+                              placeholder = "EKU9003173C9...",
+                              @style = "border-radius: 10px;" })
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-calendar me-1"></i> Fecha inicio
+                    </label>
+                    @Html.TextBoxFor(m => m.FechaInicio, "{0:yyyy-MM-dd}", 
+                        new { @type = "date", @class = "form-control form-control-sm",
+                              @style = "border-radius: 10px;" })
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2">
+                        <i class="bi bi-calendar-check me-1"></i> Fecha final
+                    </label>
+                    @Html.TextBoxFor(m => m.FechaFinal, "{0:yyyy-MM-dd}", 
+                        new { @type = "date", @class = "form-control form-control-sm",
+                              @style = "border-radius: 10px;" })
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-search me-2"></i> Buscar errores
+                    </button>
+                    <a class="btn btn-outline-light w-100" href="@Url.Action("Indice", "Errores")">
+                        <i class="bi bi-arrow-clockwise me-2"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de errores -->
+    <div class="error-table-card">
+        <div class="table-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-table me-2"></i>Registro de errores
+                </h6>
+                <span class="badge bg-light text-dark">
+                    Mostrando @(Model.Rows?.Count() ?? 0) resultados
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:100px;">
+                            <i class="bi bi-person-badge me-1"></i> Tenant
+                        </th>
+                        <th style="width:180px;">
+                            <i class="bi bi-building me-1"></i> RFC Emisor
+                        </th>
+                        <th style="width:140px;">
+                            <i class="bi bi-code me-1"></i> Código Error
+                        </th>
+                        <th>
+                            <i class="bi bi-chat-dots me-1"></i> Mensaje de error
+                        </th>
+                        <th style="width:180px;">
+                            <i class="bi bi-clock-history me-1"></i> Creado (UTC)
+                        </th>
+                        <th style="width:120px;" class="text-center">
+                            <i class="bi bi-gear me-1"></i> Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Rows == null || !Model.Rows.Any())
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="bi bi-shield-exclamation"></i>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">No se encontraron errores</h5>
+                                    <p class="text-muted mb-0">
+                                        No hay errores que coincidan con los filtros seleccionados.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="tenant-badge">@r.TenantId</span>
+                                </td>
+                                <td>
+                                    <code class="rfc-code">@r.RfcEmisor</code>
+                                </td>
+                                <td>
+                                    @if (r.CodigoMfNumero.HasValue)
+                                    {
+                                        <span class="error-code-badge">@r.CodigoMfNumero</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="error-message" title="@r.CodigoMfTexto">
+                                        @r.CodigoMfTexto
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="time-badge">
+                                        <i class="bi bi-clock me-1"></i>
+                                        @r.CreadoUtc.ToString("yyyy-MM-dd HH:mm:ss")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-detail" 
+                                       href="@Url.Action("VistaTimbradoError", "Errores", new { id = r.Id })">
+                                        <i class="bi bi-eye me-1"></i> Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paginación (si aplica) -->
+    @if (Model.Rows != null && Model.Rows.Any())
+    {
+        <div class="pagination-nav">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="small text-muted">
+                    Mostrando los últimos 100 errores registrados
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-download me-1"></i> Exportar CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<script>
+    // Animación para las filas de la tabla
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach((row, index) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                row.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
+
+        // Efecto hover para botones de detalle
+        const detailButtons = document.querySelectorAll('.btn-detail');
+        detailButtons.forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>

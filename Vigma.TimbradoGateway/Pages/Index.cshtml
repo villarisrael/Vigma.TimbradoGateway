@@ -1,0 +1,576 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Vigma Timbrado Gateway";
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --warning-gradient: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+        --danger-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --card-hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    .hero-section {
+        background: white;
+        background-image: 
+            radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 20%),
+            radial-gradient(circle at 90% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 20%);
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+        border: none;
+        transition: var(--transition-smooth);
+    }
+
+    .hero-section:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--card-hover-shadow);
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 20px;
+        border: none;
+        transition: var(--transition-smooth);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        height: 100%;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-hover-shadow);
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .metric-card.success::before { background: var(--success-gradient); }
+    .metric-card.warning::before { background: var(--warning-gradient); }
+    .metric-card.danger::before { background: var(--danger-gradient); }
+    .metric-card.dark::before { background: var(--dark-gradient); }
+
+    .metric-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+
+    .metric-card.success .metric-value {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .metric-card.warning .metric-value {
+        background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .metric-card.danger .metric-value {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .metric-card.dark .metric-value {
+        background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .btn-glow {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: var(--transition-smooth);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-glow:hover {
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-glow::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -60%;
+        width: 40%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(30deg);
+        transition: transform 0.6s;
+    }
+
+    .btn-glow:hover::after {
+        transform: rotate(30deg) translateX(600%);
+    }
+
+    .badge-modern {
+        padding: 6px 16px;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        color: #667eea;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+        margin-top: 30px;
+        border: none;
+    }
+
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .status-online {
+        background: rgba(56, 239, 125, 0.1);
+        color: #11998e;
+        border: 1px solid rgba(56, 239, 125, 0.3);
+    }
+
+    .status-offline {
+        background: rgba(255, 65, 108, 0.1);
+        color: #ff416c;
+        border: 1px solid rgba(255, 65, 108, 0.3);
+    }
+
+    .pulse {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: pulse 2s infinite;
+    }
+
+    .pulse.online {
+        background: #38ef7d;
+        box-shadow: 0 0 0 0 rgba(56, 239, 125, 0.7);
+    }
+
+    .pulse.offline {
+        background: #ff416c;
+        box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.7);
+    }
+
+    @@keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(56, 239, 125, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(56, 239, 125, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(56, 239, 125, 0);
+        }
+    }
+
+    .api-key-display {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 15px;
+        font-family: 'Consolas', monospace;
+        font-size: 0.9rem;
+        border: 1px dashed #dee2e6;
+        margin-top: 10px;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 18px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: var(--transition-smooth);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-hover-shadow);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .feature-card .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        color: #667eea;
+        font-size: 24px;
+    }
+
+    .recent-activity {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .activity-item {
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(102, 126, 234, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: #667eea;
+    }
+</style>
+
+<div class="container py-5">
+
+    <!-- Hero Section -->
+    <div class="hero-section p-4 p-md-5 mb-5 shadow-lg">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-8">
+                <span class="badge-modern mb-3">
+                    <i class="bi bi-shield-check me-1"></i> Timbrado CFDI 4.0
+                </span>
+
+                <h1 class="display-5 fw-bold mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Vigma Timbrado Gateway
+                </h1>
+
+                <p class="lead text-muted mb-4" style="font-size: 1.25rem;">
+                    API centralizada para timbrado con MultiFacturas, multi-tenant, con gestión de certificados por cliente,
+                    auditoría completa y panel de monitoreo en tiempo real.
+                </p>
+
+                <div class="d-flex flex-wrap gap-3">
+                    <a class="btn btn-glow" href="/Monitor/Tenants">
+                        <i class="bi bi-people-fill me-2"></i> Panel de Tenants
+                    </a>
+
+                    <a class="btn btn-outline-primary btn-lg px-4" href="/api/testdb" target="_blank" style="border-radius: 12px;">
+                        <i class="bi bi-database-check me-2"></i> Probar Base de Datos
+                    </a>
+
+                    <a class="btn btn-outline-dark btn-lg px-4" href="/Errores" style="border-radius: 12px;">
+                        <i class="bi bi-exclamation-triangle me-2"></i> Ver Errores
+                    </a>
+                </div>
+
+                <div class="mt-4 d-flex align-items-center">
+                    <span class="pulse online"></span>
+                    <span class="status-indicator status-online ms-2">
+                        Sistema Online • Última actualización: <span id="lastUpdate">hace 2 minutos</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="rounded-4 border-0 p-4 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <strong class="fs-5">Dashboard</strong>
+                        <span class="status-indicator status-online">
+                            <span class="pulse online"></span> Operativo
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-2">API Key de ejemplo:</small>
+                        <div class="api-key-display">
+                            <code>vgma_live_sk_1234567890abcdef</code>
+                        </div>
+                    </div>
+
+                    <div class="small text-muted">
+                        <div class="mb-2"><strong>⚡ Rendimiento:</strong> 95ms promedio por timbrado</div>
+                        <div class="mb-2"><strong>🔒 Seguridad:</strong> Certificados TLS 1.3 activos</div>
+                        <div class="mb-2"><strong>📊 Métricas:</strong> Actualización cada 60 segundos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas en Tiempo Real -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="metric-card success p-4 shadow">
+                <div class="metric-icon" style="background: var(--success-gradient);">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="metric-value" id="activeTenants">24</div>
+                <h6 class="text-muted mb-2">Tenants Activos</h6>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="small text-success">
+                        <i class="bi bi-arrow-up"></i> 3 nuevos este mes
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card dark p-4 shadow">
+                <div class="metric-icon" style="background: var(--dark-gradient);">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="metric-value" id="stampedToday">1,248</div>
+                <h6 class="text-muted mb-2">Timbrados Hoy</h6>
+                <div class="small text-muted">Meta: 2,000 • 62% completado</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card warning p-4 shadow">
+                <div class="metric-icon" style="background: var(--warning-gradient);">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="metric-value" id="avgResponseTime">95</div>
+                <h6 class="text-muted mb-2">ms Promedio</h6>
+                <div class="small text-success">
+                    <i class="bi bi-check-circle"></i> Dentro del SLA
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="metric-card danger p-4 shadow">
+                <div class="metric-icon" style="background: var(--danger-gradient);">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="metric-value" id="errorRate">0.8</div>
+                <h6 class="text-muted mb-2">% Error</h6>
+                <div class="small text-danger">
+                    12 errores en las últimas 24h
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Uso (Placeholder) -->
+    <div class="chart-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">Actividad de Timbrado - Últimas 24 horas</h5>
+            <select class="form-select w-auto" style="border-radius: 10px;">
+                <option>Últimas 24h</option>
+                <option>Últimos 7 días</option>
+                <option>Este mes</option>
+            </select>
+        </div>
+        <div class="text-center py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px;">
+            <i class="bi bi-bar-chart-fill display-1 text-muted mb-3"></i>
+            <p class="text-muted">Gráfico de actividad se cargará aquí</p>
+            <small class="text-muted">(Integrar con Chart.js o similar)</small>
+        </div>
+    </div>
+
+    <!-- Características Principales -->
+    <div class="row g-4 mt-5">
+        <div class="col-md-4">
+            <div class="feature-card p-4 shadow-sm">
+                <div class="icon-wrapper">
+                    <i class="bi bi-layers"></i>
+                </div>
+                <h5 class="fw-bold mb-3">Multi-tenant Seguro</h5>
+                <p class="text-muted mb-3">
+                    Cada cliente con su propia API Key y certificados. Aislamiento total de configuraciones y datos.
+                </p>
+                <ul class="list-unstyled small text-muted">
+                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2"></i> API Keys únicas</li>
+                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2"></i> Certificados por tenant</li>
+                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2"></i> Límites personalizados</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card p-4 shadow-sm">
+                <div class="icon-wrapper">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <h5 class="fw-bold mb-3">Auditoría Completa</h5>
+                <p class="text-muted mb-3">
+                    Registro detallado de todas las solicitudes, respuestas, errores y tiempos de respuesta.
+                </p>
+                <ul class="list-unstyled small text-muted">
+                    <li class="mb-1"><i class="bi bi-clock-history text-primary me-2"></i> Trazabilidad completa</li>
+                    <li class="mb-1"><i class="bi bi-file-text text-primary me-2"></i> Logs detallados</li>
+                    <li class="mb-1"><i class="bi bi-search text-primary me-2"></i> Búsqueda avanzada</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card p-4 shadow-sm">
+                <div class="icon-wrapper">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <h5 class="fw-bold mb-3">Alto Rendimiento</h5>
+                <p class="text-muted mb-3">
+                    Optimizado para procesar miles de timbrados simultáneos con latencia mínima.
+                </p>
+                <ul class="list-unstyled small text-muted">
+                    <li class="mb-1"><i class="bi bi-speedometer2 text-warning me-2"></i> < 100ms promedio</li>
+                    <li class="mb-1"><i class="bi bi-arrow-up-circle text-warning me-2"></i> Escalabilidad horizontal</li>
+                    <li class="mb-1"><i class="bi bi-activity text-warning me-2"></i> Monitoreo 24/7</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividad Reciente -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="recent-activity">
+                <h5 class="fw-bold mb-4">Actividad Reciente</h5>
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <strong>Tenant "FacturaPlus"</strong> realizó 48 timbrados exitosos
+                        <div class="text-muted small">Hace 5 minutos • Total: $12,450.00 MXN</div>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success">Exitosa</span>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <strong>Error de certificado</strong> en tenant "Servicios Contables S.A."
+                        <div class="text-muted small">Hace 25 minutos • Certificado expirado</div>
+                    </div>
+                    <span class="badge bg-danger bg-opacity-10 text-danger">Error</span>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <strong>Nuevo tenant registrado</strong>: "Distribuidora del Norte"
+                        <div class="text-muted small">Hace 1 hora • Plan: Empresarial</div>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary">Nuevo</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<script>
+    // Simulación de actualización de métricas en tiempo real
+    function updateMetrics() {
+        // Simular cambios en las métricas
+        const tenants = document.getElementById('activeTenants');
+        const stamped = document.getElementById('stampedToday');
+        const responseTime = document.getElementById('avgResponseTime');
+        const errorRate = document.getElementById('errorRate');
+        
+        // Incrementar timbrados (simulación)
+        let currentStamped = parseInt(stamped.textContent.replace(',', ''));
+        stamped.textContent = (currentStamped + Math.floor(Math.random() * 10)).toLocaleString();
+        
+        // Actualizar tiempo de última actualización
+        const lastUpdate = document.getElementById('lastUpdate');
+        lastUpdate.textContent = 'hace unos segundos';
+        
+        // Pequeñas variaciones en otras métricas
+        responseTime.textContent = (92 + Math.floor(Math.random() * 6));
+        errorRate.textContent = (0.7 + Math.random() * 0.3).toFixed(1);
+    }
+    
+    // Actualizar cada 30 segundos
+    setInterval(updateMetrics, 30000);
+    
+    // Efectos hover en tarjetas
+    document.querySelectorAll('.metric-card, .feature-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+</script>

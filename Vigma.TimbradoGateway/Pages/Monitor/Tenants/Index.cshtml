@@ -1,0 +1,143 @@
+﻿@page
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.IndexModel
+@{
+    ViewData["Title"] = "Tenants";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Tenants</h3>
+        <a class="btn btn-primary" asp-page="Create">+ Nuevo Tenant</a>
+    </div>
+
+    <form method="get" class="card p-3 mb-3">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <input class="form-control" name="q" value="@Model.Q" placeholder="Buscar por nombre o RFC..." />
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="activo">
+                    <option value="">Todos</option>
+                    <option value="1" selected="@(Model.Activo == 1)">Activos</option>
+                    <option value="0" selected="@(Model.Activo == 0)">Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-dark" type="submit">Buscar</button>
+                <a class="btn btn-outline-secondary ms-2" href="/Monitor/Tenants">Limpiar</a>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-sm table-striped table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Activo</th>
+                <th>X-Api-Key</th>
+                <th>RFC(s)</th>
+                <th>Vigencia fin</th>
+                <th>Acciones</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var t in Model.Items)
+            {
+                <tr>
+                    <td>@t.Id</td>
+                    <td>@t.Nombre</td>
+                    <td>
+                        @if (t.Activo)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else
+                        {
+
+                            <span class="badge bg-secondary">Inactivo</span>
+                        }
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <code>@t.ApiKeyMasked</code>
+                        <a class="btn btn-sm btn-outline-primary ms-2" asp-page="Edit" asp-route-id="@t.Id">Ver</a>
+                    </td>
+                    <td>@t.RfcsResumen</td>
+                    <td>
+                        @if (t.CertVigenciaFinUtc.HasValue)
+                        {
+                            var local = t.CertVigenciaFinUtc.Value.ToLocalTime();
+                            <span>@local.ToString("yyyy-MM-dd")</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <a class="btn btn-sm btn-outline-dark" asp-page="Edit" asp-route-id="@t.Id">Editar</a>
+                        <a class="btn btn-sm btn-outline-success"
+                           href="/Monitor/Tenants/@t.Id/Certificados">Certificados</a>
+                       
+                   
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary js-saldo"
+                                data-tenantid="@t.Id"
+                                data-nombre="@t.Nombre">
+                            <i class="fa fa-receipt"></i> Saldo timbres
+                        </button>
+                    </td>
+                  
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".js-saldo");
+        if (!btn) return;
+
+        const tenantId = btn.dataset.tenantid;
+        const nombre = btn.dataset.nombre || "Tenant";
+
+        Swal.fire({
+            title: "Consultando saldo...",
+            text: `Tenant: ${nombre}`,
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch(`/tenants/saldo-timbres?tenantId=${encodeURIComponent(tenantId)}`);
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) throw new Error(data?.mensaje || `Error HTTP ${res.status}`);
+            if (!data.ok) throw new Error(data?.mensaje || "Respuesta no OK");
+
+            Swal.fire({
+                icon: "success",
+                title: "Saldo de timbres",
+                html: `
+            <div style="text-align:left">
+              <div><b>Tenant:</b> ${data.tenantNombre ?? nombre}</div>
+              <div><b>Saldo:</b> ${data.saldo}</div>
+              <div style="margin-top:8px;font-size:12px" class="text-muted">${data.mensaje ?? ""}</div>
+            </div>
+          `
+            });
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "No se pudo consultar",
+                text: err.message || "Error desconocido"
+            });
+        }
+    });
+</script>

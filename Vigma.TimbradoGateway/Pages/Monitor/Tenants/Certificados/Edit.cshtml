@@ -1,0 +1,50 @@
+﻿@page "/Monitor/Tenants/{tenantId:int}/Certificados/Edit/{certId:int}"
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.Certificados.EditModel
+@{
+    ViewData["Title"] = "Editar Certificado";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-3">Editar Certificado - @Model.RFC</h3>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <div class="alert @(Model.Ok ? "alert-success" : "alert-danger")">@Model.Message</div>
+    }
+
+    <form method="post" enctype="multipart/form-data" class="card p-3">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Activo</label>
+                <select class="form-select" asp-for="Activo">
+                    <option value="true">Sí</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+
+            <div class="col-md-8">
+                <label class="form-label">Password (si cambió)</label>
+                <input class="form-control" asp-for="KeyPassword" type="password" placeholder="(dejar vacío para no cambiar)" />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Reemplazar .cer</label>
+                <input class="form-control" asp-for="CerFile" type="file" accept=".cer" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Reemplazar .key</label>
+                <input class="form-control" asp-for="KeyFile" type="file" accept=".key" />
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label">O reemplazar con .pfx</label>
+                <input class="form-control" asp-for="PfxFile" type="file" accept=".pfx,.p12" />
+            </div>
+
+            <div class="col-12">
+                <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                <a class="btn btn-outline-secondary ms-2" href="/Monitor/Tenants/@Model.TenantId/Certificados">Volver</a>
+            </div>
+        </div>
+    </form>
+</div>

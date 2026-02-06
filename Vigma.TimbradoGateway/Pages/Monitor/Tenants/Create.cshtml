@@ -1,0 +1,74 @@
+﻿@page
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.CreateModel
+@{
+    ViewData["Title"] = "Crear Tenant";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-3">Crear Tenant</h3>
+
+    @if (!string.IsNullOrWhiteSpace(Model.PlainApiKey))
+    {
+        <div class="alert alert-warning">
+            <div><b>X-Api-Key (guárdala):</b></div>
+            <div class="mt-2"><code style="font-size:1rem">@Model.PlainApiKey</code></div>
+
+            <div class="mt-3">
+                <a class="btn btn-success" href="/Monitor/Tenants/@Model.CreatedTenantId/Certificados/Create">
+                    Registrar certificados ahora
+                </a>
+                <a class="btn btn-secondary ms-2" href="/Monitor/Tenants">Volver</a>
+            </div>
+        </div>
+    }
+
+    <form method="post" class="card p-3">
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input class="form-control" asp-for="Input.Nombre" placeholder="Ej: Cliente Demo MultiFacturas" required />
+            <span class="text-danger" asp-validation-for="Input.Nombre"></span>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" asp-for="Input.Activo" />
+            <label class="form-check-label">Activo</label>
+        </div>
+
+        <hr class="my-3" />
+
+        <h6 class="mb-3">Credenciales PAC (MultiFacturas)</h6>
+
+        <div class="mb-3">
+            <label class="form-label">Usuario PAC</label>
+            <input class="form-control" asp-for="Input.PacUsuario" placeholder="DEMO700101XXX o el usuario real" />
+            <span class="text-danger" asp-validation-for="Input.PacUsuario"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Password PAC</label>
+            <div class="input-group">
+                <input class="form-control" asp-for="Input.PacPassword" type="password" id="pacPwd" autocomplete="new-password" />
+                <button class="btn btn-outline-secondary" type="button" onclick="
+                    const i=document.getElementById('pacPwd');
+                    i.type = (i.type==='password'?'text':'password');
+                ">
+                    👁
+                </button>
+            </div>
+            <div class="form-text">Se guardará cifrado en la BD.</div>
+            <span class="text-danger" asp-validation-for="Input.PacPassword"></span>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" asp-for="Input.PacProduccion" />
+            <label class="form-check-label">Usar Producción</label>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Crear</button>
+        <a class="btn btn-outline-secondary ms-2" href="/Monitor/Tenants">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

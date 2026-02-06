@@ -1,0 +1,58 @@
+﻿@page "/Monitor/Tenants/{tenantId:int}/Certificados/Create"
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.Certificados.CreateModel
+@{
+    ViewData["Title"] = "Registrar Certificado";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-3">Registrar Certificado - @Model.TenantNombre</h3>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <div class="alert @(Model.Ok ? "alert-success" : "alert-danger")">@Model.Message</div>
+    }
+
+    <form method="post" enctype="multipart/form-data" class="card p-3">
+        <input type="hidden" name="tenantId" value="@Model.TenantId" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">RFC Emisor</label>
+                <input class="form-control" asp-for="RFC" placeholder="EKU9003173C9" required />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Password de la KEY / PFX</label>
+                <input class="form-control" asp-for="KeyPassword" type="password" required />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Modo</label>
+                <select class="form-select" asp-for="Modo">
+                    <option value="CERKEY">Subir .cer + .key</option>
+                    <option value="PFX">Subir .pfx</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">.cer</label>
+                <input class="form-control" asp-for="CerFile" type="file" accept=".cer" />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">.key</label>
+                <input class="form-control" asp-for="KeyFile" type="file" accept=".key" />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">.pfx</label>
+                <input class="form-control" asp-for="PfxFile" type="file" accept=".pfx,.p12" />
+            </div>
+
+            <div class="col-12">
+                <button class="btn btn-primary" type="submit">Guardar y generar PEM</button>
+                <a class="btn btn-outline-secondary ms-2" href="/Monitor/Tenants/@Model.TenantId/Certificados">Cancelar</a>
+            </div>
+        </div>
+    </form>
+</div>

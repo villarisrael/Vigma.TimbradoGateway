@@ -1,0 +1,48 @@
+﻿@page "{id:long}"
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.ApiKeyRotadaModel
+@{
+    ViewData["Title"] = "API Key Rotada";
+}
+
+<div class="container py-4">
+    <h3>API Key rotada</h3>
+    <div class="text-muted mb-3">Tenant: <strong>@Model.TenantNombre</strong></div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.NewApiKey))
+    {
+        <div class="alert alert-warning">
+            <strong>Importante:</strong> Copia esta API Key ahora. Por seguridad no podrás volver a verla.
+        </div>
+
+        <div class="input-group mb-2" style="max-width: 720px;">
+            <input id="apiKeyFull" class="form-control" value="@Model.NewApiKey" readonly />
+            <button class="btn btn-primary" type="button" onclick="copyKey()">Copiar</button>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            La API Key ya fue mostrada. Si no la copiaste, rota nuevamente.
+        </div>
+    }
+
+    <div class="mt-3">
+        <a class="btn btn-secondary" href="/Monitor/Tenants">Volver</a>
+        <a class="btn btn-outline-secondary" href="/Monitor/Tenants/Edit/@Model.TenantId">Editar Tenant</a>
+    </div>
+</div>
+
+<script>
+    function copyKey() {
+        const el = document.getElementById('apiKeyFull');
+        if (!el) return;
+
+        navigator.clipboard.writeText(el.value)
+            .then(() => alert('API Key copiada'))
+            .catch(() => {
+                el.select();
+                document.execCommand('copy');
+                alert('API Key copiada');
+            });
+    }
+</script>

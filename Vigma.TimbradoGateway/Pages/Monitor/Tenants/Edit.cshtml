@@ -1,0 +1,100 @@
+﻿@page "{id:long}"
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.EditModel
+@{
+    ViewData["Title"] = "Editar Tenant";
+}
+
+<div class="container mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="mb-0">Editar Tenant</h3>
+        <a class="btn btn-outline-secondary" href="/Monitor/Tenants">Volver</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="alert alert-success">@Model.SuccessMessage</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+
+    <form method="post" class="card p-3">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Input.Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input class="form-control" asp-for="Input.Nombre" required />
+            <span class="text-danger" asp-validation-for="Input.Nombre"></span>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" asp-for="Input.Activo" />
+            <label class="form-check-label">Activo</label>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="mb-3">
+            <label class="form-label">X-Api-Key</label>
+
+            <div class="input-group">
+                <input class="form-control" value="@Model.ApiKeyMasked" readonly />
+
+                <button type="submit"
+                        class="btn btn-outline-secondary"
+                        asp-page-handler="Rotar"
+                        onclick="return confirm('Se generará una nueva API Key. La anterior dejará de funcionar. ¿Continuar?');">
+                    Rotar
+                </button>
+            </div>
+
+            <div class="form-text">
+                Por seguridad solo mostramos los últimos 4 caracteres.
+            </div>
+        </div>
+
+        <hr class="my-3" />
+
+        <h6 class="mb-3">Credenciales PAC (MultiFacturas)</h6>
+
+        <div class="mb-3">
+            <label class="form-label">Usuario PAC</label>
+            <input class="form-control" asp-for="Input.PacUsuario" />
+            <span class="text-danger" asp-validation-for="Input.PacUsuario"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Password PAC</label>
+            <div class="input-group">
+                <input class="form-control" asp-for="Input.PacPassword" type="password" id="pacPwd" autocomplete="new-password" />
+                <button class="btn btn-outline-secondary" type="button" onclick="
+                    const i=document.getElementById('pacPwd');
+                    i.type = (i.type==='password'?'text':'password');
+                ">
+                    👁
+                </button>
+            </div>
+            <div class="form-text">
+                Deja vacío para conservar el password actual. (Se guarda cifrado)
+            </div>
+            <span class="text-danger" asp-validation-for="Input.PacPassword"></span>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" asp-for="Input.PacProduccion" />
+            <label class="form-check-label">Usar Producción</label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Guardar cambios</button>
+            <a class="btn btn-outline-secondary" href="/Monitor/Tenants">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,26 @@
+﻿@page "/Monitor/Tenants/{tenantId:int}/Certificados/Details/{certId:int}"
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.Certificados.DetailsModel
+@{
+    ViewData["Title"] = "Detalle Certificado";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-3">Detalle Certificado</h3>
+
+    <div class="card p-3">
+        <div><b>Tenant:</b> @Model.TenantNombre</div>
+        <div><b>RFC:</b> @Model.RFC</div>
+        <div><b>Activo:</b> @(Model.Activo ? "Sí" : "No")</div>
+        <div><b>NoCert:</b> @(Model.NoCertificado ?? "—")</div>
+        <div><b>Vigencia inicio:</b> @(Model.VigenciaInicioUtc?.ToLocalTime().ToString("yyyy-MM-dd") ?? "—")</div>
+        <div><b>Vigencia fin:</b> @(Model.VigenciaFinUtc?.ToLocalTime().ToString("yyyy-MM-dd") ?? "—")</div>
+        <hr />
+        <div><b>CER PEM:</b> <code>@Model.CerPath</code></div>
+        <div><b>KEY PEM:</b> <code>@Model.KeyPath</code></div>
+    </div>
+
+    <div class="mt-3">
+        <a class="btn btn-outline-primary" href="/Monitor/Tenants/@Model.TenantId/Certificados/Edit/@Model.CertId">Editar</a>
+        <a class="btn btn-outline-secondary ms-2" href="/Monitor/Tenants/@Model.TenantId/Certificados">Volver</a>
+    </div>
+</div>
