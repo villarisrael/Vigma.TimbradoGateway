@@ -348,18 +348,11 @@
 
             <div class="col-lg-4">
                 <div class="rounded-4 border-0 p-4 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                    <div class="d-flex align-items-center justify-content-between mb-4">
-                        <strong class="fs-5">Dashboard</strong>
-                        <span class="status-indicator status-online">
-                            <span class="pulse online"></span> Operativo
-                        </span>
-                    </div>
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block mb-2">API Key de ejemplo:</small>
-                        <div class="api-key-display">
-                            <code>vgma_live_sk_1234567890abcdef</code>
-                        </div>
+                    <div class="card p-3">
+                      <h5>Estado de servicios</h5>
+                      <div id="mf">ApiRest de Mult: ...</div>
+                      <div id="mine">Mi API: ...</div>
+                      <small id="utc"></small>
                     </div>
 
                     <div class="small text-muted">
@@ -444,100 +437,6 @@
         </div>
     </div>
 
-    <!-- Características Principales -->
-    <div class="row g-4 mt-5">
-        <div class="col-md-4">
-            <div class="feature-card p-4 shadow-sm">
-                <div class="icon-wrapper">
-                    <i class="bi bi-layers"></i>
-                </div>
-                <h5 class="fw-bold mb-3">Multi-tenant Seguro</h5>
-                <p class="text-muted mb-3">
-                    Cada cliente con su propia API Key y certificados. Aislamiento total de configuraciones y datos.
-                </p>
-                <ul class="list-unstyled small text-muted">
-                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2"></i> API Keys únicas</li>
-                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2"></i> Certificados por tenant</li>
-                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2"></i> Límites personalizados</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="feature-card p-4 shadow-sm">
-                <div class="icon-wrapper">
-                    <i class="bi bi-shield-lock"></i>
-                </div>
-                <h5 class="fw-bold mb-3">Auditoría Completa</h5>
-                <p class="text-muted mb-3">
-                    Registro detallado de todas las solicitudes, respuestas, errores y tiempos de respuesta.
-                </p>
-                <ul class="list-unstyled small text-muted">
-                    <li class="mb-1"><i class="bi bi-clock-history text-primary me-2"></i> Trazabilidad completa</li>
-                    <li class="mb-1"><i class="bi bi-file-text text-primary me-2"></i> Logs detallados</li>
-                    <li class="mb-1"><i class="bi bi-search text-primary me-2"></i> Búsqueda avanzada</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="feature-card p-4 shadow-sm">
-                <div class="icon-wrapper">
-                    <i class="bi bi-lightning-charge"></i>
-                </div>
-                <h5 class="fw-bold mb-3">Alto Rendimiento</h5>
-                <p class="text-muted mb-3">
-                    Optimizado para procesar miles de timbrados simultáneos con latencia mínima.
-                </p>
-                <ul class="list-unstyled small text-muted">
-                    <li class="mb-1"><i class="bi bi-speedometer2 text-warning me-2"></i> < 100ms promedio</li>
-                    <li class="mb-1"><i class="bi bi-arrow-up-circle text-warning me-2"></i> Escalabilidad horizontal</li>
-                    <li class="mb-1"><i class="bi bi-activity text-warning me-2"></i> Monitoreo 24/7</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- Actividad Reciente -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="recent-activity">
-                <h5 class="fw-bold mb-4">Actividad Reciente</h5>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <strong>Tenant "FacturaPlus"</strong> realizó 48 timbrados exitosos
-                        <div class="text-muted small">Hace 5 minutos • Total: $12,450.00 MXN</div>
-                    </div>
-                    <span class="badge bg-success bg-opacity-10 text-success">Exitosa</span>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <strong>Error de certificado</strong> en tenant "Servicios Contables S.A."
-                        <div class="text-muted small">Hace 25 minutos • Certificado expirado</div>
-                    </div>
-                    <span class="badge bg-danger bg-opacity-10 text-danger">Error</span>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="bi bi-plus-circle"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <strong>Nuevo tenant registrado</strong>: "Distribuidora del Norte"
-                        <div class="text-muted small">Hace 1 hora • Plan: Empresarial</div>
-                    </div>
-                    <span class="badge bg-primary bg-opacity-10 text-primary">Nuevo</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
 
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -577,4 +476,21 @@
             this.style.transform = 'translateY(0)';
         });
     });
+</script>
+
+<script>
+    async function revisar(){
+      const r = await fetch("/v1/timbrar/health/all", { cache: "no-store" });
+      const d = await r.json();
+
+      document.getElementById("mine").textContent =
+        (d.mine.online ? "🟢" : "🔴") + " API VIGMA (HTTP " + d.mine.status + ")";
+
+      document.getElementById("mf").textContent =
+        (d.multifacturas.online ? "🟢" : "🔴") + " MultiFacturas " +
+        (d.multifacturas.online ? "(HTTP " + d.multifacturas.status + ")" : "(" + d.multifacturas.error + ")");
+    }
+
+    revisar();
+    setInterval(revisar, 30000);
 </script>

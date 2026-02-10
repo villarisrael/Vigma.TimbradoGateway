@@ -34,6 +34,7 @@ namespace Vigma.TimbradoGateway.ViewModels.Timbrados
         public bool Cancelada { get; set; }
         public decimal? Saldo { get; set; }
         public DateTime CreatedUtc { get; set; }
+        public string? Adicionales { get; set; }
     }
 
     public class TimbradoDetalleVM
@@ -55,5 +56,7 @@ namespace Vigma.TimbradoGateway.ViewModels.Timbrados
         public bool Cancelada { get; set; }
         public decimal? Saldo { get; set; }
         public DateTime CreatedUtc { get; set; }
+        public string? JsonFormateado { get; set; }
+        public string? Adicionales { get; set; }
     }
 }

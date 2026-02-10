@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Vigma.TimbradoGateway.Infrastructure;
@@ -7,12 +9,32 @@ using Vigma.TimbradoGateway.Utils;
 
 namespace Vigma.TimbradoGateway.Services;
 
-
 public interface ITimbradoLogService
 {
-    Task LogOkAsync(long tenantId, string rfcEmisor, MfApiMeta meta, string? uuid, string? tipo, string xmltimbrado, string? serie, string? folio, string? TipoDeComprobante, CancellationToken ct = default);
-    Task LogErrorAsync(long tenantId, string rfcEmisor, MfApiMeta meta, string jsonEnviado, string? tipo, string? detalleInterno = null, CancellationToken ct = default);
+    Task LogOkAsync(
+        long tenantId,
+        string rfcEmisor,
+        MfApiMeta meta,
+        string? uuid,
+        string? tipo,
+        string xmltimbrado,
+        string? serie,
+        string? folio,
+        string? tipoDeComprobante,
+        IReadOnlyDictionary<string, string>? adicionales = null,
+        CancellationToken ct = default);
+
+    Task LogErrorAsync(
+        long tenantId,
+        string rfcEmisor,
+        MfApiMeta meta,
+        string jsonEnviado,
+        string? tipo,
+        string? detalleInterno = null,
+        IReadOnlyDictionary<string, string>? adicionales = null,
+        CancellationToken ct = default);
 }
+
 
 
 public sealed class TimbradoLogService : ITimbradoLogService
@@ -29,7 +51,7 @@ public sealed class TimbradoLogService : ITimbradoLogService
      string? xmltimbrado,
      string? serie,
      string? folio,
-     string? tipoDeComprobante,
+     string? tipoDeComprobante, IReadOnlyDictionary<string, string>? adicionales = null,
      CancellationToken ct = default)
     {
         // meta puede venir null si algo falla arriba; no queremos que truene el logger
@@ -73,7 +95,9 @@ public sealed class TimbradoLogService : ITimbradoLogService
            // TipoComprobante (aquí tú lo estás usando como "tipo origen": ini-json)
           row. Origen = tipo;
 
-        row.created_utc = MexicoNow(); // o DateTime.UtcNow si decides volver a UTC
+          row.Adicionales = SerializeAdicionales(adicionales);
+
+            row.created_utc = MexicoNow(); // o DateTime.UtcNow si decides volver a UTC
         try
         {
             _db.TimbradoOkLogs.Add(row);
@@ -93,7 +117,7 @@ public sealed class TimbradoLogService : ITimbradoLogService
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task LogErrorAsync(long tenantId, string rfcEmisor, MfApiMeta meta, string jsonEnviado, string? tipo, string? detalleInterno = null, CancellationToken ct = default)
+    public async Task LogErrorAsync(long tenantId, string rfcEmisor, MfApiMeta meta, string jsonEnviado, string? tipo, string? detalleInterno = null, IReadOnlyDictionary<string, string>? adicionales = null, CancellationToken ct = default)
     {
         TimbradoErrorLog row = new TimbradoErrorLog();
         row.TenantId = tenantId;
@@ -117,6 +141,7 @@ public sealed class TimbradoLogService : ITimbradoLogService
         row.Tipo = tipo ?? "";                // "ini" | "ini-json" => default ""
 
         row.CreadoUtc = MexicoNow();
+        row.Adicionales = SerializeAdicionales(adicionales);
 
 
         _db.TimbradoErrorLogs.Add(row);
@@ -124,6 +149,25 @@ public sealed class TimbradoLogService : ITimbradoLogService
     }
 
 
+    private static string? SerializeAdicionales(IReadOnlyDictionary<string, string>? adicionales)
+    {
+        if (adicionales == null || adicionales.Count == 0) return null;
+
+        // Limpia valores vacíos por si acaso
+        var clean = adicionales
+            .Where(kv => !string.IsNullOrWhiteSpace(kv.Key) && !string.IsNullOrWhiteSpace(kv.Value))
+            .ToDictionary(kv => kv.Key.Trim(), kv => kv.Value.Trim(), StringComparer.OrdinalIgnoreCase);
+
+        if (clean.Count == 0) return null;
+
+        var opts = new JsonSerializerOptions
+        {
+            WriteIndented = false,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // por si vienen acentos/UTF-8 sin escapes feos
+        };
+
+        return JsonSerializer.Serialize(clean, opts);
+    }
 
     public static DateTime MexicoNow()
     {

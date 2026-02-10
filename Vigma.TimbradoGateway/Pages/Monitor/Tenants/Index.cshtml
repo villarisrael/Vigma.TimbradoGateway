@@ -76,19 +76,78 @@
                             <span class="text-muted">—</span>
                         }
                     </td>
-                    <td style="white-space:nowrap;">
-                        <a class="btn btn-sm btn-outline-dark" asp-page="Edit" asp-route-id="@t.Id">Editar</a>
-                        <a class="btn btn-sm btn-outline-success"
-                           href="/Monitor/Tenants/@t.Id/Certificados">Certificados</a>
-                       
-                   
-                        <button type="button"
-                                class="btn btn-sm btn-outline-primary js-saldo"
-                                data-tenantid="@t.Id"
-                                data-nombre="@t.Nombre">
-                            <i class="fa fa-receipt"></i> Saldo timbres
-                        </button>
-                    </td>
+                   <td style="white-space:nowrap;" class="d-flex flex-wrap gap-1">
+                            <a class="btn btn-sm btn-outline-dark" asp-page="Edit" asp-route-id="@t.Id">
+                                <i class="fa fa-pen"></i> Editar
+                            </a>
+
+                            <a class="btn btn-sm btn-outline-success" href="/Monitor/Tenants/@t.Id/Certificados">
+                                <i class="fa fa-certificate"></i> Certificados
+                            </a>
+
+                            <!-- Consultar errores -->
+                            <a class="btn btn-sm btn-outline-danger" href="/Monitor/Errores?tenantId=@t.Id">
+                                <i class="fa fa-triangle-exclamation"></i> Errores
+                            </a>
+
+                            <!-- Consultar timbrados -->
+                            <a class="btn btn-sm btn-outline-info" href="/Monitor/Timbrados?tenantId=@t.Id">
+                                <i class="fa fa-file-invoice"></i> Timbrados
+                            </a>
+
+                            <!-- Saldo timbres -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary js-saldo"
+                                    data-tenantid="@t.Id"
+                                    data-nombre="@t.Nombre">
+                                <i class="fa fa-receipt"></i> Saldo timbres
+                            </button>
+
+                            <!-- Suspender / Activar (POST) -->
+                            <form method="post"
+                                  asp-page-handler="ToggleActivo"
+                                  asp-route-id="@t.Id"
+                                  class="d-inline">
+                                @Html.AntiForgeryToken()
+                                @if (t.Activo)
+                                {
+                                    <button type="submit" class="btn btn-sm btn-outline-warning"
+                                            onclick="return confirm('¿Suspender este tenant?');">
+                                        <i class="fa fa-pause"></i> Suspender
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-sm btn-outline-success"
+                                            onclick="return confirm('¿Activar este tenant?');">
+                                        <i class="fa fa-play"></i> Activar
+                                    </button>
+                                }
+                            </form>
+
+                            <!-- Modo prueba / Modo producción (POST) -->
+                            <form method="post"
+                                  asp-page-handler="ToggleModoPrueba"
+                                  asp-route-id="@t.Id"
+                                  class="d-inline">
+                                @Html.AntiForgeryToken()
+                                @if (t.pac_produccion)
+                                {
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                            onclick="return confirm('Cambiar a MODO PRODUCCIÓN (timbrará en producción)?');">
+                                        <i class="fa fa-rocket"></i> Modo producción
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                            onclick="return confirm('Cambiar a MODO PRUEBA?');">
+                                        <i class="fa fa-vial"></i> Modo prueba
+                                    </button>
+                                }
+                            </form>
+                </td>
+
                   
 
                 </tr>

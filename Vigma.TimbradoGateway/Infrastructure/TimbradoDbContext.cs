@@ -13,6 +13,8 @@ public class TimbradoDbContext : DbContext
     public DbSet<TimbradoOkLog> TimbradoOkLogs => Set<TimbradoOkLog>();
     public DbSet<TimbradoErrorLog> TimbradoErrorLogs => Set<TimbradoErrorLog>();
 
+    public DbSet<UsuarioOficina> UsuariosOficina => Set<UsuarioOficina>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -66,6 +68,16 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.ActualizadoUtc).HasColumnName("actualizado_utc");
 
             e.Property(x => x.ErrorLast).HasColumnName("error_last");
+        });
+
+        b.Entity<UsuarioOficina>(e =>
+        {
+            e.ToTable("usuarios_oficina");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.Usuario).IsUnique();
+            e.Property(x => x.Usuario).HasMaxLength(60).IsRequired();
+            e.Property(x => x.PasswordHash).HasMaxLength(255).IsRequired();
+            e.Property(x => x.Rol).HasMaxLength(30).IsRequired();
         });
 
     }

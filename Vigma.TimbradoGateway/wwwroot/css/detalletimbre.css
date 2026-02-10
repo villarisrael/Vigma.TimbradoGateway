@@ -1,0 +1,339 @@
+﻿:root {
+    --ok-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    --gold-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+    --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --card-hover-shadow: 0 15px 40px rgba(245, 158, 11, 0.15);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.detail-header {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: var(--card-shadow);
+    border-left: 5px solid #f59e0b;
+    position: relative;
+    overflow: hidden;
+}
+
+    .detail-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: var(--gold-gradient);
+        opacity: 0.06;
+        border-radius: 0 20px 0 0;
+    }
+
+.badge-large {
+    padding: 8px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(251, 191, 36, 0.12) 100%);
+    color: #b45309;
+    border: 2px solid rgba(245, 158, 11, 0.25);
+    display: inline-block;
+}
+
+.info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--card-shadow);
+    border: none;
+    transition: var(--transition-smooth);
+}
+
+    .info-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-hover-shadow);
+    }
+
+.card-title {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-value {
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: #1f2937;
+    word-break: break-all;
+}
+
+.mono-badge {
+    background: rgba(59, 130, 246, 0.10);
+    color: #2563eb;
+    padding: 6px 16px;
+    border-radius: 10px;
+    font-family: 'Consolas', monospace;
+    font-weight: 650;
+    border: 1px solid rgba(59, 130, 246, 0.20);
+    display: inline-block;
+}
+
+.pill {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-weight: 750;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.pill-ok {
+    background: rgba(16, 185, 129, 0.12);
+    color: #065f46;
+    border-color: rgba(16, 185, 129, 0.22);
+}
+
+.pill-cancel {
+    background: rgba(239, 68, 68, 0.10);
+    color: #991b1b;
+    border-color: rgba(239, 68, 68, 0.22);
+}
+
+.pill-mid {
+    background: rgba(148, 163, 184, 0.12);
+    color: #475569;
+    border-color: rgba(148, 163, 184, 0.25);
+}
+
+.xml-editor-container {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    margin-top: 25px;
+}
+
+.xml-header {
+    background: linear-gradient(135deg, #111827 0%, #334155 100%);
+    padding: 20px 25px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.xml-toolbar {
+    background: #f8fafc;
+    padding: 15px 25px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.xml-content {
+    min-height: 520px;
+    max-height: 760px;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: 22px;
+    background: #0b1220;
+    font-family: 'Consolas','Monaco','Courier New', monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #e5e7eb; /* color base */
+    scrollbar-gutter: stable;
+}
+
+    /* El <pre> solo hereda y respeta espacios */
+    .xml-content pre {
+        margin: 0;
+        white-space: pre;
+        color: inherit; /* <-- importante */
+    }
+
+    /* ===== Syntax highlighting (con mayor especificidad) ===== */
+    .xml-content .xml-tag {
+        color: #93c5fd;
+    }
+    /* etiqueta completa (si la usas) */
+    .xml-content .xml-tag-name {
+        color: #60a5fa;
+        font-weight: 700;
+    }
+    /* nombre de tag */
+    .xml-content .xml-attr-name {
+        color: #fbbf24;
+    }
+    /* atributo */
+    .xml-content .xml-attr-eq {
+        color: #94a3b8;
+    }
+    /* = */
+    .xml-content .xml-attr-val {
+        color: #34d399;
+    }
+    /* "valor" */
+    .xml-content .xml-comment {
+        color: #a78bfa;
+        font-style: italic;
+    }
+    /* <!-- --> */
+    .xml-content .xml-punct {
+        color: #94a3b8;
+    }
+/* < > / */
+
+
+.btn-icon {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 650;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition-smooth);
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #475569;
+}
+
+    .btn-icon:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-icon.btn-copy:hover {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+
+    .btn-icon.btn-download:hover {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+
+    .btn-icon.btn-reload:hover {
+        background: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+
+.copy-success {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.30);
+    z-index: 1000;
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+}
+
+@@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+.time-badge {
+    background: #f8fafc;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-family: 'Consolas', monospace;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.empty-xml {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.empty-xml-icon {
+    font-size: 4rem;
+    opacity: 0.35;
+    margin-bottom: 16px;
+}
+
+.modal textarea {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    min-height: 55vh;
+    border-radius: 12px;
+}
+
+.info-card {
+    width: 100%;
+}
+
+/* Reparación del grid si algún CSS sobreescribió .row */
+.info-card {
+    width: 100%;
+}
+
+/* Cards en 3 columnas: ocupar toda la columna */
+.timbrado-info-row .info-card {
+    width: 100%;
+    height: 100%;
+}
+
+    /* Evita que el card "Mensaje MF" se vea muy chiquito */
+    .timbrado-info-row .info-card .card-value {
+        min-height: 50px; /* ajusta a gusto */
+    }
+
+/* Solo si REALMENTE alguien sobreescribió .row en tu proyecto:
+       (si no, puedes borrar este bloque completo) */
+.timbrado-info-row.row {
+    display: flex;
+    flex-wrap: wrap;
+}

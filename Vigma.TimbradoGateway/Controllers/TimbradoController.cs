@@ -1,15 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Configuration;
-using MySqlConnector;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using TimbradoGateway.Contracts.Mf;
 using Vigma.TimbradoGateway.DTOs;
 using Vigma.TimbradoGateway.Services;
-using Vigma.TimbradoGateway.ViewModels.Timbrados;
 
 namespace Vigma.TimbradoGateway.Controllers;
 
@@ -18,17 +12,46 @@ namespace Vigma.TimbradoGateway.Controllers;
 public class TimbradoController : ControllerBase
 {
     private readonly ITimbradoService _svc;
-    private readonly string _cs;
-    public TimbradoController(ITimbradoService svc, IConfiguration cfg) 
+
+
+ private readonly HashSet<string> _optionalHeaderNames = new(StringComparer.OrdinalIgnoreCase)
         {
-        _cs = cfg.GetConnectionString("MySql")!;
-        _svc = svc; }
+            "Cuenta",
+            "Tipo",
+            "IDCliente",
+            "Referencia",
+            "Comunidad",
+            "Articulos"
+        };
+    private List<KeyValuePair<string, string>> _headersAdicionales = new();
+
+    public TimbradoController(ITimbradoService svc)
+    {
+        _svc = svc;
+    }
+
+    // ✅ Health check (sin API Key)
+    [HttpGet("health")]
+    [AllowAnonymous] // si no usas autenticación global, puedes quitarlo
+    public IActionResult Health()
+    {
+        return Ok(new
+        {
+            ok = true,
+            service = "Vigma.TimbradoGateway",
+            controller = "TimbradoController",
+            route = "/v1/timbrar/health",
+            utc = DateTime.UtcNow,
+            uptimeSeconds = (long)TimeSpan.FromMilliseconds(Environment.TickCount64).TotalSeconds
+        });
+    }
 
     private bool TryGetApiKey(out string apiKey)
     {
         apiKey = string.Empty;
 
-        // Acepta X-Api-Key y X-API-KEY (case-insensitive en ASP.NET Core, pero por claridad)
+       
+
         if (Request.Headers.TryGetValue("X-Api-Key", out var v) && !string.IsNullOrWhiteSpace(v))
         {
             apiKey = v.ToString().Trim();
@@ -40,7 +63,6 @@ public class TimbradoController : ControllerBase
             return true;
         }
 
-        // Opcional: también permitir Authorization: Bearer {key}
         if (Request.Headers.TryGetValue("Authorization", out var auth) && !string.IsNullOrWhiteSpace(auth))
         {
             var s = auth.ToString();
@@ -61,54 +83,103 @@ public class TimbradoController : ControllerBase
     [HttpPost("ini")]
     public async Task<IActionResult> TimbrarIni([FromBody] TimbradoIniRequest? req, CancellationToken ct)
     {
+        CapturarHeadersAdicionales();
+        var adicionales = _headersAdicionales
+      .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);  //checa que datos adicionales trae en el header
+
         if (!TryGetApiKey(out var apiKey)) return ApiKeyMissing();
         if (req is null || string.IsNullOrWhiteSpace(req.ini))
             return BadRequest(new { ok = false, mensaje = "El campo 'ini' es requerido." });
 
         try
         {
-            var resp = await _svc.TimbrarDesdeIniAsync(apiKey, req.ini, ct);
+            var resp = await _svc.TimbrarDesdeIniAsync(apiKey, req.ini,adicionales, ct);
             return Ok(resp);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { ok = false, mensaje = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { ok = false, mensaje = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { ok = false, mensaje = ex.Message });
-        }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { ok = false, mensaje = ex.Message }); }
+        catch (ArgumentException ex) { return BadRequest(new { ok = false, mensaje = ex.Message }); }
+        catch (Exception ex) { return StatusCode(500, new { ok = false, mensaje = ex.Message }); }
     }
 
     [HttpPost("ini-json")]
     public async Task<IActionResult> TimbrarIniJson([FromBody] TimbradoIniRequest? req, CancellationToken ct)
     {
-        if (!TryGetApiKey(out var apiKey)) return ApiKeyMissing();
+        CapturarHeadersAdicionales();
+        var adicionales = _headersAdicionales
+     .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase); //checa que datos adicionales trae en el header de la solcitud 
+        if (!TryGetApiKey(out var apiKey)) return ApiKeyMissing(); 
         if (req is null || string.IsNullOrWhiteSpace(req.ini))
             return BadRequest(new { ok = false, mensaje = "El campo 'ini' es requerido." });
 
         try
         {
-            var resp = await _svc.TimbrarDesdeIniJsonAsync(apiKey, req.ini, ct);
+            var resp = await _svc.TimbrarDesdeIniJsonAsync(apiKey, req.ini, adicionales, ct );
             return Ok(resp);
         }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { ok = false, mensaje = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { ok = false, mensaje = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { ok = false, mensaje = ex.Message });
-        }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { ok = false, mensaje = ex.Message }); }
+        catch (ArgumentException ex) { return BadRequest(new { ok = false, mensaje = ex.Message }); }
+        catch (Exception ex) { return StatusCode(500, new { ok = false, mensaje = ex.Message }); }
     }
 
-    
+   
+
+[HttpGet("health/all")]
+public async Task<IActionResult> HealthAll(CancellationToken ct)
+{
+    // 1) Estado de tu API (si este método responde, tu API está viva)
+    var mine = new
+    {
+        online = true,
+        status = 200,
+        url = "/v1/timbrar/health",
+        utc = DateTime.UtcNow
+    };
+
+    // 2) Estado MultiFacturas (externo)
+    try
+    {
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+        using var resp = await http.GetAsync("https://ws.multifacturas.com/api/", ct);
+        var body = await resp.Content.ReadAsStringAsync(ct);
+
+        var mf = new
+        {
+            online = true,
+            status = (int)resp.StatusCode,
+            url = "https://ws.multifacturas.com/api/",
+            snippet = body.Length > 200 ? body[..200] : body
+        };
+
+        return Ok(new { mine, multifacturas = mf });
+    }
+    catch (Exception ex)
+    {
+        var mf = new
+        {
+            online = false,
+            status = 0,
+            url = "https://ws.multifacturas.com/api/",
+            error = ex.Message
+        };
+
+        return Ok(new { mine, multifacturas = mf });
+    }
+}
+
+    private void CapturarHeadersAdicionales()  // captura si viene cuenta, idcliente, tipo, referencia
+    {
+        var list = new List<KeyValuePair<string, string>>();
+
+        foreach (var name in _optionalHeaderNames)
+        {
+            if (Request.Headers.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value))
+            {
+                // Si el header trae múltiples valores, los unimos por coma
+                list.Add(new KeyValuePair<string, string>(name, value.ToString().Trim()));
+            }
+        }
+
+        _headersAdicionales = list;
+    }
+
 }

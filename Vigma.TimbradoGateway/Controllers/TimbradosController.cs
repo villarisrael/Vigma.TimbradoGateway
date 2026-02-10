@@ -1,16 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Xml;
 using Vigma.TimbradoGateway.ViewModels.Timbrados;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Vigma.TimbradoGateway.Controllers
 {
+    [Authorize]
     public class TimbradosController : Controller
     {
         private readonly string _cs;
@@ -42,6 +47,16 @@ namespace Vigma.TimbradoGateway.Controllers
 
         [HttpGet]
         public IActionResult TimbradosDetalle(long id)
+        {
+            var row = ObtenerTimbradoPorId(id);
+            if (row == null) return NotFound();
+
+            // Busca: Views/Timbrados/TimbradosDetalle.cshtml
+            return View(row);
+        }
+
+        [HttpGet]
+        public IActionResult TimbradosAdicionales(long id)
         {
             var row = ObtenerTimbradoPorId(id);
             if (row == null) return NotFound();
@@ -187,7 +202,7 @@ namespace Vigma.TimbradoGateway.Controllers
                     xmltimbrado,
                     cancelada,
                     saldo,
-                    created_utc
+                    created_utc, Adicionales
                 FROM timbrado_ok_log
                 WHERE id = @id
                 LIMIT 1;
@@ -211,6 +226,7 @@ namespace Vigma.TimbradoGateway.Controllers
                 XmlTimbrado = rd["xmltimbrado"] == DBNull.Value ? null : rd["xmltimbrado"]?.ToString(),
                 Cancelada = Convert.ToBoolean(rd["cancelada"]),
                 Saldo = rd["saldo"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(rd["saldo"]),
+                Adicionales = rd["Adicionales"] == DBNull.Value ? null : rd["Adicionales"]?.ToString(),
                 CreatedUtc = Convert.ToDateTime(rd["created_utc"])
             };
         }
@@ -287,5 +303,59 @@ namespace Vigma.TimbradoGateway.Controllers
 
             return sb.ToString();
         }
+
+
+        public IActionResult GetAdicionalesFormatted(long id)
+        {
+            var row = ObtenerTimbradoPorId(id);
+            if (row == null || string.IsNullOrEmpty(row.Adicionales))
+                return Json(new { error = "Adicionales no encontrados" });
+
+            try
+            {
+                var formateado = FormatearJson(row.Adicionales);
+                return Json(new
+                {
+                    success = true,
+                    jsonFormatted = formateado,
+                    esValido = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    jsonRaw = row.Adicionales
+                });
+            }
+        }
+
+        private string FormatearJson(string json)
+        {
+            try
+            {
+                var parsedJson = JToken.Parse(json);
+                return parsedJson.ToString(Formatting.Indented);
+            }
+            catch
+            {
+                // Si no es JSON válido, intentar con System.Text.Json
+                try
+                {
+                    using var doc = JsonDocument.Parse(json);
+                    return System.Text.Json.JsonSerializer.Serialize(doc.RootElement,
+                        new JsonSerializerOptions { WriteIndented = true });
+                }
+                catch
+                {
+                    return json; // Devolver el original si no se puede formatear
+                }
+            }
+        }
+
     }
+
+
 }

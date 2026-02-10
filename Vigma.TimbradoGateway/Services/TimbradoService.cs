@@ -20,8 +20,12 @@ namespace Vigma.TimbradoGateway.Services;
 
 public interface ITimbradoService
 {
-    Task<TimbradoResponse> TimbrarDesdeIniAsync(string apiKey, string ini, CancellationToken ct = default); // SOAP actual
-    Task<TimbradoResponse> TimbrarDesdeIniJsonAsync(string apiKey, string ini, CancellationToken ct = default); // NUEVO REST /api
+    Task<TimbradoResponse> TimbrarDesdeIniAsync(string apiKey, string ini,
+         IReadOnlyDictionary<string, string>? adicionales = null,
+        CancellationToken ct = default); // SOAP actual
+    Task<TimbradoResponse> TimbrarDesdeIniJsonAsync(string apiKey, string ini,
+         IReadOnlyDictionary<string, string>? adicionales = null,
+        CancellationToken ct = default); // NUEVO REST /api
 }
 
 
@@ -66,7 +70,9 @@ public sealed class TimbradoService : ITimbradoService
     }
 
 
-    public async Task<TimbradoResponse> TimbrarDesdeIniAsync(string apiKey, string ini, CancellationToken ct = default)
+    public async Task<TimbradoResponse> TimbrarDesdeIniAsync(string apiKey, string ini, 
+        IReadOnlyDictionary<string, string>? adicionales = null, 
+        CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
             throw new UnauthorizedAccessException("Falta API Key (X-Api-Key).");
@@ -270,37 +276,14 @@ public sealed class TimbradoService : ITimbradoService
         text = RemoveLinesStartingWith(text, "xml_debug=");
 
         // B) quitar líneas duplicadas exactas consecutivas o repetidas (por pegado doble)
-          text = RemoveDuplicateLines(text);
+       //   text = RemoveDuplicateLines(text);   no activar o marcara error no clasificado
 
         // C) quitar bloques de sección duplicados (mismo header repetido)
         text = RemoveDuplicateSectionsKeepFirst(text);
 
         return text.Trim();
     }
-    private static string RemoveDuplicateLines(string ini)
-    {
-        var lines = NormalizeNewlines(ini).Split('\n');
-        var seen = new HashSet<string>(StringComparer.Ordinal); // exacto
-        var sb = new StringBuilder();
-
-        foreach (var raw in lines)
-        {
-            var line = raw.TrimEnd(); // normaliza espacios al final
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                sb.AppendLine();
-                continue;
-            }
-
-            // Si la misma línea ya apareció, la brincamos (esto elimina el "ini pegado 2 veces")
-            if (!seen.Add(line))
-                continue;
-
-            sb.AppendLine(line);
-        }
-
-        return sb.ToString().TrimEnd('\r', '\n');
-    }
+  
 
     private static string RemoveDuplicateSectionsKeepFirst(string ini)
     {
@@ -372,6 +355,7 @@ public sealed class TimbradoService : ITimbradoService
     public async Task<TimbradoResponse> TimbrarDesdeIniJsonAsync(
     string apiKey,
     string ini,
+    IReadOnlyDictionary<string, string>? adicionales = null,
     CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -426,7 +410,7 @@ public sealed class TimbradoService : ITimbradoService
                     rfcEmisor: rfcEmisor,
                     meta: meta,
                     uuid: parsed.Uuid ?? meta.Uuid,
-                    tipo: tipo, xmltimbrado: parsed.XmlTimbrado, serie: serie, folio: folio, TipoDeComprobante: TipoDeComprobante,
+                    tipo: tipo, xmltimbrado: parsed.XmlTimbrado, serie: serie, folio: folio, tipoDeComprobante: TipoDeComprobante,adicionales: adicionales,
                     ct: ct
                 );
             }
@@ -444,6 +428,7 @@ public sealed class TimbradoService : ITimbradoService
                 jsonEnviado: jsonMf,                 // solo en errores
                 tipo: tipo,
                 detalleInterno: meta.CodigoMfTexto,  // opcional
+                adicionales: adicionales,
                 ct: ct
             );
         }

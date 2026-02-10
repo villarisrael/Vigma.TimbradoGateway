@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Plugins;
+using System.Text.RegularExpressions;
 using Vigma.TimbradoGateway.Infrastructure;
 using Vigma.TimbradoGateway.Models;
 using Vigma.TimbradoGateway.Services;
-using System.Text.RegularExpressions;
 
 namespace Vigma.TimbradoGateway.Pages.Monitor.Tenants.Certificados;
 
@@ -61,33 +62,44 @@ public class CreateModel : PageModel
             var dir = Path.Combine(basePath, tenantId.ToString(), RFC);
             Directory.CreateDirectory(dir);
 
-            var cerOriginal = Path.Combine(dir, $"{RFC}.cer");
-            var keyOriginal = Path.Combine(dir, $"{RFC}.key");
+            var cerDer = Path.Combine(dir, $"{RFC}.cer");          // original DER
+            var keyDer = Path.Combine(dir, $"{RFC}.key");          // original DER
+
+            var cerPem = Path.Combine(dir, $"{RFC}.cer.pem");      // convertido PEM
+            var keyPem = Path.Combine(dir, $"{RFC}.key.pem");      // convertido PEM
+
             var pfxOriginal = Path.Combine(dir, $"{RFC}.pfx");
 
-            var cerPem = Path.Combine(dir, $"{RFC}.cer");
-            var keyPem = Path.Combine(dir, $"{RFC}.key");
 
             if (Modo == "CERKEY")
             {
                 if (CerFile == null || KeyFile == null)
                     throw new Exception("Sube .cer y .key.");
 
-                await SaveAsync(CerFile, cerOriginal);
-                await SaveAsync(KeyFile, keyOriginal);
+               
 
-                await _openssl.RunAsync($"x509 -inform DER -in \"{cerOriginal}\" -out \"{cerPem}\"");
-                await _openssl.RunAsync($"pkcs8 -inform DER -in \"{keyOriginal}\" -passin pass:{Escape(KeyPassword)} -out \"{keyPem}\"");
+                await SaveAsync(CerFile, cerDer);
+                await SaveAsync(KeyFile, keyDer);
+
+                await _openssl.RunAsync(
+                    $"x509 -inform DER -in \"{cerDer}\" -out \"{cerPem}\"");
+
+                await _openssl.RunAsync(
+                    $"pkcs8 -inform DER -in \"{keyDer}\" -passin pass:\"{Escape(KeyPassword)}\" -out \"{keyPem}\"");
+
             }
             else if (Modo == "PFX")
             {
-                if (PfxFile == null)
-                    throw new Exception("Sube .pfx.");
-
                 await SaveAsync(PfxFile, pfxOriginal);
 
-                await _openssl.RunAsync($"pkcs12 -in \"{pfxOriginal}\" -clcerts -nokeys -out \"{cerPem}\" -passin pass:{Escape(KeyPassword)}");
-                await _openssl.RunAsync($"pkcs12 -in \"{pfxOriginal}\" -nocerts -nodes -out \"{keyPem}\" -passin pass:{Escape(KeyPassword)}");
+                await _openssl.RunAsync(
+                    $"pkcs12 -in \"{pfxOriginal}\" -clcerts -nokeys -out \"{cerPem}\" -passin pass:\"{Escape(KeyPassword)}\"");
+
+                // OJO: -nodes deja la key sin cifrar.
+                // Mejor cifrarla con el mismo password:
+                await _openssl.RunAsync(
+                    $"pkcs12 -in \"{pfxOriginal}\" -nocerts -out \"{keyPem}\" -passin pass:\"{Escape(KeyPassword)}\" -passout pass:\"{Escape(KeyPassword)}\"");
+
             }
             else throw new Exception("Modo inválido.");
 

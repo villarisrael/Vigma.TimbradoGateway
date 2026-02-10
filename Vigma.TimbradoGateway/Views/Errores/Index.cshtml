@@ -395,7 +395,7 @@
                         <th style="width:180px;">
                             <i class="bi bi-clock-history me-1"></i> Creado (UTC)
                         </th>
-                        <th style="width:120px;" class="text-center">
+                        <th style="width:120px;" class="text-center" colspan="2">
                             <i class="bi bi-gear me-1"></i> Acciones
                         </th>
                     </tr>
@@ -454,6 +454,12 @@
                                        href="@Url.Action("VistaTimbradoError", "Errores", new { id = r.Id })">
                                         <i class="bi bi-eye me-1"></i> Detalle
                                     </a>
+                                     <td class="text-center">
+                                    <a class="btn btn-detail"
+                                       href="@Url.Action("VistaAdicionales", "Errores", new { id = r.Id })">
+                                        <i class="bi bi-eye me-1"></i> Adicionales
+                                    </a>
+                                </td>
                                 </td>
                             </tr>
                         }

@@ -13,5 +13,6 @@ namespace Vigma.TimbradoGateway.ViewsModels.Errores
         public string? JsonFormateado { get; set; }
         public bool EsJsonValido { get; set; }
         public DateTime CreadoUtc { get; set; }
+        public string? Adicionales { get; set; }
     }
 }

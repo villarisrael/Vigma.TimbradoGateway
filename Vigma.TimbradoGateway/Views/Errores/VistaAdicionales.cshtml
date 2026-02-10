@@ -83,12 +83,13 @@
         <div class="json-header">
             <div>
                 <h5 class="fw-bold mb-0">
-                    <i class="bi bi-code-slash me-2"></i> JSON Enviado al PAC
+                    <i class="bi bi-code-slash me-2"></i> Datos Adicionales
                 </h5>
-                <small class="opacity-75">Contenido completo enviado para el timbrado</small>
+                <small class="opacity-75">Contenido Adicional enviado para el timbrado</small>
             </div>
             <div class="badge bg-warning">
-                @(Model.EsJsonValido ? "JSON Válido" : "JSON Inválido")
+               @(string.IsNullOrWhiteSpace(Model.Adicionales) ? "JSON Inválido" : "JSON Válido")
+
             </div>
         </div>
 
@@ -117,7 +118,7 @@
             {
                 <pre id="jsonContent">@Html.Raw(SyntaxHighlightJson(Model.JsonFormateado))</pre>
             }
-            else if (!string.IsNullOrEmpty(Model.Jsonenviado))
+            else if (!string.IsNullOrEmpty(Model.Adicionales))
             {
                 <div class="text-center py-5">
                     <div class="empty-json">
@@ -136,7 +137,7 @@
                     <div class="empty-json">
                         <i class="bi bi-file-earmark-x empty-json-icon"></i>
                         <h5 class="fw-bold mb-2">No hay JSON disponible</h5>
-                        <p class="text-muted">No se encontró contenido JSON para este error</p>
+                        <p class="text-muted">No se encontró contenido Adicional para este error</p>
                     </div>
                 </div>
             }
@@ -204,7 +205,7 @@
     // Copiar JSON al portapapeles
     async function copiarJSON() {
         try {
-            const response = await fetch('@Url.Action("GetJsonFormatted", "Errores")?id=@Model.Id');
+            const response = await fetch('@Url.Action("GetAdicionalesFormatted", "Errores")?id=@Model.Id');
             const data = await response.json();
 
             if (data.success) {
@@ -212,7 +213,7 @@
                 mostrarNotificacion('JSON copiado al portapapeles');
             } else {
                 // Si no hay JSON formateado, copiar el original
-                await navigator.clipboard.writeText(`@Model.Jsonenviado`);
+                await navigator.clipboard.writeText(`@Model.Adicionales`);
                 mostrarNotificacion('JSON copiado al portapapeles');
             }
         } catch (error) {
@@ -222,12 +223,12 @@
 
     // Descargar JSON como archivo
     function descargarJSON() {
-        const jsonContent = `@Model.Jsonenviado`;
+        const jsonContent = `@Model.Adicionales`;
         const blob = new Blob([jsonContent], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `error_@Model.Id @DateTime.Now.ToString("yyyyMMdd_HHmmss")`;
+        a.download = `Adicionales del error_@Model.Id `;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -237,7 +238,7 @@
     // Formatear JSON dinámicamente
     async function formatearJSON() {
         try {
-            const response = await fetch('@Url.Action("GetJsonFormatted", "Errores")?id=@Model.Id');
+            const response = await fetch('@Url.Action("GetAdicionalesFormatted", "Errores")?id=@Model.Id');
             const data = await response.json();
 
             if (data.success) {
@@ -257,7 +258,7 @@
     function alternarJSON() {
         const modal = new bootstrap.Modal(document.getElementById('rawJsonModal'));
         const textarea = document.getElementById('rawJsonTextarea');
-        textarea.value = `@Model.Jsonenviado`;
+        textarea.value = `@Model.Adicionales`;
         modal.show();
     }
 

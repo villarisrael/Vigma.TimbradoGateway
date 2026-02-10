@@ -1,7 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using TimbradoGateway.Services;
 using Vigma.TimbradoGateway.Infrastructure;
 using Vigma.TimbradoGateway.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,7 +56,16 @@ builder.Services.AddScoped<IIniParserService, IniParserService>();
 
 builder.Services.AddScoped<ITimbradoLogService, TimbradoLogService>();
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opt =>
+    {
+        opt.LoginPath = "/Account/Login";
+        opt.AccessDeniedPath = "/Account/Denied";
+        opt.ExpireTimeSpan = TimeSpan.FromHours(12);
+        opt.SlidingExpiration = true;
+    });
 
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -62,7 +74,8 @@ using (var scope = app.Services.CreateScope())
     var boot = scope.ServiceProvider.GetRequiredService<StorageBootstrapper>();
     boot.EnsureFolders();
 }
-
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseStaticFiles();
 

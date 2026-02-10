@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 using Vigma.TimbradoGateway.Infrastructure;
 
 namespace Vigma.TimbradoGateway.Pages.Monitor.Tenants;
@@ -20,6 +22,8 @@ public class IndexModel : PageModel
         public int Id { get; set; }
         public string Nombre { get; set; } = "";
         public bool Activo { get; set; }
+
+        public bool pac_produccion { get; set; }
         public string ApiKeyMasked { get; set; } = "";
         public string RfcsResumen { get; set; } = "";
         public DateTime? CertVigenciaFinUtc { get; set; }
@@ -62,10 +66,51 @@ public class IndexModel : PageModel
                 Id = t.Id,
                 Nombre = t.Nombre,
                 Activo = t.Activo,
+                pac_produccion = t.PacProduccion,
                 ApiKeyMasked = $"tg_live_************************{t.ApiKeyLast4}",
                 RfcsResumen = rfcs.Count == 0 ? "—" : string.Join(", ", rfcs.Take(3)) + (rfcs.Count > 3 ? "..." : ""),
                 CertVigenciaFinUtc = minVigFin
             };
         }).ToList();
     }
+
+    public async Task<IActionResult> OnPostToggleActivoAsync(long id)
+    {
+        var tenant = await _db.Tenants.FindAsync(id);
+        if (tenant == null) return NotFound();
+
+        tenant.Activo = !tenant.Activo;
+        tenant.actualizado_utc = HoraMexico(); // si tienes campo
+        await _db.SaveChangesAsync();
+
+        return RedirectToPage(); // o RedirectToPage(new { ... filtros ... })
+    }
+
+    public async Task<IActionResult> OnPostToggleModoPruebaAsync(long id)
+    {
+        var tenant = await _db.Tenants.FindAsync(id);
+        if (tenant == null) return NotFound();
+
+        tenant.PacProduccion = !tenant.PacProduccion;
+
+        // regla: si está en modo prueba, NO timbra producción
+        // (eso lo aplicas en TimbradoService al elegir UrlWsTest/UrlWsProd)
+        tenant.actualizado_utc = DateTime.UtcNow; // si aplica
+        await _db.SaveChangesAsync();
+
+        return RedirectToPage();
+    }
+
+    public static DateTime HoraMexico()
+    {
+        var tzMexico = TimeZoneInfo.FindSystemTimeZoneById(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "Central Standard Time"
+                : "America/Mexico_City"
+        );
+
+        return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tzMexico);
+    }
+
+
 }

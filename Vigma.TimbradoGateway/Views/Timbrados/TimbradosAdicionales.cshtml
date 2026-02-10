@@ -1,39 +1,10 @@
-﻿@model Vigma.TimbradoGateway.ViewsModels.Errores.TimbradoErrorLogRowVM
- @{   ViewData["Title"] = $"Error #{Model.Id} - Detalle";
+﻿@model  Vigma.TimbradoGateway.ViewModels.Timbrados.TimbradoDetalleVM
+  @{  ViewData["Title"] = $"Error #{Model.Id} - Detalle";
 }
 
 <link href="~/css/detalleerror.css" rel="stylesheet" />
 
-<div class="container-fluid py-4">
 
-    <!-- Header -->
-    <div class="error-detail-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <span class="error-badge-large mb-3">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Error de Timbrado
-                </span>
-                <h1 class="display-6 fw-bold mb-3">Detalle del Error #@Model.Id</h1>
-                <div class="d-flex flex-wrap gap-3 align-items-center">
-                    <span class="time-badge">
-                        <i class="bi bi-clock me-2"></i>
-                        @Model.CreadoUtc.ToString("yyyy-MM-dd HH:mm:ss") UTC
-                    </span>
-                    <a href="@Url.Action("Indice", "Errores")" class="btn-icon">
-                        <i class="bi bi-arrow-left"></i> Volver al índice
-                    </a>
-                </div>
-            </div>
-            <div class="col-md-4 text-end">
-                @if (Model.CodigoMfNumero.HasValue)
-                {
-                    <div class="error-code-badge">
-                        Código: @Model.CodigoMfNumero
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
 
     <!-- Información del Error -->
     <div class="row">
@@ -52,30 +23,7 @@
             </div>
         </div>
 
-        <div class="col-md-8">
-            <div class="info-card h-100">
-                <div class="card-title">
-                    <i class="bi bi-chat-dots-fill"></i> Mensaje de Error
-                </div>
-                <div class="card-value">
-                    @if (!string.IsNullOrEmpty(Model.CodigoMfTexto))
-                    {
-                        <div class="alert alert-danger bg-opacity-10 border-danger" style="border-radius: 12px;">
-                            <div class="d-flex">
-                                <i class="bi bi-exclamation-triangle-fill text-danger me-3 fs-5"></i>
-                                <div>@Model.CodigoMfTexto</div>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-muted fst-italic">
-                            No hay mensaje de error disponible
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
+       
     </div>
 
     <!-- JSON Viewer -->
@@ -83,12 +31,13 @@
         <div class="json-header">
             <div>
                 <h5 class="fw-bold mb-0">
-                    <i class="bi bi-code-slash me-2"></i> JSON Enviado al PAC
+                    <i class="bi bi-code-slash me-2"></i> Datos Adicionales
                 </h5>
-                <small class="opacity-75">Contenido completo enviado para el timbrado</small>
+                <small class="opacity-75">Contenido de adicionales enviado para el timbrado</small>
             </div>
             <div class="badge bg-warning">
-                @(Model.EsJsonValido ? "JSON Válido" : "JSON Inválido")
+               @(string.IsNullOrWhiteSpace(Model.Adicionales) ? "JSON Inválido" : "JSON Válido")
+
             </div>
         </div>
 
@@ -117,7 +66,7 @@
             {
                 <pre id="jsonContent">@Html.Raw(SyntaxHighlightJson(Model.JsonFormateado))</pre>
             }
-            else if (!string.IsNullOrEmpty(Model.Jsonenviado))
+            else if (!string.IsNullOrEmpty(Model.Adicionales))
             {
                 <div class="text-center py-5">
                     <div class="empty-json">
@@ -136,7 +85,7 @@
                     <div class="empty-json">
                         <i class="bi bi-file-earmark-x empty-json-icon"></i>
                         <h5 class="fw-bold mb-2">No hay JSON disponible</h5>
-                        <p class="text-muted">No se encontró contenido JSON para este error</p>
+                        <p class="text-muted">No se encontró contenido JSON para datos adicionales</p>
                     </div>
                 </div>
             }
@@ -204,7 +153,7 @@
     // Copiar JSON al portapapeles
     async function copiarJSON() {
         try {
-            const response = await fetch('@Url.Action("GetJsonFormatted", "Errores")?id=@Model.Id');
+            const response = await fetch('@Url.Action("GetJsonFormatted", "Timbrados")?id=@Model.Id');
             const data = await response.json();
 
             if (data.success) {
@@ -212,7 +161,7 @@
                 mostrarNotificacion('JSON copiado al portapapeles');
             } else {
                 // Si no hay JSON formateado, copiar el original
-                await navigator.clipboard.writeText(`@Model.Jsonenviado`);
+                await navigator.clipboard.writeText(`@Model.Adicionales`);
                 mostrarNotificacion('JSON copiado al portapapeles');
             }
         } catch (error) {
@@ -222,12 +171,12 @@
 
     // Descargar JSON como archivo
     function descargarJSON() {
-        const jsonContent = `@Model.Jsonenviado`;
+        const jsonContent = `@Model.Adicionales`;
         const blob = new Blob([jsonContent], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `error_@Model.Id @DateTime.Now.ToString("yyyyMMdd_HHmmss")`;
+        a.download = `Adicionales_@Model.Uuid)`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -237,7 +186,7 @@
     // Formatear JSON dinámicamente
     async function formatearJSON() {
         try {
-            const response = await fetch('@Url.Action("GetJsonFormatted", "Errores")?id=@Model.Id');
+            const response = await fetch('@Url.Action("GetAdicionalesFormatted", "Timbrados")?id=@Model.Id');
             const data = await response.json();
 
             if (data.success) {
@@ -257,7 +206,7 @@
     function alternarJSON() {
         const modal = new bootstrap.Modal(document.getElementById('rawJsonModal'));
         const textarea = document.getElementById('rawJsonTextarea');
-        textarea.value = `@Model.Jsonenviado`;
+        textarea.value = `@Model.Adicionales`;
         modal.show();
     }
 

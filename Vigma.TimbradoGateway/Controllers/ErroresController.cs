@@ -51,6 +51,15 @@ namespace Vigma.TimbradoGateway.Controllers
             return View(row);
         }
 
+        [HttpGet]
+        public IActionResult VistaAdicionales(long id)
+        {
+            var row = ObtenerErrorPorId(id);
+            if (row == null) return NotFound();
+
+            return View(row);
+        }
+
         private List<SelectListItem> ObtenerTenants(int? seleccionado)
         {
             var list = new List<SelectListItem>
@@ -101,7 +110,8 @@ namespace Vigma.TimbradoGateway.Controllers
                     rfc_emisor,
                     codigo_mf_numero,
                     codigo_mf_texto,
-                    creado_utc
+                    creado_utc,Adicionales
+
                 FROM timbrado_error_log
                 WHERE 1=1
             ");
@@ -144,6 +154,7 @@ namespace Vigma.TimbradoGateway.Controllers
                     RfcEmisor = rd["rfc_emisor"]?.ToString() ?? "",
                     CodigoMfNumero = rd["codigo_mf_numero"] == DBNull.Value ? (int?)null : Convert.ToInt32(rd["codigo_mf_numero"]),
                     CodigoMfTexto = rd["codigo_mf_texto"]?.ToString(),
+                    Adicionales = rd["Adicionales"]?.ToString(),
                     CreadoUtc = Convert.ToDateTime(rd["creado_utc"])
                 });
             }
@@ -165,7 +176,7 @@ namespace Vigma.TimbradoGateway.Controllers
             codigo_mf_numero,
             codigo_mf_texto,
             json_enviado,
-            creado_utc
+            creado_utc, Adicionales
         FROM timbrado_error_log
         WHERE id = @id
         LIMIT 1;
@@ -183,6 +194,7 @@ namespace Vigma.TimbradoGateway.Controllers
                 CodigoMfNumero = rd["codigo_mf_numero"] == DBNull.Value ? (int?)null : Convert.ToInt32(rd["codigo_mf_numero"]),
                 CodigoMfTexto = rd["codigo_mf_texto"]?.ToString(),
                 Jsonenviado = rd["json_enviado"]?.ToString(),
+                Adicionales = rd["Adicionales"]?.ToString(),
                 CreadoUtc = Convert.ToDateTime(rd["creado_utc"])
             };
         }
@@ -215,8 +227,35 @@ namespace Vigma.TimbradoGateway.Controllers
             }
         }
 
+        public IActionResult GetAdicionalesFormatted(long id)
+        {
+            var row = ObtenerErrorPorId(id);
+            if (row == null || string.IsNullOrEmpty(row.Adicionales))
+                return Json(new { error = "Adicionales no encontrados" });
 
-            private string FormatearJson(string json)
+            try
+            {
+                var formateado = FormatearJson(row.Adicionales);
+                return Json(new
+                {
+                    success = true,
+                    jsonFormatted = formateado,
+                    esValido = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    jsonRaw = row.Adicionales
+                });
+            }
+        }
+
+
+        private string FormatearJson(string json)
         {
             try
             {
