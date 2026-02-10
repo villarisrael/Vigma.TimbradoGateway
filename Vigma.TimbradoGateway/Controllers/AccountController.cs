@@ -3,10 +3,10 @@ using BCrypt.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+
 using System.Security.Claims;
-using Vigma.TimbradoGateway.Services;
 using Vigma.TimbradoGateway.ViewsModels;
+using Vigma.TimbradoGateway.Infrastructure.Repositories;
 
 namespace Vigma.TimbradoGateway.Controllers
 {
@@ -31,6 +31,8 @@ namespace Vigma.TimbradoGateway.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginVM vm, CancellationToken ct)
         {
+           
+
             if (!ModelState.IsValid) return View(vm);
 
             var user = await _repo.GetByUsuarioAsync(vm.Usuario.Trim(), ct);

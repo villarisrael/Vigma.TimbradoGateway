@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 
@@ -15,6 +16,7 @@ using Vigma.TimbradoGateway.ViewsModels.Errores;
 
 namespace Vigma.TimbradoGateway.Controllers
 {
+    [Authorize]
     public class ErroresController : Controller
     {
         private readonly string _cs;

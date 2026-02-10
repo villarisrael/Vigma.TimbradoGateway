@@ -70,7 +70,7 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.ErrorLast).HasColumnName("error_last");
         });
 
-        b.Entity<UsuarioOficina>(e =>
+        modelBuilder.Entity<UsuarioOficina>(e =>
         {
             e.ToTable("usuarios_oficina");
             e.HasKey(x => x.Id);

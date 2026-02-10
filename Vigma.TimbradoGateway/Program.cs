@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using System;
 using TimbradoGateway.Services;
 using Vigma.TimbradoGateway.Infrastructure;
+using Vigma.TimbradoGateway.Infrastructure.Repositories;
 using Vigma.TimbradoGateway.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,6 +66,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         opt.ExpireTimeSpan = TimeSpan.FromHours(12);
         opt.SlidingExpiration = true;
     });
+
+builder.Services.AddScoped<IRepoUsuariosOficina, RepoUsuariosOficina>();
 
 builder.Services.AddAuthorization();
 
