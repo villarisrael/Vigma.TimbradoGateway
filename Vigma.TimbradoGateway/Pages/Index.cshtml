@@ -325,10 +325,7 @@
                         <i class="bi bi-people-fill me-2"></i> Panel de Tenants
                     </a>
 
-                    <a class="btn btn-outline-primary btn-lg px-4" href="/api/testdb" target="_blank" style="border-radius: 12px;">
-                        <i class="bi bi-database-check me-2"></i> Probar Base de Datos
-                    </a>
-
+               
                     <a class="btn btn-outline-dark btn-lg px-4" href="/Errores" style="border-radius: 12px;">
                         <i class="bi bi-exclamation-triangle me-2"></i> Ver Errores
                     </a>
@@ -352,6 +349,7 @@
                       <h5>Estado de servicios</h5>
                       <div id="mf">ApiRest de Mult: ...</div>
                       <div id="mine">Mi API: ...</div>
+                       <div id="mdb">Mi DB: ...</div>
                       <small id="utc"></small>
                     </div>
 
@@ -479,18 +477,37 @@
 </script>
 
 <script>
-    async function revisar(){
-      const r = await fetch("/v1/timbrar/health/all", { cache: "no-store" });
-      const d = await r.json();
+  async function revisar(){
+    const r = await fetch("/v1/timbrar/health/all", { cache: "no-store" });
+    const d = await r.json();
 
-      document.getElementById("mine").textContent =
-        (d.mine.online ? "🟢" : "🔴") + " API VIGMA (HTTP " + d.mine.status + ")";
+    // 1) Mi API
+    document.getElementById("mine").textContent =
+      (d.mine?.online ? "🟢" : "🔴") + " API VIGMA (HTTP " + (d.mine?.status ?? "-") + ")";
 
-      document.getElementById("mf").textContent =
-        (d.multifacturas.online ? "🟢" : "🔴") + " MultiFacturas " +
-        (d.multifacturas.online ? "(HTTP " + d.multifacturas.status + ")" : "(" + d.multifacturas.error + ")");
+    // 2) MultiFacturas
+    document.getElementById("mf").textContent =
+      (d.multifacturas?.online ? "🟢" : "🔴") + " MultiFacturas " +
+      (d.multifacturas?.online
+        ? "(HTTP " + (d.multifacturas?.status ?? "-") + ")"
+        : "(" + (d.multifacturas?.error ?? "sin detalle") + ")");
+
+    // 3) Base de datos
+    const db = d.database; // <-- aquí la “cachas”
+    if (!db) {
+      document.getElementById("mdb").textContent = "🟠 BD (sin datos)";
+      return;
     }
 
-    revisar();
-    setInterval(revisar, 30000);
+    if (db.online) {
+      document.getElementById("mdb").textContent =
+        "🟢 BD MySQL (canConnect: " + db.canConnect + ", tenants: " + db.tenants + ")";
+    } else {
+      document.getElementById("mdb").textContent =
+        "🔴 BD MySQL (" + (db.error ?? "error") + ")";
+    }
+  }
+
+  revisar();
+  setInterval(revisar, 30000);
 </script>

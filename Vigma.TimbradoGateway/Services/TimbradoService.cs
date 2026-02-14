@@ -351,7 +351,7 @@ public sealed class TimbradoService : ITimbradoService
 
         return string.Join("\n", lines);
     }
-
+    //************************************timbrar ***************************************************//
     public async Task<TimbradoResponse> TimbrarDesdeIniJsonAsync(
     string apiKey,
     string ini,

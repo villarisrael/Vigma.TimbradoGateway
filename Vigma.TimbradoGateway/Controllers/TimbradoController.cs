@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using TimbradoGateway.Contracts.Mf;
 using Vigma.TimbradoGateway.DTOs;
+using Vigma.TimbradoGateway.Infrastructure;
 using Vigma.TimbradoGateway.Services;
 
 namespace Vigma.TimbradoGateway.Controllers;
@@ -12,9 +14,9 @@ namespace Vigma.TimbradoGateway.Controllers;
 public class TimbradoController : ControllerBase
 {
     private readonly ITimbradoService _svc;
+    private readonly TimbradoDbContext _db;
 
-
- private readonly HashSet<string> _optionalHeaderNames = new(StringComparer.OrdinalIgnoreCase)
+    private readonly HashSet<string> _optionalHeaderNames = new(StringComparer.OrdinalIgnoreCase)
         {
             "Cuenta",
             "Tipo",
@@ -25,9 +27,10 @@ public class TimbradoController : ControllerBase
         };
     private List<KeyValuePair<string, string>> _headersAdicionales = new();
 
-    public TimbradoController(ITimbradoService svc)
+    public TimbradoController(TimbradoDbContext db,ITimbradoService svc)
     {
         _svc = svc;
+        _db = db;
     }
 
     // ✅ Health check (sin API Key)
@@ -126,6 +129,7 @@ public class TimbradoController : ControllerBase
 [HttpGet("health/all")]
 public async Task<IActionResult> HealthAll(CancellationToken ct)
 {
+
     // 1) Estado de tu API (si este método responde, tu API está viva)
     var mine = new
     {
@@ -135,8 +139,36 @@ public async Task<IActionResult> HealthAll(CancellationToken ct)
         utc = DateTime.UtcNow
     };
 
-    // 2) Estado MultiFacturas (externo)
-    try
+        
+        object db;
+        try
+        {
+            // Opcional: confirma conexión (ping)
+            var canConnect = await _db.Database.CanConnectAsync(ct);
+
+            // Conteo (tu prueba)
+            var tenants = await _db.Tenants.CountAsync(ct);
+
+            db = new
+            {
+                online = true,
+                canConnect,
+                tenants
+            };
+        }
+        catch (Exception ex)
+        {
+            db = new
+            {
+                online = false,
+                error = ex.Message
+            };
+        }
+
+
+
+        // 2) Estado MultiFacturas (externo)
+        try
     {
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
         using var resp = await http.GetAsync("https://ws.multifacturas.com/api/", ct);
@@ -150,7 +182,7 @@ public async Task<IActionResult> HealthAll(CancellationToken ct)
             snippet = body.Length > 200 ? body[..200] : body
         };
 
-        return Ok(new { mine, multifacturas = mf });
+        return Ok(new { mine, multifacturas = mf , database = db });
     }
     catch (Exception ex)
     {
@@ -162,11 +194,15 @@ public async Task<IActionResult> HealthAll(CancellationToken ct)
             error = ex.Message
         };
 
-        return Ok(new { mine, multifacturas = mf });
+        return Ok(new { mine, multifacturas = mf , database = db });
     }
+
+
+
+
 }
 
-    private void CapturarHeadersAdicionales()  // captura si viene cuenta, idcliente, tipo, referencia
+ private void CapturarHeadersAdicionales()  // captura si viene cuenta, idcliente, tipo, referencia
     {
         var list = new List<KeyValuePair<string, string>>();
 

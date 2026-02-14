@@ -5,50 +5,369 @@
     Layout = "_Layout";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-5">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body p-4 p-md-5">
-                    <h3 class="mb-1">Acceso Oficina</h3>
-                    <div class="text-muted mb-4">Sistema interno</div>
+<style>
+    :root {
+        --primary-color: #1a73e8; /* Azul principal */
+        --secondary-color: #34a853; /* Verde para acentos */
+        --accent-color: #ea4335; /* Rojo/naranja para detalles */
+        --light-bg: #f8f9fa;
+        --dark-text: #202124;
+        --light-text: #5f6368;
+        --border-color: #dadce0;
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
 
-                    @if (!ViewData.ModelState.IsValid)
-                    {
-                        <div class="alert alert-danger small">
-                            @Html.ValidationSummary(false)
-                        </div>
-                    }
+    .login-container {
+        min-height: calc(100vh - 100px);
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
 
-                    <form asp-controller="Account" asp-action="Login" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="ReturnUrl" />
+    .login-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-width: 450px;
+        width: 100%;
+        border: none;
+    }
 
-                        <div class="mb-3">
-                            <label asp-for="Usuario" class="form-label">Usuario</label>
-                            <input asp-for="Usuario" class="form-control form-control-lg" autocomplete="username" />
-                            <span asp-validation-for="Usuario" class="text-danger small"></span>
-                        </div>
+    .login-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label">Contraseña</label>
-                            <input asp-for="Password" class="form-control form-control-lg" autocomplete="current-password" />
-                            <span asp-validation-for="Password" class="text-danger small"></span>
-                        </div>
+    .login-header {
+        background: linear-gradient(to right, var(--primary-color), #2d8cf0);
+        padding: 30px;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
 
-                        <div class="form-check mb-4">
-                            <input asp-for="Recordarme" class="form-check-input" />
-                            <label asp-for="Recordarme" class="form-check-label">Recordarme</label>
-                        </div>
+    .login-header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(to right, var(--accent-color), var(--secondary-color));
+    }
 
-                        <button class="btn btn-primary btn-lg w-100">Entrar</button>
-                    </form>
+    .logo-container {
+        margin-bottom: 15px;
+    }
+
+    .logo-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo-text {
+        font-weight: 700;
+        font-size: 24px;
+        letter-spacing: 0.5px;
+    }
+
+    .login-subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-top: 5px;
+        font-weight: 400;
+    }
+
+    .login-body {
+        padding: 40px 35px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-text);
+        margin-bottom: 8px;
+        font-size: 15px;
+    }
+
+    .form-control {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+    }
+
+    .form-control-lg {
+        padding: 15px 18px;
+    }
+
+    .btn-login {
+        background: linear-gradient(to right, var(--primary-color), #2d8cf0);
+        border: none;
+        border-radius: 12px;
+        padding: 16px;
+        font-weight: 600;
+        font-size: 17px;
+        color: white;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+        margin-top: 10px;
+    }
+
+    .btn-login:hover {
+        background: linear-gradient(to right, #1669c1, #1a73e8);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(26, 115, 232, 0.35);
+        color: white;
+    }
+
+    .btn-login:active {
+        transform: translateY(0);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .form-check-label {
+        color: var(--light-text);
+        font-size: 15px;
+    }
+
+    .alert-danger {
+        background-color: rgba(234, 67, 53, 0.1);
+        border: 1px solid rgba(234, 67, 53, 0.2);
+        color: #d32f2f;
+        border-radius: 12px;
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    .validation-summary-errors ul {
+        margin-bottom: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .validation-summary-errors li {
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .validation-summary-errors li::before {
+        content: "⚠";
+        margin-right: 8px;
+        color: var(--accent-color);
+    }
+
+    .text-danger {
+        color: var(--accent-color) !important;
+    }
+
+    .login-footer {
+        text-align: center;
+        padding: 20px;
+        font-size: 13px;
+        color: var(--light-text);
+        border-top: 1px solid var(--border-color);
+        margin-top: 20px;
+    }
+
+    .input-group-icon {
+        position: relative;
+    }
+
+    .input-group-icon .form-control {
+        padding-left: 45px;
+    }
+
+    .input-group-icon::before {
+        content: "";
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        z-index: 10;
+    }
+
+    .input-group-icon.username::before {
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%235f6368"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>') no-repeat center;
+    }
+
+    .input-group-icon.password::before {
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%235f6368"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>') no-repeat center;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--light-text);
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    @@media (max-width: 768px) {
+        .login-card {
+            max-width: 100%;
+        }
+        
+        .login-body {
+            padding: 30px 25px;
+        }
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-container">
+                <div class="logo-circle">
+                    <!-- Aquí puedes colocar tu logo si es una imagen -->
+                    <span style="color: var(--primary-color); font-weight: 700; font-size: 24px;">V</span>
                 </div>
+                <div class="logo-text">Vigma Timbrado</div>
+                <div class="login-subtitle">Sistema Interno de Oficina</div>
             </div>
+        </div>
+        
+        <div class="login-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger small">
+                    @Html.ValidationSummary(false)
+                </div>
+            }
+
+            <form asp-controller="Account" asp-action="Login" method="post" id="loginForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div class="mb-4">
+                    <label asp-for="Usuario" class="form-label">Usuario</label>
+                    <div class="input-group-icon username">
+                        <input asp-for="Usuario" class="form-control form-control-lg" autocomplete="username" placeholder="Ingresa tu usuario" />
+                    </div>
+                    <span asp-validation-for="Usuario" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label">Contraseña</label>
+                    <div class="input-group-icon password position-relative">
+                        <input asp-for="Password" type="password" class="form-control form-control-lg" autocomplete="current-password" placeholder="Ingresa tu contraseña" id="passwordInput" />
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="Recordarme" class="form-check-input" id="rememberMe" />
+                    <label asp-for="Recordarme" class="form-check-label" for="rememberMe">Recordar mi sesión</label>
+                </div>
+
+                <button type="submit" class="btn btn-login w-100">Entrar al Sistema</button>
+            </form>
+        </div>
+        
+        <div class="login-footer">
+            &copy; @DateTime.Now.Year Vigma Timbrado Gateway. Todos los derechos reservados.
         </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle para mostrar/ocultar contraseña
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('passwordInput');
+            
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    // Cambiar el ícono
+                    const icon = this.querySelector('svg');
+                    if (type === 'text') {
+                        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                    } else {
+                        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                    }
+                });
+            }
+            
+            // Validación en tiempo real mejorada
+            const form = document.getElementById('loginForm');
+            const inputs = form.querySelectorAll('input[required]');
+            
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    validateField(this);
+                });
+                
+                input.addEventListener('input', function() {
+                    if (this.classList.contains('is-invalid')) {
+                        validateField(this);
+                    }
+                });
+            });
+            
+            function validateField(field) {
+                const errorElement = document.querySelector(`[data-valmsg-for="${field.name}"]`);
+                
+                if (field.value.trim() === '') {
+                    field.classList.add('is-invalid');
+                    field.classList.remove('is-valid');
+                    if (errorElement) {
+                        errorElement.textContent = 'Este campo es obligatorio';
+                    }
+                } else {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                    if (errorElement) {
+                        errorElement.textContent = '';
+                    }
+                }
+            }
+            
+            // Efecto de enfoque en el formulario
+            form.addEventListener('submit', function(e) {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Verificando...';
+                submitBtn.disabled = true;
+            });
+        });
+    </script>
 }

@@ -7,9 +7,45 @@
 <div class="container mt-4">
     <h3 class="mb-3">Registrar Certificado - @Model.TenantNombre</h3>
 
+    @* Mensaje simple (mantén si quieres) *@
     @if (!string.IsNullOrWhiteSpace(Model.Message))
     {
-        <div class="alert @(Model.Ok ? "alert-success" : "alert-danger")">@Model.Message</div>
+        <div class="alert @(Model.Ok ? "alert-success" : "alert-danger")">
+            @Model.Message
+        </div>
+    }
+
+    @* ✅ Bloque amigable tipo checklist *@
+    @if (Model.Ui?.Show == true)
+    {
+        <div class="alert alert-danger border-0 shadow-sm">
+            <div class="d-flex align-items-start gap-2">
+                <div style="font-size:1.2rem; line-height:1;">⚠️</div>
+                <div class="w-100">
+                    <div class="fw-bold">@Model.Ui.Title</div>
+                    <div class="small text-muted">@Model.Ui.Message</div>
+
+                    <hr class="my-2" />
+
+                    <div class="d-flex flex-column gap-1">
+                        <div>
+                            <span class="me-2">@((Model.Ui.CerOk) ? "✅" : "❌")</span>
+                            <span>@Model.Ui.CerText</span>
+                        </div>
+
+                        <div>
+                            <span class="me-2">@((Model.Ui.KeyOk) ? "✅" : "❌")</span>
+                            <span>@Model.Ui.KeyText</span>
+                        </div>
+
+                        <div>
+                            <span class="me-2">@((Model.Ui.PassOk) ? "✅" : "❌")</span>
+                            <span>@Model.Ui.PassText</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 
     <form method="post" enctype="multipart/form-data" class="card p-3">
@@ -23,28 +59,31 @@
 
             <div class="col-md-6">
                 <label class="form-label">Password de la KEY / PFX</label>
-                <input class="form-control" asp-for="KeyPassword" type="password" required />
+                <div class="input-group">
+                    <input class="form-control" asp-for="KeyPassword" type="password" id="pwd" required />
+                    <button class="btn btn-outline-secondary" type="button" id="btnShowPwd">👁</button>
+                </div>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Modo</label>
-                <select class="form-select" asp-for="Modo">
+                <select class="form-select" asp-for="Modo" id="modo">
                     <option value="CERKEY">Subir .cer + .key</option>
                     <option value="PFX">Subir .pfx</option>
                 </select>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6" id="boxCer">
                 <label class="form-label">.cer</label>
                 <input class="form-control" asp-for="CerFile" type="file" accept=".cer" />
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6" id="boxKey">
                 <label class="form-label">.key</label>
                 <input class="form-control" asp-for="KeyFile" type="file" accept=".key" />
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6" id="boxPfx">
                 <label class="form-label">.pfx</label>
                 <input class="form-control" asp-for="PfxFile" type="file" accept=".pfx,.p12" />
             </div>
@@ -56,3 +95,31 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        (function() {
+            const modo = document.getElementById('modo');
+            const boxCer = document.getElementById('boxCer');
+            const boxKey = document.getElementById('boxKey');
+            const boxPfx = document.getElementById('boxPfx');
+
+            function toggle() {
+                const isPfx = (modo.value === 'PFX');
+
+                boxCer.classList.toggle('d-none', isPfx);
+                boxKey.classList.toggle('d-none', isPfx);
+                boxPfx.classList.toggle('d-none', !isPfx);
+            }
+
+            modo.addEventListener('change', toggle);
+            toggle();
+
+            const btn = document.getElementById("btnShowPwd");
+            const pwd = document.getElementById("pwd");
+            btn.addEventListener("click", function() {
+                pwd.type = (pwd.type === "password") ? "text" : "password";
+            });
+        })();
+    </script>
+}

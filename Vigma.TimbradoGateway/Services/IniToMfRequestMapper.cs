@@ -161,7 +161,7 @@ public sealed class IniToMfRequestMapper
             ["serie"] = f.Serie,
 
             ["subtotal"] = f.SubTotal,
-            ["descuento"] = f.Descuento,
+            ["descuento"] = RedondearDosDecimales( f.Descuento),
             ["tipocambio"] = f.TipoCambio,
             ["tipocomprobante"] = f.TipoComprobante,
             ["total"] = f.Total,
@@ -252,6 +252,14 @@ public sealed class IniToMfRequestMapper
         };
     }
 
+
+    private static string RedondearDosDecimales(decimal? valor)
+    {
+        return Math.Round(valor ?? 0m, 2, MidpointRounding.AwayFromZero).ToString();
+    }
+
+
+
     private static List<Dictionary<string, object?>> MapConceptos(IniCfdiDocument doc)
     {
         var list = new List<Dictionary<string, object?>>();
@@ -264,15 +272,18 @@ public sealed class IniToMfRequestMapper
             var descuento = c.Descuento ?? 0m;
 
             // Arma el item una sola vez
+
+            var valorus = RedondearDosDecimales(c.ValorUnitario);
+            var impo = RedondearDosDecimales(c.Importe);
+
             var item = new Dictionary<string, object?>
             {
                 ["Cantidad"] = c.Cantidad,
                 ["ClaveUnidad"] = c.ClaveUnidad,
                 ["ID"] = ixrubi,
-                // ["NoIdentificacion"] = c.NoIdentificacion,
                 ["Descripcion"] = c.Descripcion,
-                ["ValorUnitario"] = c.ValorUnitario,
-                ["Importe"] = c.Importe,
+                ["ValorUnitario"] = valorus,
+                ["Importe"] = impo,
                 ["ClaveProdServ"] = c.ClaveProdServ,
                 ["ObjetoImp"] = c.ObjetoImp
             };
@@ -280,8 +291,10 @@ public sealed class IniToMfRequestMapper
             // Solo si hay descuento > 0, se agrega
             if (descuento > 0m)
             {
-                item["Descuento"] = descuento;
+                var dec = RedondearDosDecimales(descuento);
+                item["Descuento"] = dec;
             }
+
 
 
 

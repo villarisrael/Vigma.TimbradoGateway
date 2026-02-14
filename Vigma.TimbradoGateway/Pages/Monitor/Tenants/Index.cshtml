@@ -86,12 +86,12 @@
                             </a>
 
                             <!-- Consultar errores -->
-                            <a class="btn btn-sm btn-outline-danger" href="/Monitor/Errores?tenantId=@t.Id">
+                            <a class="btn btn-sm btn-outline-danger" href="/Errores?tenantId=@t.Id">
                                 <i class="fa fa-triangle-exclamation"></i> Errores
                             </a>
 
                             <!-- Consultar timbrados -->
-                            <a class="btn btn-sm btn-outline-info" href="/Monitor/Timbrados?tenantId=@t.Id">
+                            <a class="btn btn-sm btn-outline-info" href="/Timbrados?tenantId=@t.Id">
                                 <i class="fa fa-file-invoice"></i> Timbrados
                             </a>
 
@@ -126,26 +126,11 @@
                             </form>
 
                             <!-- Modo prueba / Modo producción (POST) -->
-                            <form method="post"
-                                  asp-page-handler="ToggleModoPrueba"
-                                  asp-route-id="@t.Id"
-                                  class="d-inline">
-                                @Html.AntiForgeryToken()
-                                @if (t.pac_produccion)
-                                {
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary"
-                                            onclick="return confirm('Cambiar a MODO PRODUCCIÓN (timbrará en producción)?');">
-                                        <i class="fa fa-rocket"></i> Modo producción
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary"
-                                            onclick="return confirm('Cambiar a MODO PRUEBA?');">
-                                        <i class="fa fa-vial"></i> Modo prueba
-                                    </button>
-                                }
-                            </form>
+                            
+                                  <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" asp-for="@t.pac_produccion" disabled/>
+                                <label class="form-check-label">Timbrar en modo produccion</label>
+                            </div>
                 </td>
 
                   
