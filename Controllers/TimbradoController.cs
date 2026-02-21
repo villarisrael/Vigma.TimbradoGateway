@@ -14,7 +14,7 @@ namespace Vigma.TimbradoGateway.Controllers;
 public class TimbradoController : ControllerBase
 {
     private readonly ITimbradoService _svc;
-    private readonly TimbradoDbContext _db;
+   
 
     private readonly HashSet<string> _optionalHeaderNames = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -27,10 +27,10 @@ public class TimbradoController : ControllerBase
         };
     private List<KeyValuePair<string, string>> _headersAdicionales = new();
 
-    public TimbradoController(TimbradoDbContext db,ITimbradoService svc)
+    public TimbradoController(ITimbradoService svc)
     {
         _svc = svc;
-        _db = db;
+        
     }
 
     // ✅ Health check (sin API Key)
@@ -125,82 +125,8 @@ public class TimbradoController : ControllerBase
     }
 
    
+    // ********************************************checar estados y estadisticas *****///////////
 
-[HttpGet("health/all")]
-public async Task<IActionResult> HealthAll(CancellationToken ct)
-{
-
-    // 1) Estado de tu API (si este método responde, tu API está viva)
-    var mine = new
-    {
-        online = true,
-        status = 200,
-        url = "/v1/timbrar/health",
-        utc = DateTime.UtcNow
-    };
-
-        
-        object db;
-        try
-        {
-            // Opcional: confirma conexión (ping)
-            var canConnect = await _db.Database.CanConnectAsync(ct);
-
-            // Conteo (tu prueba)
-            var tenants = await _db.Tenants.CountAsync(ct);
-
-            db = new
-            {
-                online = true,
-                canConnect,
-                tenants
-            };
-        }
-        catch (Exception ex)
-        {
-            db = new
-            {
-                online = false,
-                error = ex.Message
-            };
-        }
-
-
-
-        // 2) Estado MultiFacturas (externo)
-        try
-    {
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-        using var resp = await http.GetAsync("https://ws.multifacturas.com/api/", ct);
-        var body = await resp.Content.ReadAsStringAsync(ct);
-
-        var mf = new
-        {
-            online = true,
-            status = (int)resp.StatusCode,
-            url = "https://ws.multifacturas.com/api/",
-            snippet = body.Length > 200 ? body[..200] : body
-        };
-
-        return Ok(new { mine, multifacturas = mf , database = db });
-    }
-    catch (Exception ex)
-    {
-        var mf = new
-        {
-            online = false,
-            status = 0,
-            url = "https://ws.multifacturas.com/api/",
-            error = ex.Message
-        };
-
-        return Ok(new { mine, multifacturas = mf , database = db });
-    }
-
-
-
-
-}
 
  private void CapturarHeadersAdicionales()  // captura si viene cuenta, idcliente, tipo, referencia
     {

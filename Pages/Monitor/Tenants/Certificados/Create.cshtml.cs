@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Vigma.TimbradoGateway.Infrastructure;
 using Vigma.TimbradoGateway.Models;
 using Vigma.TimbradoGateway.Services;
+using Vigma.TimbradoGateway.Util;
 
 namespace Vigma.TimbradoGateway.Pages.Monitor.Tenants.Certificados;
 
@@ -164,7 +165,8 @@ public class CreateModel : PageModel
             }
 
             // ===== Cert info =====
-            var (start, end, serial) = await _openssl.ReadCertInfoAsync(cerPem);
+            // var (start, end, serial) = await _openssl.ReadCertInfoAsync(cerPem);
+            var certInfo = CertificadoReader.LeerCertificado(cerDer);
 
             // ===== Upsert en DB =====
             var c = await _db.Certificados.FirstOrDefaultAsync(x => x.TenantId == tenantId && x.RFC == RFC);
@@ -174,13 +176,14 @@ public class CreateModel : PageModel
                 _db.Certificados.Add(c);
             }
 
-            c.CerPath = cerPem;
-            c.KeyPath = keyPem;
+            c.CerPath = cerDer;
+            c.KeyPath = keyDer;
             c.KeyPasswordEnc = KeyPassword; // MVP: luego ciframos
             c.Activo = true;
-            c.VigenciaInicio = start;
-            c.VigenciaFin = end;
-            c.NoCertificado = serial;
+            c.VigenciaInicio = certInfo.VigenciaInicio;
+            c.VigenciaFin = certInfo.VigenciaFin;
+            c.NoCertificado = certInfo.NoCertificado;
+
 
             await _db.SaveChangesAsync();
 
