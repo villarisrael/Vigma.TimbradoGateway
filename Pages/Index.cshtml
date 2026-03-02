@@ -3,162 +3,225 @@
 @{
     ViewData["Title"] = "Vigma Timbrado Gateway";
 }
-
-<link href="~/css/paginaprincipal.css" rel="stylesheet" />
-
-<div class="container py-5">
+<link rel="stylesheet" href="~/css/paginaprincipal.css" asp-append-version="true" />
 
     <!-- Hero Section -->
-    <div class="hero-section p-4 p-md-5 mb-5 shadow-lg">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-8">
-                <span class="badge-modern mb-3">
-                    <i class="bi bi-shield-check me-1"></i> Timbrado CFDI 4.0
-                </span>
+<section class="hero-section">
+    <div class="hero-content">
 
-                <h1 class="display-5 fw-bold mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Vigma Timbrado Gateway
-                </h1>
+        <div class="hero-col-main">
 
-                <p class="lead text-muted mb-4" style="font-size: 1.25rem;">
-                    API centralizada para timbrado con MultiFacturas, multi-tenant, con gestión de certificados por cliente,
-                    auditoría completa y panel de monitoreo en tiempo real.
-                </p>
-
-                <div class="d-flex flex-wrap gap-3">
-                    <a class="btn btn-glow" href="/Monitor/Tenants">
-                        <i class="bi bi-people-fill me-2"></i> Panel de Tenants
-                    </a>
-
-               
-                    <a class="btn btn-outline-dark btn-lg px-4" href="/Errores" style="border-radius: 12px;">
-                        <i class="bi bi-exclamation-triangle me-2"></i> Ver Errores
-                    </a>
-
-                    <a class="btn btn-outline-dark btn-lg px-4" href="/Timbrados" style="border-radius: 12px;">
-                        <i class="bi bi-file-check me-2"></i> Ver Timbrados
-                    </a>
-
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <form method="post" asp-page-handler="Logout" class="d-inline">
-                            <button type="submit" class="btn btn-outline-danger btn-lg px-4" style="border-radius: 12px;">
-                                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
-                            </button>
-                        </form>
-                    }
-                </div>
-
-                <div class="mt-4 d-flex align-items-center">
-                    <span class="pulse online"></span>
-                    <span class="status-indicator status-online ms-2">
-                        Sistema Online • Última actualización: <span id="lastUpdate">hace 2 minutos</span>
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <span class="ms-3">
-                                <i class="bi bi-person-circle"></i> @User.Identity.Name
-                            </span>
-                        }
+                    <span class="badge-modern">
+                        <i class="bi bi-shield-check"></i> Timbrado CFDI 4.0
                     </span>
-                </div>
+
+            <h1 style="background: var(--vigma-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Vigma Timbrado Gateway
+            </h1>
+
+            <p class="hero-lead">
+                API centralizada para timbrado con MultiFacturas, multi-tenant, con gestión de certificados
+                por cliente, auditoría completa y panel de monitoreo en tiempo real.
+            </p>
+
+            <div class="hero-actions">
+                <a class="vg-btn vg-btn-primary" href="/Monitor/Tenants">
+                    <i class="bi bi-people-fill"></i> Panel de Tenants
+                </a>
+                <a class="vg-btn vg-btn-outline-wrong" href="/Errores">
+                    <i class="bi bi-exclamation-triangle"></i> Ver Errores
+                </a>
+                <a class="vg-btn vg-btn-outline-timbre" href="/Timbrados">
+                    <i class="bi bi-file-check"></i> Ver Timbrados
+                </a>
             </div>
 
-            <div class="col-lg-4">
-                <div class="rounded-4 border-0 p-4 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                    <div class="card p-3">
-                      <h5>Estado de servicios</h5>
-                      <div id="mf">ApiRest de Mult: ...</div>
-                      <div id="mine">Mi API: ...</div>
-                       <div id="mdb">Mi DB: ...</div>
-                      <small id="utc"></small>
-                    </div>
-
-                    <div class="small text-muted">
-                        <div class="mb-2"><strong>⚡ Rendimiento:</strong> 95ms promedio por timbrado</div>
-                        <div class="mb-2"><strong>🔒 Seguridad:</strong> Certificados TLS 1.3 activos</div>
-                        <div class="mb-2"><strong>📊 Métricas:</strong> Actualización cada 60 segundos</div>
-                    </div>
-                </div>
+            <div class="services-status">
+                <span class="status-indicator status-online">
+                    <span class="pulse online"></span> Sistema Online
+                </span>
+                <small class="hero-last-update">
+                    Última actualización: <span  id="lastUpdate">hace 2 minutos</span>
+                </small>
             </div>
+
         </div>
+        <!-- ↑ cierra hero-col-main -->
+
+        <div class="hero-col-side">
+            <div class="services-panel">
+                <div class="services-card">
+
+                    <h5>Estado de servicios</h5>
+                    <div id="mf">ApiRest de Mult: ...</div>
+                    <div id="mine">Mi API: ...</div>
+                    <div id="mdb">Mi DB: ...</div>
+                    <small id="utc"></small>
+
+                    <table class="services-meta">
+                        <tr>
+                            <td><strong>Rendimiento</strong></td>
+                            <td>95ms promedio por timbrado</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Seguridad</strong></td>
+                            <td>Certificados TLS 1.3 activos</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Métricas</strong></td>
+                            <td>Actualización cada 60 segundos</td>
+                        </tr>
+                    </table>
+
+                </div>
+                <!-- ↑ cierra services-card -->
+            </div>
+            <!-- ↑ cierra services-panel -->
+        </div>
+        <!-- ↑ cierra hero-col-side -->
+
     </div>
+    <!-- ↑ cierra hero-content -->
+</section>
+<!-- ↑ cierra hero-section -->
 
     <!-- Métricas en Tiempo Real -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="metric-card success p-4 shadow">
-                <div class="metric-icon" style="background: var(--success-gradient);">
-                    <i class="bi bi-people-fill"></i>
-                </div>
-                <div class="metric-value" id="activeTenants">0</div>
-                <h6 class="text-muted mb-2">Tenants Activos</h6>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="small text-success">
-                        <i class="bi bi-arrow-up"></i> 0 nuevos este mes
-                    </span>
-                </div>
+
+<section class="metric-content">
+    <div class="metrics-grid">
+
+        <div class="metric-card success">
+            <div class="metric-icon" style="background: var(--success-gradient);">
+                <i class="bi bi-people-fill"></i>
             </div>
+            <div class="metric-body">
+                <div class="metric-value" style="color: var( --color-success) " id="activeTenants">0</div>
+                <h6 class="metric-label">Tenants Activos</h6>
+            </div>
+            <span class="metric-footer metric-footer-success">
+                <i class="bi bi-arrow-up"></i> 0 nuevos este mes
+            </span>
         </div>
 
-        <div class="col-md-3">
-            <div class="metric-card dark p-4 shadow">
-                <div class="metric-icon" style="background: var(--dark-gradient);">
-                    <i class="bi bi-file-earmark-text"></i>
-                </div>
-                <div class="metric-value" id="stampedToday">0</div>
-                <h6 class="text-muted mb-2">Timbrados Hoy</h6>
-                <div class="small text-muted">Meta: 2,000 • 62% completado</div>
+        <div class="metric-card dark">
+            <div class="metric-icon" style="background: var(--dark-gradient);">
+                <i class="bi bi-file-earmark-text"></i>
             </div>
+            <div class="metric-body">
+                <div class="metric-value" style="color:var(--color-dark)" id="stampedToday">0</div>
+                <h6 class="metric-label">Timbrados Hoy</h6>
+            </div>
+            <span class="metric-footer">Meta: 2,000 • 62% completado</span>
         </div>
 
-        <div class="col-md-3">
-            <div class="metric-card warning p-4 shadow">
-                <div class="metric-icon" style="background: var(--warning-gradient);">
-                    <i class="bi bi-clock-history"></i>
-                </div>
-                <div class="metric-value" id="avgTimbrados">0</div>
-                <h6 class="text-muted mb-2">Promedio x hora</h6>
-                <div class="small text-success">
-                    <i class="bi bi-check-circle"></i> Dentro del SLA
-                </div>
+        <div class="metric-card throughput">
+            <div class="metric-icon" style="background: var(--throughput-gradient);">
+                <i class="bi bi-clock-history"></i>
             </div>
+            <div class="metric-body">
+                <div class="metric-value" style="color: var(--color-throughput)" id="avgTimbrados">0</div>
+                <h6 class="metric-label">Promedio x hora</h6>
+            </div>
+            <span class="metric-footer metric-footer-success">
+                <i class="bi bi-check-circle"></i> Dentro del SLA
+            </span>
         </div>
 
-        <div class="col-md-3">
-            <div class="metric-card danger p-4 shadow">
-                <div class="metric-icon" style="background: var(--danger-gradient);">
-                    <i class="bi bi-exclamation-triangle"></i>
-                </div>
-                <div class="metric-value" id="errorRate">0.0</div>
-                <h6 class="text-muted mb-2">% Error</h6>
-                <div class="small text-danger" id="errores24">
-                    12 errores en las últimas 24h
-                </div>
+        <div class="metric-card danger">
+            <div class="metric-icon" style="background: var(--danger-gradient);">
+                <i class="bi bi-exclamation-triangle"></i>
             </div>
+            <div class="metric-body">
+                <div class="metric-value" style="color: var(--color-danger)" id="errorRate">0.0</div>
+                <h6 class="metric-label">% Error</h6>
+            </div>
+            <span class="metric-footer metric-footer-danger" id="errores24">
+                12 errores en las últimas 24h
+            </span>
         </div>
+
     </div>
-
-    <!-- Gráfico de Uso (Placeholder) -->
-    <div class="chart-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-bold mb-0">Actividad de Timbrado - Últimas 24 horas</h5>
-            <select class="form-select w-auto" style="border-radius: 10px;">
+</section>
+<section class="chart-section">
+    <div class="chart-header">
+        <div class="chart-title-group">
+            <h5 class="chart-title">Actividad de Timbrado</h5>
+            <span class="chart-subtitle">Últimas 24 horas</span>
+        </div>
+        <div class="chart-controls">
+            <select class="chart-select">
                 <option>Últimas 24h</option>
                 <option>Últimos 7 días</option>
                 <option>Este mes</option>
             </select>
         </div>
-        <div class="text-center py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px;">
-            <i class="bi bi-bar-chart-fill display-1 text-muted mb-3"></i>
-            <p class="text-muted">Gráfico de actividad se cargará aquí</p>
-            <small class="text-muted">(Integrar con Chart.js o similar)</small>
-        </div>
     </div>
 
-</div>
+    <div class="chart-legend">
+        <span class="legend-item legend-timbrados">
+            <span class="legend-dot"></span> Timbrados
+        </span>
+        <span class="legend-item legend-tenants">
+            <span class="legend-dot"></span> Tenants Activos
+        </span>
+        <span class="legend-item legend-errores">
+            <span class="legend-dot"></span> Errores
+        </span>
+    </div>
 
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <div id="actividadChart"></div>
+</section>
+@* 
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        const horas     = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+        const tenants   = [8,8,9,9,9,9,9,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11];
+        const timbrados = [12,18,8,5,3,2,7,25,48,62,75,80,72,68,74,85,90,78,65,55,48,35,22,14];
+        const errores   = [0,1,0,0,0,0,0,1,2,1,3,2,1,0,2,1,0,1,2,1,0,0,1,0];
+
+        new ApexCharts(document.querySelector('#actividadChart'), {
+        series: [
+        { name: 'Timbrados',       data: timbrados },
+        { name: 'Tenants Activos', data: tenants },
+        { name: 'Errores',         data: errores }
+        ],
+        chart: {
+        type: 'area',
+        height: 250,
+        stacked: true,
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        selection: { enabled: false },
+        background: 'transparent',
+        parentHeightOffset: 0,
+        id: 'actividad'
+        },
+        colors: ['#0f9b8e', '#38ef7d', '#ff416c'],
+        stroke: { curve: 'smooth', width: 1.5 },
+        fill: { type: 'solid', opacity: 0.85 },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        tooltip: {
+        theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+        x: { formatter: (_, { dataPointIndex }) => `🕐 ${horas[dataPointIndex]}` }
+        },
+        xaxis: {
+        categories: horas,
+        tooltip: { enabled: false },
+        labels: { style: { colors: '#6c757d', fontSize: '11px' } },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+        },
+        yaxis: {
+        labels: { style: { colors: '#6c757d', fontSize: '11px' } }
+        },
+        grid: { borderColor: 'rgba(0,0,0,0.04)' }
+        }).render();
+    </script>
+} *@
+
+
 
 <script>
     // Simulación de actualización de métricas en tiempo real
@@ -176,45 +239,45 @@
 </script>
 
 <script>
-  async function revisar(){
-    const r = await fetch("/api/health/all", { cache: "no-store" });
-    const d = await r.json();
+    async function revisar(){
+      const r = await fetch("/api/health/all", { cache: "no-store" });
+      const d = await r.json();
 
-    // 1) Mi API
-    document.getElementById("mine").textContent =
-      (d.mine?.online ? "🟢" : "🔴") + " API VIGMA (HTTP " + (d.mine?.status ?? "-") + ")";
+      // 1) Mi API
+      document.getElementById("mine").textContent =
+        (d.mine?.online ? "🟢" : "🔴") + " API VIGMA (HTTP " + (d.mine?.status ?? "-") + ")";
 
-    // 2) MultiFacturas
-    document.getElementById("mf").textContent =
-      (d.multifacturas?.online ? "🟢" : "🔴") + " MultiFacturas " +
-      (d.multifacturas?.online
-        ? "(HTTP " + (d.multifacturas?.status ?? "-") + ")"
-        : "(" + (d.multifacturas?.error ?? "sin detalle") + ")");
+      // 2) MultiFacturas
+      document.getElementById("mf").textContent =
+        (d.multifacturas?.online ? "🟢" : "🔴") + " MultiFacturas " +
+        (d.multifacturas?.online
+          ? "(HTTP " + (d.multifacturas?.status ?? "-") + ")"
+          : "(" + (d.multifacturas?.error ?? "sin detalle") + ")");
 
-    // 3) Base de datos
-    const db = d.database; // <-- aquí la "cachas"
-    if (!db) {
-      document.getElementById("mdb").textContent = "🟠 BD (sin datos)";
-      return;
-    }
+      // 3) Base de datos
+      const db = d.database; // <-- aquí la "cachas"
+      if (!db) {
+        document.getElementById("mdb").textContent = "🟠 BD (sin datos)";
+        return;
+      }
 
-    if (db.online) {
-      document.getElementById("mdb").textContent =
-        "🟢 BD MySQL (canConnect: " + db.canConnect + ")";
+      if (db.online) {
+        document.getElementById("mdb").textContent =
+          "🟢 BD MySQL (canConnect: " + db.canConnect + ")";
       
-        document.getElementById("activeTenants").textContent = db.tenants ;
-        document.getElementById("avgTimbrados").textContent = db.promedio ;
-        document.getElementById("stampedToday").textContent = db.ultimos24 ;
-         document.getElementById("errorRate").textContent = db.rateerrores ;
+          document.getElementById("activeTenants").textContent = db.tenants ;
+          document.getElementById("avgTimbrados").textContent = db.promedio ;
+          document.getElementById("stampedToday").textContent = db.ultimos24 ;
+           document.getElementById("errorRate").textContent = db.rateerrores ;
 
-           document.getElementById("errores24").textContent = db.errores24 + " errores las ultimas 24 horas" ;
+             document.getElementById("errores24").textContent = db.errores24 + " errores las ultimas 24 horas" ;
 
-    } else {
-      document.getElementById("mdb").textContent =
-        "🔴 BD MySQL (" + (db.error ?? "error") + ")";
+      } else {
+        document.getElementById("mdb").textContent =
+          "🔴 BD MySQL (" + (db.error ?? "error") + ")";
+      }
     }
-  }
 
-  revisar();
-  setInterval(revisar, 30000);
+    revisar();
+    setInterval(revisar, 30000);
 </script>

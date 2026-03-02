@@ -7,8 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Monitor\**" />
+    <Content Remove="Monitor\**" />
+    <EmbeddedResource Remove="Monitor\**" />
+    <None Remove="Monitor\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Controllers\Apitimbrado\" />
-    <Folder Include="Monitor\" />
   </ItemGroup>
 
   <ItemGroup>
