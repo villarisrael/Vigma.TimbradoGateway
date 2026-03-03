@@ -6,7 +6,7 @@ using System.Linq;
 namespace TimbradoGateway.Infrastructure.Ini
 {
 
-   
+
 
     /// <summary>
     /// Parser INI -> IniCfdiDocument (robusto para:
@@ -22,7 +22,7 @@ namespace TimbradoGateway.Infrastructure.Ini
     /// </summary>
     public static class IniDocument
     {
-        public static IniCfdiDocument Parse(string ini)
+               public static IniCfdiDocument Parse(string ini)
         {
             if (string.IsNullOrWhiteSpace(ini))
                 throw new ArgumentException("INI vacío.");
@@ -260,14 +260,14 @@ namespace TimbradoGateway.Infrastructure.Ini
                 c.Unidad = GetStringFromDict(sec, "unidad");
                 c.ClaveUnidad = GetStringFromDict(sec, "ClaveUnidad") ?? GetStringFromDict(sec, "ClaveUnidad");
                 c.Id = idxrubi.ToString();
-              //  c.NoIdentificacion = GetStringFromDict(sec, "NoIdentificacion");
+                //  c.NoIdentificacion = GetStringFromDict(sec, "NoIdentificacion");
                 c.Descripcion = GetStringFromDict(sec, "descripcion");
                 c.ValorUnitario = GetDecimalFromDict(sec, "valorunitario");
                 c.Importe = GetDecimalFromDict(sec, "importe");
-            
+
                 c.ClaveProdServ = GetStringFromDict(sec, "ClaveProdServ") ?? GetStringFromDict(sec, "claveprodserv");
                 c.ObjetoImp = GetStringFromDict(sec, "ObjetoImp") ?? GetStringFromDict(sec, "objetoimp");
-                
+
 
                 // impuestos de concepto -> traslados y retenciones
                 var idx = ExtractIndex(secName, "conceptos");
@@ -334,7 +334,7 @@ namespace TimbradoGateway.Infrastructure.Ini
                 return;
 
             doc.Impuestos.TotalImpuestosTrasladados = GetDecimalFromDict(sec, "TotalImpuestosTrasladados");
-         //   doc.Impuestos.TotalImpuestosRetenidos = GetDecimalFromDict(sec, "TotalImpuestosRetenidos");
+            //   doc.Impuestos.TotalImpuestosRetenidos = GetDecimalFromDict(sec, "TotalImpuestosRetenidos");
 
             foreach (var kv in sec)
             {
@@ -452,10 +452,10 @@ namespace TimbradoGateway.Infrastructure.Ini
                 }
 
                 // Doctos relacionados: [pagos20.Pagos.{i}.DoctoRelacionado.{d}]
-                var drPrefix = $"pagos20.Pagos.{idx}.DoctoRelacionado.";
+                var drBase = $"pagos20.Pagos.{idx}.DoctoRelacionado";
                 var drSections = parsed.Keys
-                    .Where(k => k.StartsWith(drPrefix, StringComparison.OrdinalIgnoreCase))
-                    .OrderBy(k => ExtractTrailingIndex(k))
+                    .Where(k => IsDirectIndexSection(k, drBase))
+                    .OrderBy(k => ExtractIndex(k, drBase))
                     .ToList();
 
                 foreach (var drSecName in drSections)
@@ -508,11 +508,11 @@ namespace TimbradoGateway.Infrastructure.Ini
                 var s = parsed[secName];
                 p.ImpuestosP.TrasladosP.Add(new IniPago20TrasladoP
                 {
-                    BaseP = GetDecimalFromDict(s, "BaseP"),
+                    BaseP =  RoundDecimal( GetDecimalFromDict(s, "BaseP"),4),
                     ImpuestoP = GetStringFromDict(s, "ImpuestoP"),
                     TipoFactorP = GetStringFromDict(s, "TipoFactorP"),
-                    TasaOCuotaP = GetDecimalFromDict(s, "TasaOCuotaP"),
-                    ImporteP = GetDecimalFromDict(s, "ImporteP")
+                    TasaOCuotaP =RoundDecimal( GetDecimalFromDict(s, "TasaOCuotaP"),6),
+                    ImporteP =RoundDecimal( GetDecimalFromDict(s, "ImporteP"),4)
                 });
             }
 
@@ -536,9 +536,12 @@ namespace TimbradoGateway.Infrastructure.Ini
         private static void ReadPagoImpuestosDR(Dictionary<string, Dictionary<string, string>> parsed, string drSectionName, IniPago20DoctoRelacionado dr)
         {
             // drSectionName = "pagos20.Pagos.0.DoctoRelacionado.0"
-            var trasPrefix = drSectionName + ".ImpuestosDR.TrasladosDR.";
+            // Soporta tanto TrasladoDR (singular) como TrasladosDR (plural)
+            var trasPrefix1 = drSectionName + ".ImpuestosDR.TrasladosDR.";
+            var trasPrefix2 = drSectionName + ".ImpuestosDR.TrasladoDR.";
             var trasSections = parsed.Keys
-                .Where(k => k.StartsWith(trasPrefix, StringComparison.OrdinalIgnoreCase))
+                .Where(k => k.StartsWith(trasPrefix1, StringComparison.OrdinalIgnoreCase)
+                         || k.StartsWith(trasPrefix2, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(k => ExtractTrailingIndex(k))
                 .ToList();
 
@@ -547,11 +550,11 @@ namespace TimbradoGateway.Infrastructure.Ini
                 var s = parsed[secName];
                 dr.ImpuestosDR.TrasladosDR.Add(new IniPago20TrasladoDR
                 {
-                    BaseDR = GetDecimalFromDict(s, "BaseDR"),
+                    BaseDR = RoundDecimal(GetDecimalFromDict(s, "BaseDR"), 2),
                     ImpuestoDR = GetStringFromDict(s, "ImpuestoDR"),
                     TipoFactorDR = GetStringFromDict(s, "TipoFactorDR"),
-                    TasaOCuotaDR = GetDecimalFromDict(s, "TasaOCuotaDR"),
-                    ImporteDR = GetDecimalFromDict(s, "ImporteDR")
+                    TasaOCuotaDR = RoundDecimal(GetDecimalFromDict(s, "TasaOCuotaDR"), 6),
+                    ImporteDR = RoundDecimal(GetDecimalFromDict(s, "ImporteDR"), 2)
                 });
             }
 
@@ -759,5 +762,14 @@ namespace TimbradoGateway.Infrastructure.Ini
                 || k.Equals("ImpSaldoInsoluto", StringComparison.OrdinalIgnoreCase)
                 || k.Equals("ObjetoImpDR", StringComparison.OrdinalIgnoreCase);
         }
+        private static decimal? RoundDecimal(decimal? value, int decimals)
+   => value.HasValue ? Math.Round(value.Value, decimals, MidpointRounding.AwayFromZero) : null;
+
+        private static string RedondearDecimales(decimal? valor, int decimales)
+        {
+            return Math.Round(valor ?? 0m, decimales, MidpointRounding.AwayFromZero).ToString();
+        }
+
     }
 }
+
