@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Vigma.TimbradoGateway.Controllers;
 using Vigma.TimbradoGateway.Models;
 using Vigma.TimbradoGateway.Models.Logs;
 
@@ -80,6 +81,23 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.Rol).HasMaxLength(30).IsRequired();
         });
 
+        modelBuilder.Entity<EstadisticaDiaria>(entity =>
+        {
+            entity.HasNoKey(); // Las vistas no tienen clave primaria en EF Core
+            entity.ToView("vw_TimbradosVsErrores_30dias");
+
+            // Configurar propiedades si es necesario
+            entity.Property(e => e.fecha).HasColumnName("fecha");
+            entity.Property(e => e.fecha_corta).HasColumnName("fecha_corta");
+            entity.Property(e => e.timbrados).HasColumnName("timbrados");
+            entity.Property(e => e.errores).HasColumnName("errores");
+            entity.Property(e => e.porcentaje_error).HasColumnName("porcentaje_error");
+
+            // Si la vista tiene tenant_id
+            // entity.Property(e => e.tenant_id).HasColumnName("tenant_id");
+        });
+
     }
+
 
 }
