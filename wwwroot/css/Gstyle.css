@@ -1,0 +1,835 @@
+﻿
+
+/* ── Variables del sistema ────────────────────────────────────────────────── */
+
+:root {
+    /* ── Vigma Brand ──────────────────────────────────────────────────────
+       Color principal de marca — títulos, acentos institucionales          */
+
+    --vigma-gradient: linear-gradient(135deg, #5b5bd6 0%, #8b2fc9 100%); /* Títulos principales, hero section, identidad de marca */
+    --color-vigma: #5b5bd6; /* Color sólido — textos de marca, badges, bordes de énfasis */
+    /* ── Gradientes (uso en tarjetas, botones, acentos) ──────────────────
+       Cada gradiente tiene su color sólido equivalente debajo              */
+
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Navegación, botones principales, hero section */
+    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); /* Tenants Activos — crecimiento, positivo */
+    --warning-gradient: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); /* Advertencias — reservado para alertas y estados de precaución */
+    --danger-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); /* % Error — alerta, problemas críticos */
+    --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%); /* Timbrados Hoy — volumen, actividad neutral */
+    --throughput-gradient: linear-gradient(135deg, #0f9b8e 0%, #00d2d3 100%); /* Promedio x hora — productividad estable, flujo constante */
+    /* ── Colores sólidos (uso en textos, bordes, iconos, badges) ─────────
+       Extraídos del color izquierdo (inicio) de cada gradiente             */
+
+    --color-primary: #667eea; /* Violeta azulado — acento principal */
+    --color-success: #11998e; /* Verde azulado — positivo, activo */
+    --color-warning: #f7971e; /* Naranja — precaución, advertencia */
+    --color-danger: #ff416c; /* Rojo rosa — error, crítico */
+    --color-dark: #2c3e50; /* Azul marino — neutral, informativo */
+    --color-throughput: #0f9b8e; /* Teal — productividad, flujo */
+    --color-txt-light: #565656; /* negro — texto fondo blanco */
+    --color-txt-dark: #ffffff; /* blanco — texto fondo blanco */
+    /* ── Backgrounds Light Mode ──────────────────────────────────────────── */
+
+    --bg-light-page: #f5f7fa; /* Fondo general de la página */
+    --bg-light-card: #ffffff; /* Fondo de tarjetas y paneles */
+    --bg-light-subtle: #e4edf5; /* Fondo secundario, secciones alternas */
+    --bg-light-muted: #e9ecef; /* Fondo de elementos deshabilitados o inactivos */
+    /* ── Backgrounds Dark Mode ───────────────────────────────────────────── */
+
+    --bg-dark-page: #1a1a2e; /* Fondo general de la página */
+    --bg-dark-card: #22223b; /* Fondo de tarjetas y paneles */
+    --bg-dark-subtle: #2a2a45; /* Fondo secundario, secciones alternas */
+    --bg-dark-muted: #32325a; /* Fondo de elementos deshabilitados o inactivos */
+    /* ── Tipografía ──────────────────────────────────────────────────────────
+       ITC Avant Garde → títulos, métricas, valores numéricos grandes
+       Polymath         → textos, párrafos, labels, UI en general            */
+
+    --font-titles: "itc-avant-garde-gothic-pro", "Avant Garde", sans-serif; /* Títulos, h1–h3, valores de métricas */
+    --font-body: "polymath", "Segoe UI", sans-serif; /* Textos, párrafos, labels, navegación */
+    /* ── Escala tipográfica ──────────────────────────────────────────────── */
+
+    --text-xs: 0.75rem; /*  12px — labels pequeños, badges */
+    --text-sm: 0.875rem; /*  14px — texto secundario, subtítulos */
+    --text-base: 1rem; /*  16px — texto base del cuerpo */
+    --text-lg: 1.125rem; /*  18px — párrafos destacados, lead */
+    --text-xl: 1.25rem; /*  20px — subtítulos de sección */
+    --text-2xl: 1.5rem; /*  24px — títulos de tarjeta */
+    --text-3xl: 2rem; /*  32px — títulos de página */
+    --text-4xl: 2.5rem; /*  40px — valores de métricas grandes */
+    /* ── Pesos tipográficos ──────────────────────────────────────────────── */
+
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    /* ── Espaciado base (escala de 4px) ──────────────────────────────────
+       Reemplaza: p-1…p-5, m-1…m-5, gap-1…gap-5 de Bootstrap              */
+
+    --space-1: 0.25rem; /*  4px — p-1, m-1 */
+    --space-2: 0.5rem; /*  8px — p-2, m-2 */
+    --space-3: 0.75rem; /* 12px — p-3, m-3 */
+    --space-4: 1rem; /* 16px — p-4, m-4 */
+    --space-5: 1.5rem; /* 24px — p-5, m-5 */
+    --space-6: 2rem; /* 32px */
+    --space-7: 2.5rem; /* 40px */
+    --space-8: 3rem; /* 48px */
+    /* ── Grid ────────────────────────────────────────────────────────────
+       Reemplaza: container, row, col-* de Bootstrap                       */
+
+    --grid-columns: 12;
+    --grid-gap: 1.5rem; /* equivale a g-4 de Bootstrap (24px) */
+    --grid-gap-sm: 0.75rem; /* equivale a g-3 (12px) */
+    --grid-gap-lg: 2rem; /* equivale a g-5 (32px) */
+
+    --container-sm: 540px; /* Bootstrap container en pantallas sm */
+    --container-md: 720px; /* Bootstrap container en pantallas md */
+    --container-lg: 960px; /* Bootstrap container en pantallas lg */
+    --container-xl: 1140px; /* Bootstrap container en pantallas xl */
+    --container-xxl: 1320px; /* Bootstrap container en pantallas xxl */
+    --container-padding: 1rem; /* padding lateral del container */
+    /* ── Breakpoints ─────────────────────────────────────────────────────
+       Mismos valores que Bootstrap para compatibilidad en la migración     */
+
+    --bp-sm: 576px;
+    --bp-md: 768px;
+    --bp-lg: 992px;
+    --bp-xl: 1200px;
+    --bp-xxl: 1400px;
+    /* ── Bordes y radios ─────────────────────────────────────────────────
+       Reemplaza: rounded, rounded-4 de Bootstrap                          */
+
+    --radius-sm: 6px; /* bordes sutiles, inputs */
+    --radius-md: 12px; /* botones, badges */
+    --radius-lg: 20px; /* tarjetas métricas */
+    --radius-xl: 24px; /* hero section, contenedores grandes */
+    --radius-full: 9999px; /* pills, avatares */
+    /* ── Sombras ─────────────────────────────────────────────────────────
+       Reemplaza: shadow-sm, shadow, shadow-lg de Bootstrap                */
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06); /* shadow-sm */
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08); /* shadow */
+    --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.12); /* shadow-lg */
+    --shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.15); /* hover state */
+    /* ── Transiciones ────────────────────────────────────────────────────── */
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease;
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============================================================================
+   DARK THEME
+   ============================================================================= */
+[data-theme="dark"] {
+    /* ── Backgrounds — swapea light por dark ── */
+    --bg-light-page: var(--bg-dark-page);
+    --bg-light-card: var(--bg-dark-card);
+    --bg-light-subtle: var(--bg-dark-subtle);
+    --bg-light-muted: var(--bg-dark-muted);
+    /* ── Texto base ── */
+    --color-txt-light: var(--color-txt-dark)
+    /* ── Sombras más intensas en dark ── */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* =============================================================================
+   RESET Y BASE
+   ============================================================================= */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+.main-content {
+    flex: 1;
+    margin-left: 64px; /* fijo siempre — nunca cambia */
+    min-width: 0; /* evita desbordamiento */
+    padding: var(--space-4);
+}
+
+body {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: var(--weight-regular);
+    background: var(--bg-light-page);
+    color: #2c3e50;
+    line-height: 1.6;
+    min-height: 100vh;
+    align-content:flex-end
+}
+
+h1, h2, h3, .metric-value, .display-5 {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    line-height: 1.2;
+}
+
+h4, h5, h6 {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-semibold);
+    line-height: 1.3;
+}
+
+
+/* =============================================================================
+   GRID SYSTEM
+   Reemplaza: .container, .row, .col-*, .g-*, .gap-* de Bootstrap
+   ============================================================================= */
+
+.vg-container {
+    width: 100%;
+    max-width: var(--container-xl);
+    margin-inline: auto;
+    padding-inline: var(--container-padding);
+}
+
+.vg-row {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    gap: var(--grid-gap);
+    align-items: start;
+}
+
+    /* Variantes de gap — reemplaza g-3, g-4, g-5 */
+    .vg-row.gap-sm {
+        gap: var(--grid-gap-sm);
+    }
+
+    .vg-row.gap-lg {
+        gap: var(--grid-gap-lg);
+    }
+
+/* Columnas — reemplaza col-*, col-md-*, col-lg-* */
+.vg-col-1 {
+    grid-column: span 1;
+}
+
+.vg-col-2 {
+    grid-column: span 2;
+}
+
+.vg-col-3 {
+    grid-column: span 3;
+}
+
+.vg-col-4 {
+    grid-column: span 4;
+}
+
+.vg-col-5 {
+    grid-column: span 5;
+}
+
+.vg-col-6 {
+    grid-column: span 6;
+}
+
+.vg-col-7 {
+    grid-column: span 7;
+}
+
+.vg-col-8 {
+    grid-column: span 8;
+}
+
+.vg-col-9 {
+    grid-column: span 9;
+}
+
+.vg-col-10 {
+    grid-column: span 10;
+}
+
+.vg-col-11 {
+    grid-column: span 11;
+}
+
+.vg-col-12 {
+    grid-column: span 12;
+}
+
+/* Responsive — en móvil todo ocupa ancho completo */
+@media (max-width: 767px) {
+    .vg-col-1, .vg-col-2, .vg-col-3, .vg-col-4,
+    .vg-col-5, .vg-col-6, .vg-col-7, .vg-col-8,
+    .vg-col-9, .vg-col-10, .vg-col-11 {
+        grid-column: span 12;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .vg-col-md-3 {
+        grid-column: span 6;
+    }
+    /* 2 columnas en tablet */
+    .vg-col-md-4 {
+        grid-column: span 6;
+    }
+
+    .vg-col-md-8 {
+        grid-column: span 12;
+    }
+}
+
+
+/* =============================================================================
+   ESPACIADO — UTILIDADES
+   Reemplaza: p-*, m-*, py-*, px-*, mb-*, mt-*, ms-*, me-* de Bootstrap
+   ============================================================================= */
+
+/* Padding */
+.vg-p-1 {
+    padding: var(--space-1);
+}
+
+.vg-p-2 {
+    padding: var(--space-2);
+}
+
+.vg-p-3 {
+    padding: var(--space-3);
+}
+
+.vg-p-4 {
+    padding: var(--space-4);
+}
+
+.vg-p-5 {
+    padding: var(--space-5);
+}
+
+.vg-px-4 {
+    padding-inline: var(--space-4);
+}
+
+.vg-py-4 {
+    padding-block: var(--space-4);
+}
+
+.vg-py-5 {
+    padding-block: var(--space-5);
+}
+
+/* Margin */
+.vg-mb-1 {
+    margin-bottom: var(--space-1);
+}
+
+.vg-mb-2 {
+    margin-bottom: var(--space-2);
+}
+
+.vg-mb-3 {
+    margin-bottom: var(--space-3);
+}
+
+.vg-mb-4 {
+    margin-bottom: var(--space-4);
+}
+
+.vg-mb-5 {
+    margin-bottom: var(--space-5);
+}
+
+.vg-mt-4 {
+    margin-top: var(--space-4);
+}
+
+.vg-ms-2 {
+    margin-inline-start: var(--space-2);
+}
+
+.vg-ms-3 {
+    margin-inline-start: var(--space-3);
+}
+
+.vg-me-1 {
+    margin-inline-end: var(--space-1);
+}
+
+.vg-me-2 {
+    margin-inline-end: var(--space-2);
+}
+
+/* Gap para flex */
+.vg-gap-2 {
+    gap: var(--space-2);
+}
+
+.vg-gap-3 {
+    gap: var(--space-3);
+}
+
+
+/* =============================================================================
+   FLEX — UTILIDADES
+   Reemplaza: d-flex, align-items-*, justify-content-*, flex-wrap de Bootstrap
+   ============================================================================= */
+
+.vg-flex {
+    display: flex;
+}
+
+.vg-flex-wrap {
+    flex-wrap: wrap;
+}
+
+.vg-flex-inline {
+    display: inline-flex;
+}
+
+.vg-align-center {
+    align-items: center;
+}
+
+.vg-justify-between {
+    justify-content: space-between;
+}
+
+.vg-justify-center {
+    justify-content: center;
+}
+
+
+/* =============================================================================
+   TIPOGRAFÍA — UTILIDADES
+   Reemplaza: text-muted, fw-bold, lead, small, display-5 de Bootstrap
+   ============================================================================= */
+
+.vg-text-muted {
+    color: #6c757d;
+    font-size: var(--text-sm);
+}
+
+.vg-text-success {
+    color: var(--color-success);
+}
+
+.vg-text-danger {
+    color: var(--color-danger);
+}
+
+.vg-text-center {
+    text-align: center;
+}
+
+.vg-fw-bold {
+    font-weight: var(--weight-bold);
+}
+
+.vg-fw-semibold {
+    font-weight: var(--weight-semibold);
+}
+
+.vg-fw-medium {
+    font-weight: var(--weight-medium);
+}
+
+.vg-lead {
+    font-size: var(--text-lg);
+    line-height: 1.7;
+}
+
+.vg-small {
+    font-size: var(--text-sm);
+}
+
+.vg-xs {
+    font-size: var(--text-xs);
+}
+
+.vg-display {
+    font-size: var(--text-3xl);
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+}
+
+
+/* =============================================================================
+   SOMBRAS — UTILIDADES
+   Reemplaza: shadow-sm, shadow, shadow-lg de Bootstrap
+   ============================================================================= */
+
+.vg-shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.vg-shadow {
+    box-shadow: var(--shadow-md);
+}
+
+.vg-shadow-lg {
+    box-shadow: var(--shadow-lg);
+}
+
+
+/* =============================================================================
+   BOTONES VIGMA — 100% independientes de Bootstrap
+   Bordes medios, tamaño compacto, hover: glow + cambio de fondo
+   ============================================================================= */
+
+/* ── Base compartida ────────────────────────────────────────────────────── */
+.vg-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4); /* compacto */
+    border-radius: var(--radius-md); /* bordes medios — 12px */
+    font-family: var(--font-body);
+    font-size: var(--text-sm); /* compacto */
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    border: 2px solid transparent;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* ── Panel de Tenants — gradiente vigma ─────────────────────────────────── */
+.vg-btn-primary {
+    background: var(--vigma-gradient);
+    color: white;
+    border-color: transparent;
+}
+
+    .vg-btn-primary:hover {
+        background: linear-gradient(135deg, #4a4ac4 0%, #7a25b8 100%); /* vigma más oscuro */
+        color: white;
+        box-shadow: 0 6px 20px rgba(91, 91, 214, 0.45);
+    }
+
+/* ── Ver Errores / Ver Timbrados — outline oscuro ───────────────────────── */
+/* ── Ver Errores  ───────────────────────── */
+.vg-btn-outline-wrong {
+    background: transparent;
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+    .vg-btn-outline-wrong:hover {
+        background: var(--color-danger);
+        color: white;
+        box-shadow: 0 6px 20px rgba(44, 62, 80, 0.35);
+    }
+
+/* ── Ver Timbrados  ───────────────────────── */
+.vg-btn-outline-timbre {
+    background: transparent;
+    color: var(--color-throughput);
+    border-color: var(--color-throughput);
+}
+
+    .vg-btn-outline-timbre:hover {
+        background: var(--color-throughput);
+        color: white;
+        box-shadow: 0 6px 20px rgba(44, 62, 80, 0.35);
+    }
+
+
+/* ── Ver Neutro  ───────────────────────── */
+.vg-btn-outline {
+    background: transparent;
+    color: var(--color-dark);
+    border-color: var(--color-dark);
+}
+
+    .vg-btn-outline:hover {
+        background: var(--color-dark);
+        color: white;
+        box-shadow: 0 6px 20px rgba(44, 62, 80, 0.35);
+    }
+
+/* ── Cerrar Sesión — outline rojo ───────────────────────────────────────── */
+.vg-btn-outline-danger {
+    background: transparent;
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+    .vg-btn-outline-danger:hover {
+        background: var(--danger-gradient);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 6px 20px rgba(255, 65, 108, 0.4);
+    }
+
+/* ── btn-glow — alias de vg-btn-primary con animación de brillo ─────────── */
+.btn-glow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    background: var(--vigma-gradient);
+    color: white;
+    transition: var(--transition-smooth);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+    .btn-glow:hover {
+        color: white;
+        background: linear-gradient(135deg, #4a4ac4 0%, #7a25b8 100%);
+        box-shadow: 0 6px 20px rgba(91, 91, 214, 0.45);
+    }
+
+
+/* =============================================================================
+   CARD BASE
+   Reemplaza: .card de Bootstrap
+   ============================================================================= */
+
+.vg-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+
+/* =============================================================================
+   DARK MODE
+   Activa con: <html data-theme="dark"> o <body data-theme="dark">
+   ============================================================================= */
+
+[data-theme="dark"] {
+    body, .vg-container {
+        background: var(--bg-dark-page);
+        color: #e0e0f0;
+    }
+
+    .vg-card {
+        background: var(--bg-dark-card);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .vg-text-muted {
+        color: #9090b0;
+    }
+
+    .vg-btn-outline {
+        color: #e0e0f0;
+        border-color: #e0e0f0;
+    }
+
+        .vg-btn-outline:hover {
+            background: #e0e0f0;
+            color: var(--bg-dark-page);
+        }
+}
+
+/* =============================================================================
+   Sidebar
+   Menu principal de la aplicacion
+   ============================================================================= */
+.sidebar {
+    position: fixed; /* ← flota, no afecta el flujo del documento */
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 64px;
+    background: var(--vigma-gradient);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.3s ease;
+    z-index: 900;
+    box-shadow: var(--shadow-lg);
+}
+
+    .sidebar:hover {
+        width: 220px; /* ← se expande ENCIMA del contenido */
+    }
+
+
+
+
+/* ── Logo ────────────────────────────────────────────────────────────────── */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-3);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    min-height: 64px;
+}
+
+.sidebar-logo-icon {
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+}
+
+.sidebar-logo-text {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-xl);
+    color: white;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease 0.1s;
+}
+
+.sidebar:hover .sidebar-logo-text {
+    opacity: 1;
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────────── */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-3) 0;
+    flex: 1;
+    gap: var(--space-1);
+}
+
+.sidebar-link {
+    
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3);
+    color: var(--color-txt-light);
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+    min-height: 44px;
+    width: 100%;
+    text-align: left;
+    border-radius: 0;
+}
+
+.sidebar-nav .sidebar-link,
+.sidebar-nav .sidebar-link:link,
+.sidebar-nav .sidebar-link:visited {
+    color: rgba(255, 255, 255, 0.90) !important;
+    text-decoration: none !important;
+}
+
+    .sidebar-nav .sidebar-link:hover {
+        color: white !important;
+    }
+
+
+
+
+    .sidebar-link i {
+        min-width: 20px;
+        font-size: 18px;
+        text-align: center;
+    }
+
+    .sidebar-link:hover,
+    .sidebar-link.active {
+        background: rgba(255,255,255,0.15);
+        color: white;
+    }
+
+
+
+/* ── Labels — ocultos cuando está colapsado ──────────────────────────────── */
+.sidebar-label {
+    opacity: 0;
+    transition: opacity 0.2s ease 0.1s;
+    overflow: hidden;
+}
+
+.sidebar:hover .sidebar-label {
+    opacity: 1;
+}
+.sidebar-footer .sidebar-link,
+.sidebar-footer .sidebar-link:link,
+.sidebar-footer .sidebar-link:visited,
+.sidebar-status,
+.sidebar-user {
+    color: rgba(255, 255, 255, 0.80) !important;
+    text-decoration: none !important;
+}
+
+    .sidebar-footer .sidebar-link:hover {
+        color: white !important;
+    }
+
+/* Cerrar Sesión — sigue rojo */
+.sidebar-logout,
+.sidebar-logout:link,
+.sidebar-logout:visited {
+    color: rgba(255, 100, 100, 0.85) !important;
+}
+
+    .sidebar-logout:hover {
+        color: #ff6464 !important;
+    }
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding: var(--space-2) 0;
+    gap: var(--space-1);
+}
+
+.sidebar-status {
+    cursor: default;
+    font-size: var(--text-xs);
+}
+
+    .sidebar-status:hover {
+        background: transparent;
+        color: rgba(255,255,255,0.75);
+    }
+
+.sidebar-user {
+    cursor: default;
+    font-size: var(--text-xs);
+    opacity: 0.6;
+}
+
+    .sidebar-user:hover {
+        background: transparent;
+    }
+
+.sidebar-logout {
+    color: rgba(255, 100, 100, 0.85);
+}
+
+    .sidebar-logout:hover {
+        background: rgba(255, 65, 108, 0.2);
+        color: #ff6464;
+    }
+
+/* ── Responsive — sidebar se oculta en móvil ─────────────────────────────── */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}

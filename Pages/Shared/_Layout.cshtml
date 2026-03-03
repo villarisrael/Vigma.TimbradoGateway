@@ -4,48 +4,135 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Vigma.TimbradoGateway</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://use.typekit.net/din3yru.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/paginaprincipal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/gstyle.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Vigma.TimbradoGateway.styles.css" asp-append-version="true" />
+    <script>
+            /* Aplica el tema ANTES de renderizar para evitar flash */
+            (function () {
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            })();
+    </script>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">Vigma.TimbradoGateway</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+
+    <aside class="sidebar" id="sidebar">
+
+        <!-- Logo -->
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                <i class="bi bi-shield-check"></i>
             </div>
+            <span class="sidebar-logo-text">Vigma</span>
+        </div>
+
+        <!-- Nav links -->
+        <nav class="sidebar-nav">
+            <a class="sidebar-link active" href="/">
+                <i class="bi bi-house-fill"></i>
+                <span class="sidebar-label">Home</span>
+            </a>
+            <a class="sidebar-link" href="/Monitor/Tenants">
+                <i class="bi bi-people-fill"></i>
+                <span class="sidebar-label">Tenants</span>
+            </a>
+            <a class="sidebar-link sidebar-link-warning" href="/Errores">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span class="sidebar-label">Errores</span>
+            </a>
+            <a class="sidebar-link sidebar-link-teal" href="/Timbrados">
+                <i class="bi bi-file-check"></i>
+                <span class="sidebar-label">Timbrados</span>
+            </a>
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+        <!-- Footer -->
+        <div class="sidebar-footer">
+
+            <!-- Tema -->
+            <button class="sidebar-link" id="themeToggle" onclick="toggleTheme()">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+                <span class="sidebar-label">Tema oscuro</span>
+            </button>
+
+            <!-- Sistema Online -->
+            <div class="sidebar-link sidebar-status">
+                <span class="pulse online"></span>
+                <span class="sidebar-label">Sistema Online</span>
+            </div>
+
+            <!-- Usuario -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="sidebar-link sidebar-user">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="sidebar-label">@User.Identity.Name</span>
+                </div>
+                <form method="post" asp-page-handler="Logout">
+                    <button type="submit" class="sidebar-link sidebar-logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span class="sidebar-label">Cerrar Sesión</span>
+                    </button>
+                </form>
+            }
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+        @RenderBody()
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
+    <footer>
+        <div class="vg-container">
             &copy; 2026 - Vigma.TimbradoGateway - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+            /* Sincroniza el ícono del botón con el tema guardado */
+            (function () {
+                if (localStorage.getItem('theme') === 'dark') {
+                    var icon = document.getElementById('themeIcon');
+                    var label = document.querySelector('#themeToggle .sidebar-label');
+                    if (icon) icon.className = 'bi bi-sun-fill';
+                    if (label) label.textContent = 'Tema claro';
+                }
+            })();
+
+            function toggleTheme() {
+                const root = document.documentElement;
+                const icon = document.getElementById('themeIcon');
+                const label = document.querySelector('#themeToggle .sidebar-label');
+
+                if (root.getAttribute('data-theme') === 'dark') {
+                    root.removeAttribute('data-theme');
+                    icon.className = 'bi bi-moon-fill';
+                    label.textContent = 'Tema oscuro';
+                    localStorage.setItem('theme', 'light');
+                    if (window.ApexCharts) {
+                        ApexCharts.exec('actividad', 'updateOptions', { tooltip: { theme: 'light' } });
+                    }
+                } else {
+                    root.setAttribute('data-theme', 'dark');
+                    icon.className = 'bi bi-sun-fill';
+                    label.textContent = 'Tema claro';
+                    localStorage.setItem('theme', 'dark');
+                    if (window.ApexCharts) {
+                        ApexCharts.exec('actividad', 'updateOptions', { tooltip: { theme: 'dark' } });
+                    }
+                }
+            }
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>
