@@ -4,6 +4,7 @@
     ViewData["Title"] = "Vigma Timbrado Gateway";
 }
 <link rel="stylesheet" href="~/css/paginaprincipal.css" asp-append-version="true" />
+<link href="~/css/gstyle.css" rel="stylesheet" />
 
     <!-- Hero Section -->
 <section class="hero-section">
@@ -319,11 +320,8 @@
       ],
       chart: {
         type: 'area',
-        height: 350,
-        toolbar: {
-          show: true,
-          tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true }
-        },
+        height: 400,
+        
         zoom: { enabled: true, type: 'x', autoScaleYaxis: true },
         background: 'transparent',
         parentHeightOffset: 0,
@@ -455,7 +453,7 @@
 
   // Auto-refresh cada 5 min
   setInterval(() => {
-    if (!document.hidden) cargarDatosGrafico(currentTenantId);
+    if (!document.hidden) cargarDatosGrafico();
   }, 300000);
 </script>
 

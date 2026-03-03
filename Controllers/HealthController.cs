@@ -202,20 +202,7 @@ public class HealthController : ControllerBase
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
-    private int ObtenerGrafica30()
-    {
-        
-        using var cn = new MySqlConnection(_cs);
-        cn.Open();
-
-        using var cmd = cn.CreateCommand();
-        cmd.CommandText = @"SELECT * FROM 
-       vw_timbradosvserrores_30dias;
-    ";
-
-       
-        return Convert.ToInt32(cmd.ExecuteScalar());
-    }
+    
 
 
 }
