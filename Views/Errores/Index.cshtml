@@ -103,11 +103,12 @@
             <table class="ec-table">
                 <thead>
                     <tr>
-                        <th style="width:30px;"><i class="bi bi-person-badge"></i> Tenant</th>
-                        <th style="width:160px;"><i class="bi bi-building"></i> RFC Emisor</th>
-                        <th style="width:30px;"><i class="bi bi-code"></i> Nivel</th>
+                        <!-- thead -->
+                        <th style="width:60px;"><i class="bi bi-person-badge"></i> Tenant</th>
+                        <th style="width:150px;"><i class="bi bi-building"></i> RFC Emisor</th>
+                        <th style="width:80px; text-align:center;"><i class="bi bi-code"></i> Nivel</th>
                         <th><i class="bi bi-chat-dots"></i> Mensaje de error</th>
-                        <th style="width:160px;"><i class="bi bi-clock-history"></i> Creado (UTC)</th>
+                        <th style="width:155px;"><i class="bi bi-clock-history"></i> Creado (UTC)</th>
                         <th style="width:160px;" class="ec-th-center"><i class="bi bi-gear"></i> Acciones</th>
                     </tr>
                 </thead>
@@ -126,39 +127,56 @@
                     }
                     else
                     {
+                        int _rowIndex = 0;
                         foreach (var r in Model.Rows)
                         {
-                            <tr class="ec-row">
+                            string _status = _rowIndex == 1 ? "visto" : _rowIndex == 2 ? "resuelto" : "nuevo";
+                            _rowIndex++;
+
+                            <tr class="ec-row" data-id="@r.Id" data-status="@_status">
                                 <td><span class="ec-tenant">@r.TenantId</span></td>
+
                                 <td><code class="ec-rfc">@r.RfcEmisor</code></td>
+
                                 <td>
-                                    @if (r.CodigoMfNumero.HasValue)
-                                    {
-                                        <span class="ec-error-code">@r.CodigoMfNumero</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="ec-na">N/A</span>
-                                    }
+                                    <div class="ec-nivel-wrap">
+                                        @if (r.CodigoMfNumero.HasValue)
+                                        {
+                                            <span class="ec-error-code">@r.CodigoMfNumero</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="ec-na">N/A</span>
+                                        }
+                                        <span class="ec-status-dot @_status"></span>
+                                        <span class="ec-status-label @_status">
+                                            @(_status == "visto" ? "Visto" : _status == "resuelto" ? "Resuelto" : "Nuevo")
+                                        </span>
+                                    </div>
                                 </td>
+
                                 <td>
                                     <div class="ec-message" title="@r.CodigoMfTexto">
                                         @r.CodigoMfTexto
                                     </div>
                                 </td>
+
                                 <td>
                                     <span class="ec-time">
                                         <i class="bi bi-clock"></i>
                                         @r.CreadoUtc.ToString("yyyy-MM-dd HH:mm:ss")
                                     </span>
                                 </td>
+
                                 <td class="ec-td-center">
                                     <a class="ec-btn-action"
-                                       href="@Url.Action("VistaTimbradoError", "Errores", new { id = r.Id })">
+                                           onclick="marcarVisto('@r.Id', this)"
+                                           href="@Url.Action("VistaTimbradoError", "Errores", new { id = r.Id })">
                                         <i class="bi bi-eye"></i> Detalle
                                     </a>
                                     <a class="ec-btn-action"
-                                       href="@Url.Action("VistaAdicionales", "Errores", new { id = r.Id })">
+                                           onclick="marcarVisto('@r.Id', this)"
+                                           href="@Url.Action("VistaAdicionales", "Errores", new { id = r.Id })">
                                         <i class="bi bi-plus-circle"></i> Adicionales
                                     </a>
                                 </td>
@@ -183,16 +201,34 @@
 </div>
 
 @section Scripts {
-<script>
-    /* Animación de entrada para filas */
-    document.querySelectorAll('.ec-row').forEach((row, i) => {
-        row.style.opacity = '0';
-        row.style.transform = 'translateY(8px)';
-        setTimeout(() => {
-            row.style.transition = 'all 0.3s ease';
-            row.style.opacity = '1';
-            row.style.transform = 'translateY(0)';
-        }, i * 40);
-    });
-</script>
+    <script>
+        /* ── Marcar como visto al hacer click en Detalle o Adicionales ── */
+        function marcarVisto(id, btn) {
+            const row = btn.closest('.ec-row');
+            const dot = row.querySelector('.ec-status-dot');
+            const label = row.querySelector('.ec-status-label');
+
+            if (dot && label && row.dataset.status === 'nuevo') {
+                dot.className = 'ec-status-dot visto';
+                label.className = 'ec-status-label visto';
+                label.textContent = 'Visto';
+                row.dataset.status = 'visto';
+
+                /* Cuando el API esté listo — descomenta:
+                fetch(`/api/errores/${id}/visto`, { method: 'POST' });
+                */
+            }
+        }
+
+        /* ── Animación de entrada para filas ── */
+        document.querySelectorAll('.ec-row').forEach((row, i) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(8px)';
+            setTimeout(() => {
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, i * 40);
+        });
+    </script>
 }
