@@ -202,4 +202,7 @@ public class HealthController : ControllerBase
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
+    
+
+
 }

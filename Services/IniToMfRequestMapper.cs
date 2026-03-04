@@ -148,25 +148,50 @@ public sealed class IniToMfRequestMapper
     private static Dictionary<string, object?> MapFactura(IniCfdiDocument doc)
     {
         var f = doc.Factura ?? new IniFactura();
-
-        var factura = new Dictionary<string, object?>
+        var factura = new Dictionary<string, object?>();
+        if (f.TipoComprobante == "I" || f.TipoComprobante == "E")
         {
-            ["condicionesDePago"] = f.CondicionesDePago,
-            ["fecha_expedicion"] = f.FechaExpedicion ?? "AUTO",
-            ["folio"] = f.Folio,
-            ["forma_pago"] = f.FormaPago,
-            ["LugarExpedicion"] = f.LugarExpedicion,
-            ["metodo_pago"] = f.MetodoPago,
-            ["moneda"] = f.Moneda ?? "MXN",
-            ["serie"] = f.Serie,
-
-            ["subtotal"] = f.SubTotal,
-            ["descuento"] = RedondearDosDecimales( f.Descuento),
-            ["tipocambio"] = f.TipoCambio,
-            ["tipocomprobante"] = f.TipoComprobante,
-            ["total"] = f.Total,
-            ["Exportacion"] = f.Exportacion ?? "01"
-        };
+             factura = new Dictionary<string, object?>
+            {
+                ["condicionesDePago"] = f.CondicionesDePago,
+                ["fecha_expedicion"] = f.FechaExpedicion ?? "AUTO",
+                ["folio"] = f.Folio,
+                ["forma_pago"] = f.FormaPago,
+                ["LugarExpedicion"] = f.LugarExpedicion,
+                ["metodo_pago"] = f.MetodoPago,
+                ["moneda"] = f.Moneda ?? "MXN",
+                ["serie"] = f.Serie,
+                ["subtotal"] = f.SubTotal,
+                ["descuento"] = RedondearDosDecimales(f.Descuento),
+                ["tipocambio"] = f.TipoCambio,
+                ["tipocomprobante"] = f.TipoComprobante,
+                ["total"] = f.Total,
+                ["Exportacion"] = f.Exportacion ?? "01"
+            }
+              .Where(kv => kv.Value != null)
+              .ToDictionary(kv => kv.Key, kv => kv.Value);
+        }
+        if (f.TipoComprobante == "P")
+        {
+            factura = new Dictionary<string, object?>
+            {
+     
+                ["fecha_expedicion"] = f.FechaExpedicion ?? "AUTO",
+                ["folio"] = f.Folio,
+                ["forma_pago"] = f.FormaPago,
+                ["LugarExpedicion"] = f.LugarExpedicion,
+                ["metodo_pago"] = f.MetodoPago,
+                ["moneda"] = f.Moneda ?? "MXN",
+                ["serie"] = f.Serie,
+                ["subtotal"] = f.SubTotal,
+               
+                ["tipocomprobante"] = f.TipoComprobante,
+                ["total"] = f.Total,
+                ["Exportacion"] = f.Exportacion ?? "01"
+            }
+             .Where(kv => kv.Value != null)
+             .ToDictionary(kv => kv.Key, kv => kv.Value);
+        }
 
         // Permite “extras” de [factura] si vienen (por ejemplo Confirmacion, Observaciones, etc.)
         if (!string.IsNullOrWhiteSpace(f.Observaciones))
@@ -255,17 +280,27 @@ public sealed class IniToMfRequestMapper
 
     private static string RedondearDosDecimales(decimal? valor)
     {
-        return Math.Round(valor ?? 0m, 2, MidpointRounding.AwayFromZero).ToString();
+        return Math.Round(valor ?? 0m, 2, MidpointRounding.AwayFromZero).ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
     }
+
+    private static string RedondearSeisDecimales(decimal? valor)
+    {
+        return Math.Round(valor ?? 0m, 6, MidpointRounding.AwayFromZero).ToString("F6", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+
 
 
 
     private static List<Dictionary<string, object?>> MapConceptos(IniCfdiDocument doc)
     {
+
+        var f = doc.Factura;
         var list = new List<Dictionary<string, object?>>();
         if (doc.Conceptos == null || doc.Conceptos.Count == 0) return list;
 
         int ixrubi = 1;
+        var item = new Dictionary<string, object?>();
         foreach (var c in doc.Conceptos)
         {
             // Normaliza
@@ -275,18 +310,34 @@ public sealed class IniToMfRequestMapper
 
             var valorus = RedondearDosDecimales(c.ValorUnitario);
             var impo = RedondearDosDecimales(c.Importe);
-
-            var item = new Dictionary<string, object?>
+            if (f.TipoComprobante == "I" || f.TipoComprobante == "E")
             {
-                ["Cantidad"] = c.Cantidad,
-                ["ClaveUnidad"] = c.ClaveUnidad,
-                ["ID"] = ixrubi,
-                ["Descripcion"] = c.Descripcion,
-                ["ValorUnitario"] = valorus,
-                ["Importe"] = impo,
-                ["ClaveProdServ"] = c.ClaveProdServ,
-                ["ObjetoImp"] = c.ObjetoImp
-            };
+                 item = new Dictionary<string, object?>
+                {
+                    ["Cantidad"] = c.Cantidad,
+                    ["ClaveUnidad"] = c.ClaveUnidad,
+                    ["ID"] = ixrubi,
+                    ["Descripcion"] = c.Descripcion,
+                    ["ValorUnitario"] = valorus,
+                    ["Importe"] = impo,
+                    ["ClaveProdServ"] = c.ClaveProdServ,
+                    ["ObjetoImp"] = c.ObjetoImp
+                };
+            }
+            if (f.TipoComprobante == "P" )
+            {
+                 item = new Dictionary<string, object?>
+                {
+                    ["Cantidad"] = c.Cantidad,
+                    ["ClaveUnidad"] = c.ClaveUnidad,
+                 
+                    ["Descripcion"] = c.Descripcion,
+                    ["ValorUnitario"] = "0",
+                    ["Importe"] = "0",
+                    ["ClaveProdServ"] = c.ClaveProdServ,
+                    ["ObjetoImp"] = c.ObjetoImp
+                };
+            }
 
             // Solo si hay descuento > 0, se agrega
             if (descuento > 0m)
@@ -339,8 +390,11 @@ public sealed class IniToMfRequestMapper
                 }
             }
 
-            list.Add(item);
-            ixrubi++;
+            if (c.Cantidad != null && c.Descripcion != null && c.Importe != null)
+            {
+                list.Add(item);
+                ixrubi++;
+            }
         }
 
         return list;
@@ -412,53 +466,53 @@ public sealed class IniToMfRequestMapper
             ["TotalRetencionesISR"] = p20.Totales?.TotalRetencionesISR,
             ["TotalRetencionesIVA"] = p20.Totales?.TotalRetencionesIVA,
             ["TotalRetencionesIEPS"] = p20.Totales?.TotalRetencionesIEPS
-        };
+        }
+        .Where(kv => kv.Value != null)
+        .ToDictionary(kv => kv.Key, kv => kv.Value);
 
+      
         // Pagos
-        root["Pagos"] = (p20.Pagos ?? new()).Select(p => new Dictionary<string, object?>
-        {
-            ["FechaPago"] = p.FechaPago,
-            ["FormaDePagoP"] = p.FormaDePagoP,
-            ["MonedaP"] = p.MonedaP,
-            ["TipoCambioP"] = p.TipoCambioP,
-            ["Monto"] = p.Monto,
-
-            ["NumOperacion"] = p.NumOperacion,
-
-            ["RfcEmisorCtaOrd"] = p.RfcEmisorCtaOrd,
-            ["NomBancoOrdExt"] = p.NomBancoOrdExt,
-            ["CtaOrdenante"] = p.CtaOrdenante,
-
-            ["RfcEmisorCtaBen"] = p.RfcEmisorCtaBen,
-            ["CtaBeneficiario"] = p.CtaBeneficiario,
-
-            ["TipoCadPago"] = p.TipoCadPago,
-            ["CertPago"] = p.CertPago,
-            ["CadPago"] = p.CadPago,
-            ["SelloPago"] = p.SelloPago,
-
-            ["DoctoRelacionado"] = (p.DoctosRelacionados ?? new()).Select(d => new Dictionary<string, object?>
+        root["Pagos"] = (p20.Pagos ?? new()).Select(p =>
+            new Dictionary<string, object?>
             {
-                ["IdDocumento"] = d.IdDocumento,
-                ["Serie"] = d.Serie,
-                ["Folio"] = d.Folio,
-                ["MonedaDR"] = d.MonedaDR,
-                ["EquivalenciaDR"] = d.EquivalenciaDR,
-                ["NumParcialidad"] = d.NumParcialidad,
-
-                ["ImpSaldoAnt"] = d.ImpSaldoAnt,
-                ["ImpPagado"] = d.ImpPagado,
-                ["ImpSaldoInsoluto"] = d.ImpSaldoInsoluto,
-
-                ["ObjetoImpDR"] = d.ObjetoImpDR,
-
-                // ImpuestosDR (si hay)
-                ["ImpuestosDR"] = MapImpuestosDR(d)
-            }).ToList(),
-
-            // ImpuestosP (si hay)
-            ["ImpuestosP"] = MapImpuestosP(p)
-        }).ToList();
+                ["FechaPago"] = p.FechaPago,
+                ["FormaDePagoP"] = p.FormaDePagoP,
+                ["MonedaP"] = p.MonedaP,
+                ["TipoCambioP"] = p.TipoCambioP,
+                ["Monto"] = p.Monto,
+                ["NumOperacion"] = p.NumOperacion,
+                ["RfcEmisorCtaOrd"] = p.RfcEmisorCtaOrd,
+                ["NomBancoOrdExt"] = p.NomBancoOrdExt,
+                ["CtaOrdenante"] = p.CtaOrdenante,
+                ["RfcEmisorCtaBen"] = p.RfcEmisorCtaBen,
+                ["CtaBeneficiario"] = p.CtaBeneficiario,
+                ["TipoCadPago"] = p.TipoCadPago,
+                ["CertPago"] = p.CertPago,
+                ["CadPago"] = p.CadPago,
+                ["SelloPago"] = p.SelloPago,
+                ["DoctoRelacionado"] = (p.DoctosRelacionados ?? new()).Select(d =>
+                    new Dictionary<string, object?>
+                    {
+                        ["IdDocumento"] = d.IdDocumento,
+                        ["Serie"] = d.Serie,
+                        ["Folio"] = d.Folio,
+                        ["MonedaDR"] = d.MonedaDR,
+                        ["EquivalenciaDR"] = d.EquivalenciaDR,
+                        ["NumParcialidad"] = d.NumParcialidad,
+                        ["ImpSaldoAnt"] = d.ImpSaldoAnt,
+                        ["ImpPagado"] = d.ImpPagado,
+                        ["ImpSaldoInsoluto"] = d.ImpSaldoInsoluto,
+                        ["ObjetoImpDR"] = d.ObjetoImpDR,
+                        ["ImpuestosDR"] = MapImpuestosDR(d)
+                    }
+                    .Where(kv => kv.Value != null)
+                    .ToDictionary(kv => kv.Key, kv => kv.Value)
+                ).ToList(),
+                ["ImpuestosP"] = MapImpuestosP(p)
+            }
+            .Where(kv => kv.Value != null)
+            .ToDictionary(kv => kv.Key, kv => kv.Value)
+        ).ToList();
 
         return root;
     }
@@ -475,11 +529,11 @@ public sealed class IniToMfRequestMapper
         {
             obj["TrasladosP"] = p.ImpuestosP!.TrasladosP.Select(t => new Dictionary<string, object?>
             {
-                ["BaseP"] = t.BaseP,
+                ["BaseP"] = RedondearDosDecimales( t.BaseP),
                 ["ImpuestoP"] = t.ImpuestoP,
                 ["TipoFactorP"] = t.TipoFactorP,
-                ["TasaOCuotaP"] = t.TasaOCuotaP,
-                ["ImporteP"] = t.ImporteP
+                ["TasaOCuotaP"] = RedondearSeisDecimales( t.TasaOCuotaP),
+                ["ImporteP"] =RedondearDosDecimales( t.ImporteP)
             }).ToList();
         }
 
@@ -505,13 +559,13 @@ public sealed class IniToMfRequestMapper
 
         if (hasT)
         {
-            obj["TrasladosDR"] = d.ImpuestosDR!.TrasladosDR.Select(t => new Dictionary<string, object?>
+            obj["TrasladoDR"] = d.ImpuestosDR!.TrasladosDR.Select(t => new Dictionary<string, object?>
             {
-                ["BaseDR"] = t.BaseDR,
+                ["BaseDR"] = RedondearDosDecimales( t.BaseDR),
                 ["ImpuestoDR"] = t.ImpuestoDR,
                 ["TipoFactorDR"] = t.TipoFactorDR,
-                ["TasaOCuotaDR"] = t.TasaOCuotaDR,
-                ["ImporteDR"] = t.ImporteDR
+                ["TasaOCuotaDR"] = RedondearSeisDecimales( t.TasaOCuotaDR),
+                ["ImporteDR"] = RedondearDosDecimales(t.ImporteDR)
             }).ToList();
         }
 
@@ -551,4 +605,6 @@ public sealed class IniToMfRequestMapper
 
         return obj;
     }
+
+
 }

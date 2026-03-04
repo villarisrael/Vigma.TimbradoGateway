@@ -1,6 +1,8 @@
 ﻿@model Vigma.TimbradoGateway.ViewModels.Timbrados.TimbradoIndiceVM
 @{
     ViewData["Title"] = "Índice de Timbrados";
+     var from = Model.TotalRows == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
+    var to = Math.Min(Model.Page * Model.PageSize, Model.TotalRows);
 }
 
 <link href="~/css/indicetimbrado.css" rel="stylesheet" />
@@ -46,6 +48,11 @@
         </h5>
 
         <form asp-action="Index" asp-controller="Timbrados" method="get">
+
+
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+
             <div class="row g-3 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label small fw-bold mb-2">
@@ -222,22 +229,72 @@
     </div>
 
     <!-- Footer/Paginación -->
-    @if (Model.Rows != null && Model.Rows.Any())
-    {
-        <div class="pagination-nav">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="small text-muted">
-                    Mostrando los últimos timbrados • Puedes agregar paginación / exportación aquí
-                </div>
-                <div class="d-flex gap-2">
-                    <a class="btn btn-outline-soft btn-sm" href="@Url.Action("ExportarCsv", "Timbrados")">
-                        <i class="bi bi-download me-1"></i> Exportar CSV
-                    </a>
-                </div>
+   @if (Model.TotalPages > 1)
+{
+    <div class="pagination-nav">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="small text-muted">
+                Página <strong>@Model.Page</strong> de <strong>@Model.TotalPages</strong> • @Model.PageSize por página
             </div>
+
+            <nav aria-label="Paginación">
+                <ul class="pagination pagination-sm mb-0">
+
+                    <li class="page-item @(Model.HasPrev ? "" : "disabled")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", "Timbrados", new {
+                                tenantId = Model.TenantId,
+                                rfcEmisor = Model.RfcEmisor,
+                                fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"),
+                                fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"),
+                                page = Model.Page - 1,
+                                pageSize = Model.PageSize
+                           })">
+                            «
+                        </a>
+                    </li>
+
+                    @{
+                        // Ventana de páginas (máx 7 botones)
+                        var start = Math.Max(1, Model.Page - 3);
+                        var end = Math.Min(Model.TotalPages, start + 6);
+                        start = Math.Max(1, end - 6);
+                    }
+
+                    @for (int p = start; p <= end; p++)
+                    {
+                        <li class="page-item @(p == Model.Page ? "active" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", "Timbrados", new {
+                                    tenantId = Model.TenantId,
+                                    rfcEmisor = Model.RfcEmisor,
+                                    fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"),
+                                    fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"),
+                                    page = p,
+                                    pageSize = Model.PageSize
+                               })">@p</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(Model.HasNext ? "" : "disabled")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", "Timbrados", new {
+                                tenantId = Model.TenantId,
+                                rfcEmisor = Model.RfcEmisor,
+                                fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"),
+                                fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"),
+                                page = Model.Page + 1,
+                                pageSize = Model.PageSize
+                           })">
+                            »
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
         </div>
-    }
-</div>
+    </div>
+}
 
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">

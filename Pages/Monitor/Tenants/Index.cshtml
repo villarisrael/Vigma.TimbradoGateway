@@ -4,28 +4,46 @@
     ViewData["Title"] = "Tenants";
 }
 
-<div class="container-fluid py-4">
-    <!-- Header Card -->
-    <div class="card border-0 shadow-lg mb-4 overflow-hidden">
-        <div class="card-header-gradient py-4 px-4">
-            <div class="row align-items-center">
-                <div class="col-lg-8 col-md-7">
-                    <div class="d-flex align-items-center">
-                        <div class="icon-circle me-3">
-                            <i class="bi bi-building-fill"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-white mb-1 fw-bold">Gestión de Tenants</h2>
-                            <p class="text-white-75 mb-0">
-                                <i class="bi bi-collection me-2"></i>
-                                @Model.Items.Count @(Model.Items.Count == 1 ? "tenant registrado" : "tenants registrados")
-                            </p>
+<!-- =========================================================================
+     TENANTS DASHBOARD
+     Usando clases utilitarias de gstyle.css
+     ========================================================================= -->
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<div class="main-content">
+    <!-- Hero Section con gradiente Vigma -->
+    <div class="vg-card vg-mb-5" style="background: var(--vigma-gradient); border: none;">
+        <div class="vg-p-5">
+            <div class="vg-flex vg-justify-between vg-align-center" style="flex-wrap: wrap; gap: var(--space-4);">
+                <div class="vg-flex vg-align-center vg-gap-3">
+                    <div class="icon-circle-lg" style="background: rgba(255,255,255,0.15);">
+                        <i class="bi bi-buildings-fill"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-white vg-display vg-mb-1">Gestión de Tenants</h1>
+                        <div class="vg-flex vg-gap-2" style="flex-wrap: wrap;">
+                            <span class="badge-light">
+                                <i class="bi bi-collection me-1"></i> 
+                                @Model.Items.Count @(Model.Items.Count == 1 ? "tenant" : "tenants")
+                            </span>
+                            <span class="badge-light">
+                                <i class="bi bi-check-circle-fill me-1 text-success"></i> 
+                                @Model.Items.Count(t => t.Activo) activos
+                            </span>
+                            <span class="badge-light">
+                                <i class="bi bi-exclamation-triangle-fill me-1 text-warning"></i> 
+                                @Model.Items.Count(t => t.CertVigenciaFinUtc.HasValue && 
+                                    (t.CertVigenciaFinUtc.Value - DateTime.UtcNow).Days <= 30) por expirar
+                            </span>
+                             <span class="badge-light">
+                                <i class="bi bi-cloud-check me-1 text-warning"></i> 
+                                 @Model.Items.Count(t => t.pac_produccion) En produccion
+                            </span>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-5 text-md-end mt-3 mt-md-0">
-                    <a asp-page="Create" class="btn btn-light-custom btn-lg shadow-sm">
-                        <i class="bi bi-plus-circle-fill me-2"></i>
+                <div>
+                    <a asp-page="Create" class="vg-btn" style="background: white; color: var(--color-vigma);">
+                        <i class="bi bi-plus-circle-fill"></i>
                         Nuevo Tenant
                     </a>
                 </div>
@@ -34,36 +52,42 @@
     </div>
 
     <!-- Filtros Card -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
+    <div class="vg-card vg-mb-4">
+        <div class="vg-p-4">
             <form method="get">
-                <div class="row g-3 align-items-end">
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label fw-semibold text-dark mb-2">
-                            <i class="bi bi-search me-2"></i>Buscar
+                <div class="vg-row gap-sm">
+                    <div class="vg-col-12 vg-col-md-6 vg-col-lg-4">
+                        <label class="vg-flex vg-align-center vg-gap-2 vg-mb-2 vg-text-muted vg-fw-semibold">
+                            <i class="bi bi-search"></i> Buscar
                         </label>
-                        <input class="form-control-custom" 
+                        <input type="text" 
                                name="q" 
                                value="@Model.Q" 
-                               placeholder="Nombre o RFC..." />
+                               placeholder="Nombre, RFC o API Key..."
+                               class="form-control-custom" />
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label fw-semibold text-dark mb-2">
-                            <i class="bi bi-funnel me-2"></i>Estado
+
+                    <div class="vg-col-12 vg-col-md-6 vg-col-lg-3">
+                        <label class="vg-flex vg-align-center vg-gap-2 vg-mb-2 vg-text-muted vg-fw-semibold">
+                            <i class="bi bi-funnel"></i> Estado
                         </label>
-                        <select class="form-select-custom" name="activo">
+                        <select name="activo" class="form-select-custom">
                             <option value="">Todos los estados</option>
                             <option value="1" selected="@(Model.Activo == 1)">Activos</option>
                             <option value="0" selected="@(Model.Activo == 0)">Inactivos</option>
                         </select>
                     </div>
-                    <div class="col-lg-5 col-md-12">
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary-custom flex-grow-1" type="submit">
-                                <i class="bi bi-search me-2"></i>Buscar
+
+                    <div class="vg-col-12 vg-col-lg-5">
+                        <label class="vg-flex vg-align-center vg-gap-2 vg-mb-2" style="opacity: 0;">Acciones</label>
+                        <div class="vg-flex vg-gap-2">
+                            <button type="submit" class="vg-btn vg-btn-primary" style="flex: 1;">
+                                <i class="bi bi-search"></i>
+                                Buscar
                             </button>
-                            <a class="btn btn-outline-secondary-custom" href="/Monitor/Tenants">
-                                <i class="bi bi-arrow-clockwise me-2"></i>Limpiar
+                            <a href="/Monitor/Tenants" class="vg-btn vg-btn-outline">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                Limpiar
                             </a>
                         </div>
                     </div>
@@ -72,708 +96,832 @@
         </div>
     </div>
 
+  
+
     @if (!Model.Items.Any())
     {
         <!-- Empty State -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center py-5">
-                <div class="empty-state-icon mb-4">
-                    <i class="bi bi-building-x"></i>
+        <div class="vg-card vg-text-center">
+            <div class="vg-p-7">
+                <div class="empty-state-icon">
+                    <i class="bi bi-building-slash"></i>
                 </div>
-                <h4 class="text-muted mb-3">No se encontraron tenants</h4>
-                <p class="text-muted mb-4">
+                <h2 class="vg-display vg-mb-2">No hay tenants para mostrar</h2>
+                <p class="vg-text-muted vg-mb-4">
                     @if (!string.IsNullOrEmpty(Model.Q) || Model.Activo.HasValue)
                     {
-                        <span>Intenta ajustar los filtros de búsqueda.</span>
+                        <span>No se encontraron resultados con los filtros aplicados.</span>
                     }
                     else
                     {
-                        <span>Comienza creando tu primer tenant.</span>
+                        <span>Comienza agregando tu primer tenant al sistema.</span>
                     }
                 </p>
-                <a asp-page="Create" class="btn btn-primary-custom btn-lg shadow">
-                    <i class="bi bi-plus-circle-fill me-2"></i>
-                    Crear Primer Tenant
-                </a>
+                
+                @if (!string.IsNullOrEmpty(Model.Q) || Model.Activo.HasValue)
+                {
+                    <a href="/Monitor/Tenants" class="vg-btn" style="background: var(--color-dark); color: white;">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Limpiar filtros
+                    </a>
+                }
+                else
+                {
+                    <a asp-page="Create" class="vg-btn vg-btn-primary">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        Crear Primer Tenant
+                    </a>
+                }
             </div>
         </div>
     }
     else
     {
-        <!-- Tenants Table -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 modern-table">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">
-                                    <i class="bi bi-hash me-2"></i>ID
-                                </th>
-                                <th>
-                                    <i class="bi bi-building me-2"></i>Tenant
-                                </th>
-                                <th>
-                                    <i class="bi bi-toggles me-2"></i>Estado
-                                </th>
-                                <th>
-                                    <i class="bi bi-key me-2"></i>API Key
-                                </th>
-                                <th>
-                                    <i class="bi bi-card-text me-2"></i>RFC(s)
-                                </th>
-                                <th>
-                                    <i class="bi bi-calendar-event me-2"></i>Vigencia
-                                </th>
-                                <th>
-                                    <i class="bi bi-toggles me-2"></i>Modo
-                                </th>
-                                <th class="text-center pe-4">
-                                    <i class="bi bi-gear-fill me-2"></i>Acciones
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var t in Model.Items)
-                            {
-                                var esValido = t.CertVigenciaFinUtc.HasValue && t.CertVigenciaFinUtc.Value > DateTime.UtcNow;
-                                var diasRestantes = t.CertVigenciaFinUtc.HasValue 
-                                    ? (t.CertVigenciaFinUtc.Value - DateTime.UtcNow).Days 
-                                    : 0;
-                                var porExpirar = diasRestantes > 0 && diasRestantes <= 30;
+        <!-- Tabla de Tenants -->
+        <div class="vg-card">
+            <div class="vg-p-4" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <div class="vg-flex vg-justify-between vg-align-center">
+                    <h3 class="vg-flex vg-align-center vg-gap-2" style="font-family: var(--font-titles); color: var(--color-dark);">
+                        <i class="bi bi-table" style="color: var(--color-vigma);"></i>
+                        Listado de Tenants
+                    </h3>
+                    <button onclick="refreshData()" class="btn-icon">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tenant</th>
+                            <th>Estado</th>
+                            <th>API Key</th>
+                            <th>RFCs</th>
+                            <th>Vigencia</th>
+                            <th>Modo</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model.Items)
+                        {
+                            var vigencia = t.CertVigenciaFinUtc.HasValue 
+                                ? (t.CertVigenciaFinUtc.Value - DateTime.UtcNow).Days 
+                                : (int?)null;
+                            
+                            <tr class="table-row">
+                                <td>
+                                    <span class="id-badge">@t.Id</span>
+                                </td>
                                 
-                                <tr class="align-middle">
-                                    <td class="ps-4">
-                                        <span class="badge-id">@t.Id</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="tenant-icon me-3">
-                                                <i class="bi bi-building-fill"></i>
-                                            </div>
-                                            <div>
-                                                <strong class="text-dark d-block">@t.Nombre</strong>
-                                            </div>
+                                <td>
+                                    <div class="vg-flex vg-align-center vg-gap-2">
+                                        <div class="tenant-avatar">
+                                            @t.Nombre.Substring(0, 1).ToUpper()
                                         </div>
-                                    </td>
-                                    <td>
-                                        @if (t.Activo)
-                                        {
-                                            <span class="badge-custom badge-success">
-                                                <i class="bi bi-check-circle-fill me-1"></i>Activo
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge-custom badge-secondary">
-                                                <i class="bi bi-x-circle-fill me-1"></i>Inactivo
-                                            </span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <code class="api-key-text">@t.ApiKeyMasked</code>
-                                            <a asp-page="Edit" 
-                                               asp-route-id="@t.Id" 
-                                               class="btn-mini btn-info"
-                                               title="Ver API Key completa">
-                                                <i class="bi bi-eye-fill"></i>
-                                            </a>
+                                        <div>
+                                            <div class="tenant-name">@t.Nombre</div>
+                                            @if (!string.IsNullOrEmpty(t.RfcsResumen))
+                                            {
+                                                <div class="tenant-rfc">@t.RfcsResumen</div>
+                                            }
                                         </div>
-                                    </td>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(t.RfcsResumen))
-                                        {
-                                            <span class="text-dark">@t.RfcsResumen</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">—</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (t.CertVigenciaFinUtc.HasValue)
-                                        {
-                                            var local = t.CertVigenciaFinUtc.Value.ToLocalTime();
-                                            <div>
-                                                <div class="fw-semibold text-dark">
-                                                    @local.ToString("dd/MM/yy")
-                                                </div>
-                                                @if (esValido)
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    @if (t.Activo)
+                                    {
+                                        <span class="status-badge status-active">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-inactive">
+                                            <i class="bi bi-x-circle-fill"></i>
+                                            Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                
+                                <td>
+                                    <div class="api-key-container">
+                                        <code class="api-key-code">@t.ApiKeyMasked</code>
+                                        <button onclick="copyApiKey('@t.ApiKeyMasked')" class="api-key-btn" title="Copiar API Key">
+                                            <i class="bi bi-files"></i>
+                                        </button>
+                                        <a asp-page="Edit" asp-route-id="@t.Id" class="api-key-btn" title="Ver API Key completa">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    @if (!string.IsNullOrEmpty(t.RfcsResumen))
+                                    {
+                                        <span class="rfc-badge">@t.RfcsResumen</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                
+                                <td>
+                                    @if (t.CertVigenciaFinUtc.HasValue)
+                                    {
+                                        var vigenciaClass = vigencia > 30 ? "vigencia-success" : (vigencia > 0 ? "vigencia-warning" : "vigencia-danger");
+                                        
+                                        <div class="vigencia-container @vigenciaClass">
+                                            <div class="vigencia-date">
+                                                @t.CertVigenciaFinUtc.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                                            </div>
+                                            <div class="vigencia-status">
+                                                @if (vigencia > 0)
                                                 {
-                                                    if (porExpirar)
-                                                    {
-                                                        <small class="text-warning">
-                                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                            @diasRestantes días
-                                                        </small>
-                                                    }
-                                                    else
-                                                    {
-                                                        <small class="text-success">
-                                                            <i class="bi bi-check-circle-fill me-1"></i>
-                                                            @diasRestantes días
-                                                        </small>
-                                                    }
+                                                    <i class="bi bi-@(vigencia > 30 ? "check-circle-fill" : "exclamation-triangle-fill")"></i>
+                                                    <span>@vigencia días</span>
                                                 }
                                                 else
                                                 {
-                                                    <small class="text-danger">
-                                                        <i class="bi bi-x-circle-fill me-1"></i>
-                                                        Expirado
-                                                    </small>
+                                                    <i class="bi bi-x-circle-fill"></i>
+                                                    <span>Expirado</span>
                                                 }
                                             </div>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">—</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" 
-                                                   type="checkbox" 
-                                                   checked="@t.pac_produccion"
-                                                   disabled
-                                                   title="@(t.pac_produccion ? "Producción" : "Pruebas")">
-                                            <label class="form-check-label text-muted small">
-                                                @(t.pac_produccion ? "Prod" : "Test")
-                                            </label>
                                         </div>
-                                    </td>
-                                    <td class="pe-4">
-                                            <div class="action-buttons-container">
-                                                <!-- Editar -->
-                                                <a asp-page="Edit" 
-                                                   asp-route-id="@t.Id"
-                                                   class="btn-action-with-label btn-edit"
-                                                   title="Editar tenant">
-                                                    <i class="bi bi-pencil-fill"></i>
-                                                    <span>Editar</span>
-                                                </a>
-
-                                                <!-- Certificados -->
-                                                <a href="/Monitor/Tenants/@t.Id/Certificados"
-                                                   class="btn-action-with-label btn-certificate"
-                                                   title="Gestionar certificados">
-                                                    <i class="bi bi-shield-lock-fill"></i>
-                                                    <span>Certificados</span>
-                                                </a>
-
-                                                <!-- Errores -->
-                                                <a href="/Errores?tenantId=@t.Id"
-                                                   class="btn-action-with-label btn-error"
-                                                   title="Ver errores">
-                                                    <i class="bi bi-exclamation-triangle-fill"></i>
-                                                    <span>Errores</span>
-                                                </a>
-
-                                                <!-- Timbrados -->
-                                                <a href="/Timbrados?tenantId=@t.Id"
-                                                   class="btn-action-with-label btn-invoice"
-                                                   title="Ver timbrados">
-                                                    <i class="bi bi-file-earmark-text-fill"></i>
-                                                    <span>Timbrados</span>
-                                                </a>
-
-                                                <!-- Saldo timbres -->
-                                                <button type="button"
-                                                        class="btn-action-with-label btn-balance js-saldo"
-                                                        data-tenantid="@t.Id"
-                                                        data-nombre="@t.Nombre"
-                                                        title="Consultar saldo">
-                                                    <i class="bi bi-cash-stack"></i>
-                                                    <span>Saldo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin certificado</span>
+                                    }
+                                </td>
+                                
+                                <td>
+                                    <span class="mode-badge @(t.pac_produccion ? "mode-production" : "mode-test")">
+                                        <i class="bi bi-@(t.pac_produccion ? "cloud-check" : "cloud-slash")"></i>
+                                        @(t.pac_produccion ? "Prod" : "Test")
+                                    </span>
+                                </td>
+                                
+                                <td>
+                                    <div class="action-dropdown">
+                                        <button class="action-btn" onclick="toggleDropdown(this)">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a asp-page="Edit" asp-route-id="@t.Id" class="dropdown-item">
+                                                <i class="bi bi-pencil-fill"></i>
+                                                Editar
+                                            </a>
+                                            <a href="/Monitor/Tenants/@t.Id/Certificados" class="dropdown-item">
+                                                <i class="bi bi-shield-lock-fill"></i>
+                                                Certificados
+                                            </a>
+                                            <a href="/Errores?tenantId=@t.Id" class="dropdown-item">
+                                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                                Errores
+                                            </a>
+                                            <a href="/Timbrados?tenantId=@t.Id" class="dropdown-item">
+                                                <i class="bi bi-file-text-fill"></i>
+                                                Timbrados
+                                            </a>
+                                            <div class="dropdown-divider"></div>
+                                            <button type="button" class="dropdown-item" onclick="consultarSaldo('@t.Id', '@t.Nombre')">
+                                                <i class="bi bi-cash-stack"></i>
+                                                Consultar Saldo
+                                            </button>
+                                            @if (t.Activo)
+                                            {
+                                                <button type="button" class="dropdown-item text-warning" onclick="toggleTenantStatus('@t.Id', true)">
+                                                    <i class="bi bi-pause-fill"></i>
+                                                    Suspender
                                                 </button>
-
-                                                <!-- Suspender / Activar -->
-                                                <form method="post"
-                                                      asp-page-handler="ToggleActivo"
-                                                      asp-route-id="@t.Id"
-                                                      class="d-inline">
-                                                    @Html.AntiForgeryToken()
-                                                    @if (t.Activo)
-                                                    {
-                                                        <button type="submit" 
-                                                                class="btn-action-with-label btn-suspend"
-                                                                onclick="return confirm('¿Suspender este tenant?');"
-                                                                title="Suspender tenant">
-                                                            <i class="bi bi-pause-fill"></i>
-                                                            <span>Suspender</span>
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <button type="submit" 
-                                                                class="btn-action-with-label btn-activate"
-                                                                onclick="return confirm('¿Activar este tenant?');"
-                                                                title="Activar tenant">
-                                                            <i class="bi bi-play-fill"></i>
-                                                            <span>Activar</span>
-                                                        </button>
-                                                    }
-                                                </form>
-                                            </div>
-                                        </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="dropdown-item text-success" onclick="toggleTenantStatus('@t.Id', false)">
+                                                    <i class="bi bi-play-fill"></i>
+                                                    Activar
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     }
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
 <style>
-    /* === Variables de Color === */
-    :root {
-        --primary-blue: #1e40af;
-        --primary-blue-dark: #1e3a8a;
-        --primary-blue-light: #3b82f6;
-        --secondary-blue: #60a5fa;
-        --light-blue: #dbeafe;
-        --extra-light-blue: #eff6ff;
-        --success-green: #10b981;
-        --warning-orange: #f59e0b;
-        --danger-red: #ef4444;
-        --info-cyan: #0ea5e9;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-    }
+/* ============================================================================
+   ESTILOS ESPECÍFICOS PARA TENANTS
+   (Solo estilos que no están en gstyle.css)
+   ============================================================================ */
 
-    /* === Header Gradient === */
-    .card-header-gradient {
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-    }
+/* Icono circular grande */
+.icon-circle-lg {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
 
-    .text-white-75 {
-        color: rgba(255, 255, 255, 0.85);
-    }
+.icon-circle-lg i {
+    font-size: 2rem;
+    color: white;
+}
 
-    /* === Icon Circle === */
-    .icon-circle {
-        width: 56px;
-        height: 56px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(10px);
-    }
+/* Badge claro para header */
+.badge-light {
+    background: rgba(255, 255, 255, 0.15);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    color: white;
+    font-size: var(--text-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
 
-    .icon-circle i {
-        font-size: 1.75rem;
-        color: white;
-    }
+/* Form controls personalizados */
+.form-control-custom,
+.form-select-custom {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 2px solid #e9ecef;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    transition: var(--transition-smooth);
+    background: white;
+}
 
-    /* === Custom Buttons === */
-    .btn-light-custom {
-        background: white;
-        color: var(--primary-blue);
-        border: none;
-        font-weight: 600;
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
+.form-control-custom:focus,
+.form-select-custom:focus {
+    outline: none;
+    border-color: var(--color-vigma);
+    box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.1);
+}
 
-    .btn-light-custom:hover {
-        background: var(--extra-light-blue);
-        color: var(--primary-blue-dark);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(30, 64, 175, 0.2);
-    }
+/* Tarjetas de estadísticas */
+.stat-card {
+    position: relative;
+    overflow: hidden;
+}
 
-    .btn-primary-custom {
-        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-        color: white;
-        border: none;
-        font-weight: 600;
-        padding: 0.625rem 1.5rem;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-    }
+.stat-card-header {
+    height: 4px;
+    width: 100%;
+}
 
-    .btn-primary-custom:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
-    }
+.stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    .btn-outline-secondary-custom {
-        color: var(--gray-600);
-        border: 2px solid var(--gray-200);
-        background: white;
-        font-weight: 600;
-        padding: 0.625rem 1.5rem;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-    }
+.stat-icon-wrapper i {
+    font-size: 1.5rem;
+}
 
-    .btn-outline-secondary-custom:hover {
-        background: var(--gray-50);
-        border-color: var(--gray-600);
-        color: var(--gray-700);
-    }
+.stat-label {
+    font-size: var(--text-xs);
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-    /* === Form Controls === */
-    .form-control-custom,
-    .form-select-custom {
-        border: 2px solid var(--gray-200);
-        border-radius: 10px;
-        padding: 0.625rem 1rem;
-        transition: all 0.3s ease;
-        font-size: 0.938rem;
-    }
+.stat-value {
+    font-size: var(--text-2xl);
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    color: var(--color-dark);
+    line-height: 1.2;
+}
 
-    .form-control-custom:focus,
-    .form-select-custom:focus {
-        border-color: var(--primary-blue);
-        box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
-        outline: none;
-    }
+/* Tabla moderna */
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1200px;
+}
 
-    .form-label {
-        font-size: 0.875rem;
-        color: var(--gray-700);
-    }
+.modern-table th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    background: var(--bg-light-subtle);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-    /* === Modern Table === */
-    .modern-table {
-        border-collapse: separate;
-        border-spacing: 0;
-    }
+.modern-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
 
-    .modern-table thead {
-        background: linear-gradient(180deg, var(--extra-light-blue) 0%, white 100%);
-    }
+.table-row {
+    transition: var(--transition-fast);
+}
 
-    .modern-table thead th {
-        border: none;
-        color: var(--primary-blue-dark);
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        padding: 1.25rem 1rem;
-        border-bottom: 2px solid var(--light-blue);
-    }
+.table-row:hover {
+    background: var(--bg-light-subtle);
+}
 
-    .modern-table tbody tr {
-        transition: all 0.2s ease;
-        border-bottom: 1px solid var(--gray-100);
-    }
+/* Avatar de tenant */
+.tenant-avatar {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, rgba(91,91,214,0.1) 0%, rgba(139,47,201,0.1) 100%);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--weight-bold);
+    color: var(--color-vigma);
+}
 
-    .modern-table tbody tr:hover {
-        background: var(--extra-light-blue);
-        transform: scale(1.002);
-        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.08);
-    }
+.tenant-name {
+    font-weight: var(--weight-semibold);
+    color: var(--color-dark);
+    font-size: var(--text-sm);
+}
 
-    .modern-table tbody td {
-        padding: 1rem;
-        vertical-align: middle;
-        border: none;
-    }
+.tenant-rfc {
+    font-size: var(--text-xs);
+    color: #6c757d;
+}
 
-    /* === Tenant Icon === */
-    .tenant-icon {
-        width: 42px;
-        height: 42px;
-        background: linear-gradient(135deg, var(--light-blue) 0%, var(--extra-light-blue) 100%);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+/* ID Badge */
+.id-badge {
+    background: var(--bg-light-subtle);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-dark);
+}
 
-    .tenant-icon i {
-        font-size: 1.25rem;
-        color: var(--primary-blue);
-    }
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+}
 
-    /* === Badge Custom === */
-    .badge-custom {
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.813rem;
-        display: inline-flex;
-        align-items: center;
-    }
+.status-active {
+    background: rgba(17, 153, 142, 0.1);
+    color: var(--color-success);
+}
 
-    .badge-success {
-        background: #d1fae5;
-        color: #065f46;
-    }
+.status-inactive {
+    background: #e9ecef;
+    color: #6c757d;
+}
 
-    .badge-secondary {
-        background: var(--gray-100);
-        color: var(--gray-600);
-    }
+/* API Key */
+.api-key-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
 
-    .badge-id {
-        background: var(--gray-100);
-        color: var(--gray-700);
-        padding: 0.375rem 0.75rem;
-        border-radius: 6px;
-        font-weight: 700;
-        font-size: 0.813rem;
-    }
+.api-key-code {
+    background: var(--bg-light-subtle);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    color: var(--color-dark);
+    font-family: 'Courier New', monospace;
+}
 
-    /* === API Key === */
-    .api-key-text {
-        background: var(--gray-100);
-        padding: 0.375rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.813rem;
-        color: var(--gray-700);
-        font-family: 'Courier New', monospace;
-    }
+.api-key-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
 
-    .btn-mini {
+.api-key-btn:hover {
+    background: var(--bg-light-subtle);
+    color: var(--color-vigma);
+}
+
+/* RFC Badge */
+.rfc-badge {
+    background: var(--bg-light-subtle);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    color: var(--color-dark);
+}
+
+/* Vigencia */
+.vigencia-container {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-md);
+    display: inline-block;
+}
+
+.vigencia-success {
+    background: rgba(17, 153, 142, 0.1);
+    color: var(--color-success);
+}
+
+.vigencia-warning {
+    background: rgba(247, 151, 30, 0.1);
+    color: var(--color-warning);
+}
+
+.vigencia-danger {
+    background: rgba(255, 65, 108, 0.1);
+    color: var(--color-danger);
+}
+
+.vigencia-date {
+    font-weight: var(--weight-semibold);
+    color: var(--color-dark);
+    font-size: var(--text-sm);
+}
+
+.vigencia-status {
+    font-size: var(--text-xs);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Mode Badge */
+.mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+}
+
+.mode-production {
+    background: rgba(15, 155, 142, 0.1);
+    color: var(--color-throughput);
+}
+
+.mode-test {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+/* Action Dropdown */
+.action-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    border: 2px solid #e9ecef;
+    background: transparent;
+    color: #6c757d;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    border-color: var(--color-vigma);
+    color: var(--color-vigma);
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    min-width: 200px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(0,0,0,0.05);
+    z-index: 1000;
+    display: none;
+    margin-top: var(--space-1);
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-dark);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    transition: var(--transition-fast);
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: var(--bg-light-subtle);
+    color: var(--color-vigma);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.05);
+    margin: var(--space-1) 0;
+}
+
+/* Empty State */
+.empty-state-icon {
+    width: 120px;
+    height: 120px;
+    background: var(--bg-light-subtle);
+    border-radius: var(--radius-full);
+    margin: 0 auto var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state-icon i {
+    font-size: 3rem;
+    color: #adb5bd;
+}
+
+/* Botón icono */
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    border: 2px solid #e9ecef;
+    background: transparent;
+    color: #6c757d;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    border-color: var(--color-vigma);
+    color: var(--color-vigma);
+}
+
+/* Utilidades adicionales */
+.text-white {
+    color: white !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: #adb5bd;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Animaciones */
+@@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .badge-light {
+        width: 100%;
+    }
+    
+    .action-btn {
         width: 32px;
         height: 32px;
-        padding: 0;
-        border-radius: 8px;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        text-decoration: none;
     }
-
-    .btn-mini.btn-info {
-        background: var(--info-cyan);
-        color: white;
-    }
-
-    .btn-mini.btn-info:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(14, 165, 233, 0.3);
-    }
-
-    /* === Action Buttons Container === */
-    .action-buttons-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.375rem;
-        justify-content: center;
-    }
-
-    .btn-action-with-label {
-        width: 105px;
-        height: 32px;
-        padding: 0.375rem 0.5rem;
-        border-radius: 8px;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.375rem;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        font-size: 0.75rem;
-        font-weight: 600;
-        white-space: nowrap;
-        text-decoration: none;
-    }
-
-    .btn-action-with-label i {
-        font-size: 0.875rem;
-        flex-shrink: 0;
-    }
-
-    .btn-action-with-label span {
-        font-size: 0.75rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .btn-action-with-label:hover {
-        transform: translateY(-2px);
-    }
-
-    .btn-edit {
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-        color: white;
-    }
-
-    .btn-edit:hover {
-        box-shadow: 0 6px 15px rgba(30, 64, 175, 0.3);
-    }
-
-    .btn-certificate {
-        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-        color: white;
-    }
-
-    .btn-certificate:hover {
-        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
-    }
-
-    .btn-error {
-        background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-        color: white;
-    }
-
-    .btn-error:hover {
-        box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3);
-    }
-
-    .btn-invoice {
-        background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
-        color: white;
-    }
-
-    .btn-invoice:hover {
-        box-shadow: 0 6px 15px rgba(14, 165, 233, 0.3);
-    }
-
-    .btn-balance {
-        background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
-        color: white;
-    }
-
-    .btn-balance:hover {
-        box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3);
-    }
-
-    .btn-suspend {
-        background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-        color: white;
-    }
-
-    .btn-suspend:hover {
-        box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3);
-    }
-
-    .btn-activate {
-        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-        color: white;
-    }
-
-    .btn-activate:hover {
-        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
-    }
-
-    /* === Empty State === */
-    .empty-state-icon i {
-        font-size: 5rem;
-        color: var(--gray-200);
-    }
-
-    /* === Card Shadow === */
-    .card {
-        border-radius: 16px;
-    }
-
-    .shadow-sm {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    .shadow-lg {
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
-    }
-
-    /* === Responsive === */
-    @@media (max-width: 1200px) {
-        .btn-action-with-label span {
-            display: none;
-        }
-        
-        .btn-action-with-label {
-            width: 36px;
-            height: 32px;
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .action-buttons-container {
-            gap: 0.25rem;
-        }
-        
-        .btn-action-with-label {
-            width: 34px;
-            height: 30px;
-        }
-
-        .btn-action-with-label i {
-            font-size: 0.813rem;
-        }
-
-        .tenant-icon {
-            width: 36px;
-            height: 36px;
-        }
-
-        .icon-circle {
-            width: 48px;
-            height: 48px;
-        }
-    }
+}
 </style>
 
-
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener("click", async (e) => {
-        const btn = e.target.closest(".js-saldo");
-        if (!btn) return;
+    // Configuración
+    const CONFIG = {
+        apiBase: '/api/tenants'
+    };
 
-        const tenantId = btn.dataset.tenantid;
-        const nombre = btn.dataset.nombre || "Tenant";
+    // Toggle dropdown
+    function toggleDropdown(button) {
+        const dropdown = button.closest('.action-dropdown');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        // Cerrar otros dropdowns
+        document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+            if (m !== menu) m.classList.remove('show');
+        });
+        
+        menu.classList.toggle('show');
+    }
+
+    // Cerrar dropdowns al hacer click fuera
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-dropdown')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+
+    // Copiar API Key
+    function copyApiKey(apiKey) {
+        navigator.clipboard.writeText(apiKey).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Copiado!',
+                text: 'API Key copiada al portapapeles',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }).catch(() => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo copiar la API Key'
+            });
+        });
+    }
+
+    // Consultar saldo
+    async function consultarSaldo(tenantId, nombre) {
+        const result = await Swal.fire({
+            title: 'Consultar Saldo',
+            text: `Tenant: ${nombre}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Consultar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: 'var(--color-vigma)'
+        });
+
+        if (!result.isConfirmed) return;
 
         Swal.fire({
-            title: "Consultando saldo...",
-            text: `Tenant: ${nombre}`,
+            title: 'Consultando...',
+            text: 'Por favor espere',
             allowOutsideClick: false,
             showConfirmButton: false,
             didOpen: () => Swal.showLoading()
         });
 
         try {
-            const res = await fetch(`/tenants/saldo-timbres?tenantId=${encodeURIComponent(tenantId)}`);
-            const data = await res.json().catch(() => ({}));
+            const response = await fetch(`${CONFIG.apiBase}/${tenantId}/saldo`);
+            const data = await response.json();
 
-            if (!res.ok) throw new Error(data?.mensaje || `Error HTTP ${res.status}`);
-            if (!data.ok) throw new Error(data?.mensaje || "Respuesta no OK");
+            if (!response.ok) throw new Error(data.message || 'Error en la consulta');
 
             Swal.fire({
-                icon: "success",
-                title: "Saldo de timbres",
+                icon: 'success',
+                title: 'Saldo Consultado',
                 html: `
-                    <div style="text-align:left; padding: 1rem;">
-                        <div style="margin-bottom:0.75rem;">
-                            <strong style="color: #1e40af;">Tenant:</strong> 
-                            <span>${data.tenantNombre ?? nombre}</span>
-                        </div>
-                        <div style="margin-bottom:0.75rem;">
-                            <strong style="color: #1e40af;">Saldo:</strong> 
-                            <span style="font-size:1.5rem; font-weight:700; color: #10b981;">${data.saldo}</span>
-                        </div>
-                        ${data.mensaje ? `<div style="margin-top:1rem; padding:0.75rem; background:#eff6ff; border-radius:8px; font-size:0.875rem; color:#4b5563;">${data.mensaje}</div>` : ''}
+                    <div style="text-align: center;">
+                        <div style="color: #6c757d; font-size: 0.875rem; margin-bottom: 0.5rem;">${data.tenantNombre || nombre}</div>
+                        <div style="font-size: 2.5rem; font-weight: 700; color: var(--color-vigma); margin-bottom: 0.5rem;">${data.saldo} timbres</div>
+                        ${data.mensaje ? `<div style="background: var(--bg-light-subtle); padding: 0.75rem; border-radius: var(--radius-md); color: #6c757d; font-size: 0.875rem;">${data.mensaje}</div>` : ''}
                     </div>
                 `,
-                confirmButtonColor: '#1e40af'
+                confirmButtonColor: 'var(--color-vigma)'
             });
-        } catch (err) {
+        } catch (error) {
             Swal.fire({
-                icon: "error",
-                title: "No se pudo consultar",
-                text: err.message || "Error desconocido",
-                confirmButtonColor: '#ef4444'
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'No se pudo consultar el saldo',
+                confirmButtonColor: 'var(--color-danger)'
             });
         }
-    });
+    }
+
+    // Toggle tenant status
+    function toggleTenantStatus(tenantId, isActive) {
+        const action = isActive ? 'suspender' : 'activar';
+        
+        Swal.fire({
+            title: `¿${action} tenant?`,
+            text: `¿Estás seguro de que deseas ${action} este tenant?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: isActive ? 'var(--color-warning)' : 'var(--color-success)',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Sí, ${action}`,
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Obtener token anti-forgery
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                
+                fetch(`/Monitor/Tenants/ToggleActivo/${tenantId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Completado!',
+                            text: `Tenant ${action}do correctamente`,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        throw new Error('Error al procesar la solicitud');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
+                });
+            }
+        });
+    }
+
+    // Refresh data
+    function refreshData() {
+        const btn = event.currentTarget;
+        const icon = btn.querySelector('i');
+        icon.classList.add('rotating');
+        
+        fetch(window.location.href, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTable = doc.querySelector('.vg-card:last-child');
+            const oldTable = document.querySelector('.vg-card:last-child');
+            
+            if (newTable && oldTable) {
+                oldTable.innerHTML = newTable.innerHTML;
+            }
+        })
+        .finally(() => {
+            icon.classList.remove('rotating');
+        });
+    }
 </script>
 }

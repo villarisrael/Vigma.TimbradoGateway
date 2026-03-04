@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
+using Vigma.TimbradoGateway.Infrastructure;
 using Vigma.TimbradoGateway.ViewModels.Timbrados;
 using Formatting = Newtonsoft.Json.Formatting;
 
@@ -25,24 +26,41 @@ namespace Vigma.TimbradoGateway.Controllers
             _cs = cfg.GetConnectionString("MySql")!;
         }
 
+       
         [HttpGet]
-        public IActionResult Index(long? tenantId, string? rfcEmisor, DateTime? fechaInicio, DateTime? fechaFinal)
-        {
-            var vm = new TimbradoIndiceVM
-            {
-                TenantId = tenantId,
-                RfcEmisor = rfcEmisor,
-                FechaInicio = fechaInicio,
-                FechaFinal = fechaFinal
-            };
+        public IActionResult Index(
+                    long? tenantId,
+                    string? rfcEmisor,
+                    DateTime? fechaInicio,
+                    DateTime? fechaFinal,
+                    int page = 1,
+                    int pageSize = 50)
+                        {
+                            page = page < 1 ? 1 : page;
+                            pageSize = pageSize <= 0 ? 50 : pageSize;
+                            if (pageSize > 200) pageSize = 200; // evita abusos
 
-            vm.Tenants = ObtenerTenants(tenantId);
-            vm.Rows = ObtenerTimbrados(tenantId, rfcEmisor, fechaInicio, fechaFinal);
+                            var vm = new TimbradoIndiceVM
+                            {
+                                TenantId = tenantId,
+                                RfcEmisor = rfcEmisor,
+                                FechaInicio = fechaInicio,
+                                FechaFinal = fechaFinal,
+                                Page = page,
+                                PageSize = pageSize
+                            };
 
-            // (Opcional) si tu VM no tiene CanceladasCount, coméntalo o agrégalo al VM:
-            // vm.CanceladasCount = vm.Rows?.Count(r => r.Cancelada) ?? 0;
+                            vm.Tenants = ObtenerTenants(tenantId);
 
-            return View(vm);
+                            // ✅ La clave: obtener TOTAL y la página actual
+                            var (rows, total) = ObtenerTimbradosPaginado(tenantId, rfcEmisor, fechaInicio, fechaFinal, page, pageSize);
+
+                            vm.Rows = rows;
+                            vm.TotalRows = total;
+
+                            vm.CanceladasCount = vm.Rows?.Count(r => r.Cancelada) ?? 0; // o calcula global si lo prefieres
+
+                            return View(vm);
         }
 
         [HttpGet]
@@ -102,9 +120,9 @@ namespace Vigma.TimbradoGateway.Controllers
         }
 
         // -------- LISTADO --------
-        private List<TimbradoLogRowVM> ObtenerTimbrados(long? tenantId, string? rfcEmisor, DateTime? fechaInicio, DateTime? fechaFinal)
+        private List<TimbradoRowVM> ObtenerTimbrados(long? tenantId, string? rfcEmisor, DateTime? fechaInicio, DateTime? fechaFinal)
         {
-            var rows = new List<TimbradoLogRowVM>();
+            var rows = new List<TimbradoRowVM>();
 
             using var cn = new MySqlConnection(_cs);
             cn.Open();
@@ -155,13 +173,13 @@ namespace Vigma.TimbradoGateway.Controllers
                 cmd.Parameters.AddWithValue("@ff", fechaFinal.Value.Date.AddDays(1));
             }
 
-            sql.Append(" ORDER BY created_utc DESC LIMIT 200; ");
+            sql.Append(" ORDER BY created_utc DESC LIMIT 100; ");
             cmd.CommandText = sql.ToString();
 
             using var rd = cmd.ExecuteReader();
             while (rd.Read())
             {
-                rows.Add(new TimbradoLogRowVM
+                rows.Add(new TimbradoRowVM
                 {
                     Id = rd.GetInt64("id"),
                     TenantId = rd.GetInt64("tenantid"),
@@ -355,7 +373,44 @@ namespace Vigma.TimbradoGateway.Controllers
             }
         }
 
-    }
+        private (List<TimbradoRowVM> rows, int total) ObtenerTimbradosPaginado(
+    long? tenantId,
+    string? rfcEmisor,
+    DateTime? fechaInicio,
+    DateTime? fechaFinal,
+    int page,
+    int pageSize)
+        {
+            var q = ObtenerTimbrados(tenantId, rfcEmisor, fechaInicio, fechaFinal);
 
+           
+
+            var total = q.Count();
+
+            var rows = q.Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .Select(x => new TimbradoRowVM
+                        {
+                            Id = x.Id,
+                            TenantId = x.TenantId,
+                            RfcEmisor = x.RfcEmisor,
+                            Origen = x.Origen,
+                            TipoDeComprobante = x.TipoDeComprobante,
+                            Serie = x.Serie,
+                            Folio = x.Folio,
+                            Uuid = x.Uuid,
+                            MensajeMf = x.MensajeMf,
+                            Cancelada = x.Cancelada,
+                            Saldo = x.Saldo,
+                            CreatedUtc = x.CreatedUtc
+                        })
+                        .ToList();
+
+            return (rows, total);
+        }
+
+    }
+    
+   
 
 }
