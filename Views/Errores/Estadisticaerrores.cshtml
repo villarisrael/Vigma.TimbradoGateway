@@ -1,0 +1,237 @@
+﻿@model Vigma.TimbradoGateway.ViewModels.Errores.TimbradoErrorIndiceVM
+@{
+    ViewData["Title"] = "Índice de Errores de Timbrado";
+    Layout = "_Layout";
+}
+
+    
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/errores.css" rel="stylesheet" />
+
+<div class="errores-page">
+
+    <!-- ── Header ── -->
+    <div class="errores-header">
+        <div class="errores-header-left">
+            <h1 class="errores-title">Monitor de Errores</h1>
+            <span class="errores-subtitle">Últimas 24h • Actualización cada 60 segundos</span>
+        </div>
+        <div class="errores-header-right">
+            <a href="/Errores/Detalle" class="vg-btn vg-btn-outline">Ver detalle</a>
+            <a href="/Errores/index" class="vg-btn vg-btn-outline-wrong">Errores crudos</a>
+        </div>
+    </div>
+
+    <!-- ── Anillos estadísticos ── -->
+    <div class="errores-rings-grid">
+
+        <!-- Anillo 1 — Total vs Resueltos -->
+        <div class="errores-ring-card">
+            <div class="errores-ring-card-header">
+                <div>
+                    <span class="errores-ring-label">Errores</span>
+                    <h4 class="errores-ring-title">Total</h4>
+                </div>
+                <span class="errores-ring-badge badge-danger" id="badge-total">24h</span>
+            </div>
+            <div class="errores-ring-chart-wrap">
+                <canvas id="ringTotal" width="200" height="200"></canvas>
+                <div class="errores-ring-center">
+                    <span class="errores-ring-value" id="totalValue">—</span>
+                    <span class="errores-ring-unit">errores</span>
+                </div>
+            </div>
+            <div class="errores-ring-legend">
+                <span class="ring-legend-item">
+                    <span class="ring-legend-dot" style="background:#ff416c"></span>
+                    Sin resolver <strong id="legPendientes">—</strong>
+                </span>
+                <span class="ring-legend-item">
+                    <span class="ring-legend-dot" style="background:#11998e"></span>
+                    Resueltos <strong id="legResueltos">—</strong>
+                </span>
+            </div>
+            <p class="errores-ring-footer">Conteo total de errores detectados en el periodo</p>
+        </div>
+
+        <!-- Anillo 2 — Categorías -->
+        <div class="errores-ring-card">
+            <div class="errores-ring-card-header">
+                <div>
+                    <span class="errores-ring-label">Errores</span>
+                    <h4 class="errores-ring-title">Tipos de errores</h4>
+                </div>
+                <span class="errores-ring-badge badge-throughput" id="badge-resolucion">—%</span>
+            </div>
+            <div class="errores-ring-chart-wrap">
+                <canvas id="ringCategorias" width="200" height="200"></canvas>
+                <div class="errores-ring-center">
+                    <span class="errores-ring-value" id="catValue">—</span>
+                    <span class="errores-ring-unit">Categoría más común</span>
+                </div>
+            </div>
+            <div class="errores-ring-legend">
+                <span class="ring-legend-item">
+                    <span class="ring-legend-dot" style="background:#ff416c"></span>
+                    SAT / Firma <strong id="legCat1">—</strong>
+                </span>
+                <span class="ring-legend-item">
+                    <span class="ring-legend-dot" style="background:#f7971e"></span>
+                    Certificado <strong id="legCat2">—</strong>
+                </span>
+                <span class="ring-legend-item">
+                    <span class="ring-legend-dot" style="background:#5b5bd6"></span>
+                    Timeout <strong id="legCat3">—</strong>
+                </span>
+                <span class="ring-legend-item">
+                    <span class="ring-legend-dot" style="background:#0f9b8e"></span>
+                    Otros <strong id="legCat4">—</strong>
+                </span>
+            </div>
+            <p class="errores-ring-footer" id="resolucionFooter">Tasa de resolución: —% • Pendientes: —</p>
+        </div>
+
+    </div>
+
+    <!-- ── Top clientes con más errores ── -->
+    <div class="errores-top-card">
+        <div class="errores-top-header">
+            <div>
+                <h4 class="errores-top-title">Top 10 con más errores hoy</h4>
+                <span class="errores-top-subtitle">Ordenado por total • incluye solo errores del día</span>
+            </div>
+            <select class="chart-select" id="topFilter" onchange="cargarTop()">
+                <option value="hoy">Hoy</option>
+                <option value="semana">Esta semana</option>
+                <option value="mes">Este mes</option>
+            </select>
+        </div>
+
+        <div class="errores-top-list" id="topList"></div>
+
+        <div class="errores-top-more">
+            <button class="errores-top-toggle" onclick="toggleTop()">
+                <span id="topToggleText">Ver más</span>
+                <i class="bi bi-chevron-down" id="topToggleIcon"></i>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+
+        const datosErrores = {
+        total: 100,
+        resueltos: 76,
+        pendientes: 24,
+        categorias: { sat: 42, certificado: 31, timeout: 18, otros: 9 },
+        top: [
+        { nombre: 'Tenant: Huejutla',  meta: 'CFDI40123 / Certificado', errores: 12 },
+        { nombre: 'Tenant: Mulegé',    meta: 'CFDI40110 / SAT',         errores: 8  },
+        { nombre: 'API Interna',        meta: 'Timeout / MultiFacturas', errores: 6  },
+        { nombre: 'Tenant: Cancún',     meta: 'CFDI40105 / Firma',       errores: 5  },
+        { nombre: 'Tenant: Monterrey',  meta: 'CFDI40099 / SAT',         errores: 4  },
+        { nombre: 'Tenant: CDMX Sur',   meta: 'CFDI40088 / Timeout',     errores: 4  },
+        { nombre: 'Tenant: Veracruz',   meta: 'CFDI40077 / Certificado', errores: 3  },
+        { nombre: 'Tenant: Puebla',     meta: 'CFDI40066 / SAT',         errores: 3  },
+        { nombre: 'Tenant: Querétaro',  meta: 'CFDI40055 / Firma',       errores: 2  },
+        { nombre: 'Tenant: Tijuana',    meta: 'CFDI40044 / Timeout',     errores: 2  },
+        ]
+        };
+
+        let topExpandido = false;
+
+        function dibujarRingTotal(datos) {
+        const ctx = document.getElementById('ringTotal').getContext('2d');
+        document.getElementById('totalValue').textContent = datos.total;
+        document.getElementById('legPendientes').textContent = datos.pendientes;
+        document.getElementById('legResueltos').textContent = datos.resueltos;
+        if (window._chartTotal) window._chartTotal.destroy();
+        window._chartTotal = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+        datasets: [{
+        data: [datos.pendientes, datos.resueltos],
+        backgroundColor: ['#ff416c', '#11998e'],
+        borderWidth: 0, borderRadius: 4, spacing: 3
+        }]
+        },
+        options: {
+        cutout: '75%', responsive: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
+        });
+        }
+
+        function dibujarRingCategorias(datos) {
+        const ctx = document.getElementById('ringCategorias').getContext('2d');
+        const cats = datos.categorias;
+        const pct = Math.round((datos.resueltos / datos.total) * 100);
+        const valores = [cats.sat, cats.certificado, cats.timeout, cats.otros];
+        const catIndex = valores.indexOf(Math.max(...valores)) + 1;
+        document.getElementById('catValue').textContent = catIndex;
+        document.getElementById('legCat1').textContent = cats.sat;
+        document.getElementById('legCat2').textContent = cats.certificado;
+        document.getElementById('legCat3').textContent = cats.timeout;
+        document.getElementById('legCat4').textContent = cats.otros;
+        document.getElementById('badge-resolucion').textContent = pct + '%';
+        document.getElementById('resolucionFooter').textContent =
+        `Tasa de resolución: ${pct}% • Pendientes: ${datos.pendientes}`;
+        if (window._chartCats) window._chartCats.destroy();
+        window._chartCats = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+        datasets: [{
+        data: [cats.sat, cats.certificado, cats.timeout, cats.otros],
+        backgroundColor: ['#ff416c', '#f7971e', '#5b5bd6', '#0f9b8e'],
+        borderWidth: 0, borderRadius: 4, spacing: 3
+        }]
+        },
+        options: {
+        cutout: '75%', responsive: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
+        });
+        }
+
+        function renderTop(datos) {
+        const list = document.getElementById('topList');
+        const max = datos.top[0]?.errores || 1;
+        const visibles = topExpandido ? datos.top : datos.top.slice(0, 3);
+        list.innerHTML = visibles.map((item, i) => {
+        const rank = i + 1;
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+        const bgClass   = rank === 1 ? 'rank-bg-1' : rank === 2 ? 'rank-bg-2' : rank === 3 ? 'rank-bg-3' : 'rank-bg-other';
+        const barWidth  = Math.round((item.errores / max) * 100);
+        return `
+        <div class="errores-top-item ${rankClass}">
+        <div class="errores-top-rank ${bgClass}">${rank}</div>
+        <div class="errores-top-info">
+        <span class="errores-top-name">${item.nombre}</span>
+        <span class="errores-top-meta">${item.meta}</span>
+        </div>
+        <span class="errores-top-count">${item.errores}</span>
+        <div class="errores-top-bar" style="width:${barWidth}%"></div>
+        </div>`;
+        }).join('');
+        }
+
+        function toggleTop() {
+        topExpandido = !topExpandido;
+        document.getElementById('topToggleText').textContent = topExpandido ? 'Ver menos' : 'Ver más';
+        document.getElementById('topToggleIcon').className = topExpandido ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+        renderTop(datosErrores);
+        }
+
+        function cargarTop() { renderTop(datosErrores); }
+
+        /* ── Init ── */
+        dibujarRingTotal(datosErrores);
+        dibujarRingCategorias(datosErrores);
+        renderTop(datosErrores);
+
+    </script>
+}
