@@ -301,5 +301,22 @@ namespace Vigma.TimbradoGateway.Controllers
             return false;
         }
 
+        [HttpGet]
+        public IActionResult Estadisticaerrores(int? tenantId, string? rfcEmisor, DateTime? fechaInicio, DateTime? fechaFinal)
+        {
+            var vm = new TimbradoErrorIndiceVM
+            {
+                TenantId = tenantId,
+                RfcEmisor = rfcEmisor,
+                FechaInicio = fechaInicio,
+                FechaFinal = fechaFinal
+            };
+
+            vm.Tenants = ObtenerTenants(tenantId);
+            vm.Rows = ObtenerErrores(tenantId, rfcEmisor, fechaInicio, fechaFinal);
+
+            return View(vm);
+        }
+
     }
 }
