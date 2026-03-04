@@ -4,6 +4,7 @@
     ViewData["Title"] = "Vigma Timbrado Gateway";
 }
 <link rel="stylesheet" href="~/css/paginaprincipal.css" asp-append-version="true" />
+<link href="~/css/gstyle.css" rel="stylesheet" />
 
     <!-- Hero Section -->
 <section class="hero-section">
@@ -146,80 +147,316 @@
     <div class="chart-header">
         <div class="chart-title-group">
             <h5 class="chart-title">Actividad de Timbrado</h5>
-            <span class="chart-subtitle">Últimas 24 horas</span>
+            <span class="chart-subtitle" id="chartSubtitle">Últimos 30 días</span>
         </div>
         <div class="chart-controls">
-            <select class="chart-select">
-                <option>Últimas 24h</option>
-                <option>Últimos 7 días</option>
-                <option>Este mes</option>
+            <select class="chart-select" id="periodoSelector" onchange="cambiarPeriodo(this.value)">
+                <option value="30" selected>Últimos 30 días</option>
+                <option value="7">Últimos 7 días</option>
+                <option value="15">Últimos 15 días</option>
+                <option value="90">Últimos 90 días</option>
             </select>
+            <button class="chart-refresh" onclick="refrescarDatos()" title="Actualizar datos">
+                <i class="bi bi-arrow-repeat"></i>
+            </button>
         </div>
     </div>
 
-    <div class="chart-legend">
+    <!-- Stats Cards del gráfico -->
+    <div class="chart-stats" id="chartStats">
+        <div class="stat-card-mini">
+            <span class="stat-label">Total Timbrados</span>
+            <span class="stat-value" id="totalTimbrados">0</span>
+        </div>
+        <div class="stat-card-mini">
+            <span class="stat-label">Total Errores</span>
+            <span class="stat-value" id="totalErrores">0</span>
+        </div>
+        <div class="stat-card-mini">
+            <span class="stat-label">Promedio Diario</span>
+            <span class="stat-value" id="promedioTimbrados">0</span>
+        </div>
+        <div class="stat-card-mini">
+            <span class="stat-label">Tasa de Éxito</span>
+            <span class="stat-value" id="tasaExito">0%</span>
+        </div>
+    </div>
+
+    <!-- Leyenda del gráfico (se actualizará dinámicamente) -->
+    <div class="chart-legend" id="chartLegend">
         <span class="legend-item legend-timbrados">
             <span class="legend-dot"></span> Timbrados
-        </span>
-        <span class="legend-item legend-tenants">
-            <span class="legend-dot"></span> Tenants Activos
         </span>
         <span class="legend-item legend-errores">
             <span class="legend-dot"></span> Errores
         </span>
     </div>
 
-    <div id="actividadChart"></div>
-</section>
-@* 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script>
-        const horas     = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-        const tenants   = [8,8,9,9,9,9,9,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11];
-        const timbrados = [12,18,8,5,3,2,7,25,48,62,75,80,72,68,74,85,90,78,65,55,48,35,22,14];
-        const errores   = [0,1,0,0,0,0,0,1,2,1,3,2,1,0,2,1,0,1,2,1,0,0,1,0];
+    <!-- Contenedor del gráfico -->
+    <div id="actividadChart" style="min-height: 350px; width: 100%;"></div>
 
-        new ApexCharts(document.querySelector('#actividadChart'), {
-        series: [
-        { name: 'Timbrados',       data: timbrados },
-        { name: 'Tenants Activos', data: tenants },
-        { name: 'Errores',         data: errores }
-        ],
-        chart: {
+    <!-- Loading overlay -->
+    <div class="chart-loading" id="chartLoading" style="display: none;">
+        <div class="spinner"></div>
+        <span>Cargando datos...</span>
+    </div>
+
+    <!-- Error overlay -->
+    <div class="chart-error" id="chartError" style="display: none;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span id="errorMessage">Error al cargar los datos</span>
+        <button onclick="refrescarDatos()" class="retry-btn">
+            <i class="bi bi-arrow-repeat"></i>
+            Reintentar
+        </button>
+    </div>
+</section>
+  
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  
+<script>
+  // =========================
+  // Configuración
+  // =========================
+  const API_BASE = '/api/Graficas';
+  let chart = null;
+  let periodoDias = 30;
+  let currentTenantId = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Asegura que Apex exista
+    if (typeof ApexCharts === 'undefined') {
+      console.error('ApexCharts no cargó. Revisa el script CDN o CSP.');
+      mostrarError('No se pudo cargar ApexCharts (CDN).');
+      return;
+    }
+
+    // Carga inicial
+    cargarDatosGrafico();
+  });
+
+  // =========================
+  // Acciones UI
+  // =========================
+  function cambiarPeriodo(value) {
+    periodoDias = parseInt(value || '30', 10);
+    const subtitle = document.getElementById('chartSubtitle');
+    if (subtitle) subtitle.textContent = `Últimos ${periodoDias} días`;
+    cargarDatosGrafico(currentTenantId);
+  }
+
+  function refrescarDatos() {
+    cargarDatosGrafico(currentTenantId);
+  }
+
+  function filtrarPorTenant(tenantId) {
+    currentTenantId = tenantId || null;
+    cargarDatosGrafico(currentTenantId);
+  }
+
+  function exportarDatos() {
+    window.location.href = `${API_BASE}/timbrados-vs-errores/exportar?days=${periodoDias}` + (currentTenantId ? `&tenantId=${currentTenantId}` : '');
+  }
+
+  // =========================
+  // Carga de datos + render
+  // =========================
+  async function cargarDatosGrafico(tenantId = null) {
+    try {
+      mostrarLoading(true);
+      ocultarError();
+
+      let url = `${API_BASE}/timbrados-vs-errores?days=${periodoDias}`;
+      if (tenantId) url += `&tenantId=${tenantId}`;
+
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+
+      // Normaliza arrays por si vienen como strings
+      const fechas = Array.isArray(data.fechas) ? data.fechas : [];
+      const timbrados = (Array.isArray(data.timbrados) ? data.timbrados : []).map(n => Number(n) || 0);
+      const errores = (Array.isArray(data.errores) ? data.errores : []).map(n => Number(n) || 0);
+
+      // Stats
+      actualizarStats(data.resumen, timbrados, errores);
+
+      // Render chart
+      const options = getChartOptions({ fechas, timbrados, errores, resumen: data.resumen });
+
+      if (chart) {
+        chart.updateOptions(options, true, true);
+      } else {
+        chart = new ApexCharts(document.querySelector('#actividadChart'), options);
+        await chart.render();
+      }
+
+    } catch (err) {
+      console.error(err);
+      mostrarError('No se pudieron cargar los datos del gráfico.');
+      if (chart) {
+        chart.destroy();
+        chart = null;
+      }
+    } finally {
+      mostrarLoading(false);
+    }
+  }
+
+  // =========================
+  // Opciones Apex
+  // =========================
+  function getChartOptions(data) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    return {
+      series: [
+        { name: 'Timbrados', data: data.timbrados },
+        { name: 'Errores', data: data.errores }
+      ],
+      chart: {
         type: 'area',
-        height: 250,
-        stacked: true,
-        toolbar: { show: false },
-        zoom: { enabled: false },
-        selection: { enabled: false },
+        height: 400,
+        
+        zoom: { enabled: true, type: 'x', autoScaleYaxis: true },
         background: 'transparent',
         parentHeightOffset: 0,
-        id: 'actividad'
+        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+      },
+      colors: ['#0f9b8e', '#ff416c'],
+      stroke: { curve: 'smooth', width: [2, 2], dashArray: [0, 3] },
+      fill: {
+        type: 'gradient',
+        gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.2, stops: [0, 90, 100] }
+      },
+      dataLabels: { enabled: false },
+      legend: {
+        show: true,
+        position: 'top',
+        horizontalAlign: 'right',
+        fontSize: '13px',
+        markers: { width: 12, height: 12, radius: 6 },
+        itemMargin: { horizontal: 10, vertical: 5 }
+      },
+      tooltip: {
+        theme: isDark ? 'dark' : 'light',
+        custom: function({ series, dataPointIndex, w }) {
+          const timbrados = series[0][dataPointIndex] ?? 0;
+          const errores = series[1][dataPointIndex] ?? 0;
+          const fecha = w.globals.labels[dataPointIndex] ?? '';
+          const porcentajeError = timbrados > 0 ? ((errores / timbrados) * 100).toFixed(2) : '0.00';
+
+          // Tooltip “neutral” (no fuerzas blanco)
+          return `
+            <div class="custom-tooltip" style="padding:.75rem;border-radius:10px;box-shadow:0 8px 18px rgba(0,0,0,.12)">
+              <div style="font-weight:700;margin-bottom:.5rem">${fecha}</div>
+              <div style="display:flex;flex-direction:column;gap:.35rem">
+                <div><span style="display:inline-block;width:8px;height:8px;background:#0f9b8e;border-radius:50%;margin-right:.5rem"></span>
+                  Timbrados: <b style="color:#0f9b8e">${Number(timbrados).toLocaleString()}</b>
+                </div>
+                <div><span style="display:inline-block;width:8px;height:8px;background:#ff416c;border-radius:50%;margin-right:.5rem"></span>
+                  Errores: <b style="color:#ff416c">${Number(errores).toLocaleString()}</b>
+                </div>
+                <div style="margin-top:.35rem;padding-top:.35rem;border-top:1px solid rgba(0,0,0,.08)">
+                  Tasa de error: <b style="color:${Number(porcentajeError) > 5 ? '#ff416c' : '#0f9b8e'}">${porcentajeError}%</b>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      },
+      xaxis: {
+        categories: data.fechas,
+        type: 'category',
+        labels: {
+          rotate: -45,
+          hideOverlappingLabels: true,
+          trim: true,
+          style: { colors: isDark ? '#e2e8f0' : '#475569', fontSize: '11px' }
         },
-        colors: ['#0f9b8e', '#38ef7d', '#ff416c'],
-        stroke: { curve: 'smooth', width: 1.5 },
-        fill: { type: 'solid', opacity: 0.85 },
-        dataLabels: { enabled: false },
-        legend: { show: false },
-        tooltip: {
-        theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
-        x: { formatter: (_, { dataPointIndex }) => `🕐 ${horas[dataPointIndex]}` }
-        },
-        xaxis: {
-        categories: horas,
-        tooltip: { enabled: false },
-        labels: { style: { colors: '#6c757d', fontSize: '11px' } },
         axisBorder: { show: false },
-        axisTicks: { show: false }
-        },
-        yaxis: {
-        labels: { style: { colors: '#6c757d', fontSize: '11px' } }
-        },
-        grid: { borderColor: 'rgba(0,0,0,0.04)' }
-        }).render();
-    </script>
-} *@
+        axisTicks: { show: false },
+        title: { text: `Últimos ${periodoDias} días`, style: { fontSize: '12px', color: isDark ? '#94a3b8' : '#64748b' } }
+      },
+      yaxis: {
+        min: 0,
+        labels: { style: { colors: isDark ? '#e2e8f0' : '#475569', fontSize: '11px' } },
+        title: { text: 'Cantidad', style: { fontSize: '12px', color: isDark ? '#94a3b8' : '#64748b' } }
+      },
+      grid: {
+        borderColor: isDark ? '#334155' : '#e2e8f0',
+        strokeDashArray: 4
+      },
+      annotations: {
+        yaxis: data.resumen?.promedioTimbrados ? [{
+          y: Number(data.resumen.promedioTimbrados) || 0,
+          borderColor: '#0f9b8e',
+          label: { borderColor: '#0f9b8e', style: { color: '#fff', background: '#0f9b8e' }, text: 'Promedio timbrados' }
+        }] : []
+      },
+      markers: {
+        size: 4,
+        strokeWidth: 2,
+        hover: { size: 6 }
+      },
+      noData: {
+        text: 'No hay datos disponibles',
+        style: { color: isDark ? '#94a3b8' : '#64748b', fontSize: '14px' }
+      }
+    };
+  }
+
+  // =========================
+  // Stats cards (los que YA tienes en tu HTML)
+  // =========================
+  function actualizarStats(resumen, timbradosArr, erroresArr) {
+    // Si tu API ya trae "resumen", úsalo; si no, lo calculamos aquí
+    const totalTimbrados = resumen?.totalTimbrados ?? timbradosArr.reduce((a,b)=>a+b,0);
+    const totalErrores   = resumen?.totalErrores   ?? erroresArr.reduce((a,b)=>a+b,0);
+    const promedio       = resumen?.promedioTimbrados ?? (timbradosArr.length ? Math.round(totalTimbrados / timbradosArr.length) : 0);
+
+    const exito = totalTimbrados > 0
+      ? (((totalTimbrados - totalErrores) / totalTimbrados) * 100).toFixed(2)
+      : '0.00';
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    set('totalTimbrados', Number(totalTimbrados).toLocaleString());
+    set('totalErrores', Number(totalErrores).toLocaleString());
+    set('promedioTimbrados', Number(promedio).toLocaleString());
+    set('tasaExito', `${exito}%`);
+  }
+
+  // =========================
+  // Overlays (usa tus divs #chartLoading y #chartError)
+  // =========================
+  function mostrarLoading(show) {
+    const el = document.getElementById('chartLoading');
+    if (el) el.style.display = show ? 'flex' : 'none';
+  }
+
+  function mostrarError(mensaje) {
+    const box = document.getElementById('chartError');
+    const msg = document.getElementById('errorMessage');
+    if (msg) msg.textContent = mensaje || 'Error al cargar los datos';
+    if (box) box.style.display = 'flex';
+  }
+
+  function ocultarError() {
+    const box = document.getElementById('chartError');
+    if (box) box.style.display = 'none';
+  }
+
+  // Auto-refresh cada 5 min
+  setInterval(() => {
+    if (!document.hidden) cargarDatosGrafico();
+  }, 300000);
+</script>
+
 
 
 
