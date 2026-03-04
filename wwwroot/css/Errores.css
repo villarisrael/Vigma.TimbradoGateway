@@ -464,7 +464,7 @@
     border-radius: var(--radius-xl);
     padding: var(--space-5);
     box-shadow: var(--shadow-md);
-    border-left: 4px solid var(--color-warning);
+    border-left: 4px solid var(--color-vigma);
 }
 
 [data-theme="dark"] .ec-filter-card {
@@ -487,7 +487,7 @@
 }
 
 .ec-filter-header i {
-    color: var(--color-warning);
+    color: var(--color-vigma);
     font-size: 18px;
 }
 
@@ -581,9 +581,10 @@
     box-shadow: var(--shadow-md);
     overflow: hidden;
     width: var(--container-xl);
-    margin-left: -4rem;
+    margin-left: -2rem;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding:2px;
 }
 
 [data-theme="dark"] .ec-table-card {
@@ -612,6 +613,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    padding: .5rem;
 }
 
 [data-theme="dark"] .ec-table-title {
@@ -755,14 +757,81 @@
     background: var(--bg-dark-muted);
 }
 
+/* Mensaje — 2 líneas en lugar de truncar */
 .ec-message {
     max-width: 480px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     font-size: var(--text-sm);
     color: #475569;
+    line-height: 1.45;
+    white-space: normal;
 }
+
+[data-theme="dark"] .ec-message {
+    color: #9090b0;
+}
+
+/* Nivel con indicador de estado */
+.ec-nivel-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.ec-error-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-xs);
+    background: rgba(255,65,108,0.1);
+    color: var(--color-danger);
+}
+
+.ec-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+}
+
+    .ec-status-dot.visto {
+        background: #f7971e;
+    }
+
+    .ec-status-dot.resuelto {
+        background: #11998e;
+    }
+
+    .ec-status-dot.nuevo {
+        background: #ff416c;
+    }
+
+.ec-status-label {
+    font-size: 9px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+    .ec-status-label.visto {
+        color: #f7971e;
+    }
+
+    .ec-status-label.resuelto {
+        color: #11998e;
+    }
+
+    .ec-status-label.nuevo {
+        color: #ff416c;
+    }
 
 [data-theme="dark"] .ec-message {
     color: #9090b0;
