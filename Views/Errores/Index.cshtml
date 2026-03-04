@@ -3,7 +3,10 @@
 @model Vigma.TimbradoGateway.ViewModels.Errores.TimbradoErrorIndiceVM
 @{
     ViewData["Title"] = "Errores Crudos";
+    Layout = "_Layout";
 }
+
+
 
 <link href="~/css/gstyle.css" rel="stylesheet" />
 <link href="~/css/errores.css" rel="stylesheet" />
@@ -100,12 +103,12 @@
             <table class="ec-table">
                 <thead>
                     <tr>
-                        <th style="width:90px;"><i class="bi bi-person-badge"></i> Tenant</th>
-                        <th style="width:170px;"><i class="bi bi-building"></i> RFC Emisor</th>
-                        <th style="width:130px;"><i class="bi bi-code"></i> Código Error</th>
+                        <th style="width:30px;"><i class="bi bi-person-badge"></i> Tenant</th>
+                        <th style="width:160px;"><i class="bi bi-building"></i> RFC Emisor</th>
+                        <th style="width:30px;"><i class="bi bi-code"></i> Nivel</th>
                         <th><i class="bi bi-chat-dots"></i> Mensaje de error</th>
-                        <th style="width:170px;"><i class="bi bi-clock-history"></i> Creado (UTC)</th>
-                        <th style="width:180px;" class="ec-th-center"><i class="bi bi-gear"></i> Acciones</th>
+                        <th style="width:160px;"><i class="bi bi-clock-history"></i> Creado (UTC)</th>
+                        <th style="width:160px;" class="ec-th-center"><i class="bi bi-gear"></i> Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
