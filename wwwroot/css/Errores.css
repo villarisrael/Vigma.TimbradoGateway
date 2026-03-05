@@ -924,3 +924,474 @@
     font-size: var(--text-xs);
     color: #6c757d;
 }
+
+
+
+
+
+/* =============================================================================
+   ERROR DETALLE — agregar al final de errores.css
+   ============================================================================= */
+
+/* ── Header card detalle ─────────────────────────────────────────────────── */
+.ed-header-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid var(--color-danger);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+[data-theme="dark"] .ed-header-card {
+    background: var(--bg-dark-card);
+}
+
+.ed-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.ed-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.ed-header-body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.ed-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.ed-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    background: var(--bg-light-subtle);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+}
+
+[data-theme="dark"] .ed-status-pill {
+    background: var(--bg-dark-subtle);
+}
+
+/* ── Resolve button ──────────────────────────────────────────────────────── */
+.ed-resolve-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--bg-light-subtle);
+    border: 2px solid var(--bg-light-muted);
+    border-radius: var(--radius-full);
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: #6c757d;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+[data-theme="dark"] .ed-resolve-btn {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+    color: #9090b0;
+}
+
+.ed-resolve-btn:hover {
+    border-color: #11998e;
+    color: #11998e;
+}
+
+.ed-resolve-btn.resuelto {
+    background: rgba(17,153,142,0.1);
+    border-color: #11998e;
+    color: #11998e;
+}
+
+.ed-resolve-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+    background: #6c757d;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.ed-resolve-btn.resuelto .ed-resolve-indicator {
+    background: #11998e;
+    box-shadow: 0 0 6px rgba(17,153,142,0.5);
+}
+
+/* ── Badge top header ────────────────────────────────────────────────────── */
+.ed-badge-top {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-danger);
+    background: rgba(255,65,108,0.1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-2);
+}
+
+.ed-header-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.ed-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-vigma);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+    .ed-back-link:hover {
+        color: var(--color-dark);
+        transform: translateX(-2px);
+    }
+
+[data-theme="dark"] .ed-back-link:hover {
+    color: #e0e0f0;
+}
+
+.ed-codigo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.ed-codigo-label {
+    font-size: var(--text-xs);
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ed-codigo-num {
+    font-size: var(--text-2xl) !important;
+    padding: var(--space-2) var(--space-4) !important;
+    min-width: 64px;
+}
+
+/* ── Info grid ───────────────────────────────────────────────────────────── */
+.ed-info-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--space-4);
+}
+
+@media (max-width: 768px) {
+    .ed-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ed-info-card {
+    gap: var(--space-4) !important;
+    justify-content: center;
+}
+
+.ed-info-card-wide {
+    justify-content: flex-start !important;
+}
+
+.ed-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.ed-info-value {
+    font-family: var(--font-titles);
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--color-dark);
+}
+
+[data-theme="dark"] .ed-info-value {
+    color: #e0e0f0;
+}
+
+.ed-rfc-large {
+    font-size: var(--text-base) !important;
+    padding: var(--space-2) var(--space-3) !important;
+}
+
+.ed-divider {
+    height: 1px;
+    background: var(--bg-light-muted);
+}
+
+[data-theme="dark"] .ed-divider {
+    background: var(--bg-dark-muted);
+}
+
+.ed-error-msg {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    background: rgba(255,65,108,0.06);
+    border: 1px solid rgba(255,65,108,0.2);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+}
+
+.ed-error-icon {
+    color: var(--color-danger);
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.ed-error-msg p {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-dark);
+    line-height: 1.6;
+}
+
+[data-theme="dark"] .ed-error-msg p {
+    color: #e0e0f0;
+}
+
+.ed-empty-msg {
+    font-size: var(--text-sm);
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* ── JSON card ───────────────────────────────────────────────────────────── */
+.ed-json-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .ed-json-card {
+    background: var(--bg-dark-card);
+}
+
+.ed-json-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--bg-light-muted);
+    background: var(--bg-light-subtle);
+}
+
+[data-theme="dark"] .ed-json-header {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+}
+
+.ed-json-title {
+    font-family: var(--font-titles);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    color: var(--color-dark);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+}
+
+[data-theme="dark"] .ed-json-title {
+    color: #e0e0f0;
+}
+
+.ed-json-sub {
+    font-size: var(--text-xs);
+    color: #6c757d;
+}
+
+.ed-json-badge {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+}
+
+.ed-json-valid {
+    background: rgba(17,153,142,0.12);
+    color: #11998e;
+}
+
+.ed-json-invalid {
+    background: rgba(255,65,108,0.12);
+    color: #ff416c;
+}
+
+/* ── JSON toolbar ────────────────────────────────────────────────────────── */
+.ed-json-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--bg-light-muted);
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] .ed-json-toolbar {
+    border-color: var(--bg-dark-muted);
+}
+
+.ed-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    background: var(--bg-light-subtle);
+    border: 1px solid var(--bg-light-muted);
+    border-radius: var(--radius-md);
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    font-family: var(--font-body);
+    color: var(--color-dark);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+[data-theme="dark"] .ed-tool-btn {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+    color: #e0e0f0;
+}
+
+.ed-tool-btn:hover {
+    background: var(--color-vigma);
+    color: white;
+    border-color: var(--color-vigma);
+}
+
+.ed-json-size {
+    margin-left: auto;
+    font-size: var(--text-xs);
+    color: #6c757d;
+}
+
+/* ── JSON content ────────────────────────────────────────────────────────── */
+.ed-json-content {
+    padding: var(--space-4) var(--space-5);
+    overflow-x: auto;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+    .ed-json-content pre {
+        margin: 0;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--color-dark);
+    }
+
+[data-theme="dark"] .ed-json-content pre {
+    color: #e0e0f0;
+}
+
+/* JSON syntax colors */
+.json-key {
+    color: #5b5bd6;
+}
+
+.json-string {
+    color: #11998e;
+}
+
+.json-number {
+    color: #f7971e;
+}
+
+.json-boolean {
+    color: #ff416c;
+}
+
+.json-punctuation {
+    color: #6c757d;
+}
+
+[data-theme="dark"] .json-key {
+    color: #9d9df0;
+}
+
+[data-theme="dark"] .json-string {
+    color: #4ecdc4;
+}
+
+[data-theme="dark"] .json-number {
+    color: #ffd200;
+}
+
+[data-theme="dark"] .json-boolean {
+    color: #ff6b8a;
+}
+
+[data-theme="dark"] .json-punctuation {
+    color: #9090b0;
+}
+
+/* ── JSON empty ──────────────────────────────────────────────────────────── */
+.ed-json-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8) var(--space-4);
+    text-align: center;
+    gap: var(--space-2);
+}
+
+    .ed-json-empty .ed-empty-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        opacity: 0.4;
+    }
+
+    .ed-json-empty h5 {
+        font-family: var(--font-titles);
+        font-weight: var(--weight-semibold);
+        color: var(--color-dark);
+        margin: 0;
+    }
+
+[data-theme="dark"] .ed-json-empty h5 {
+    color: #e0e0f0;
+}
+
+.ed-json-empty p {
+    font-size: var(--text-sm);
+    color: #6c757d;
+    margin: 0;
+}

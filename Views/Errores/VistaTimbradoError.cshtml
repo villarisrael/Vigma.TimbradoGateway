@@ -1,156 +1,262 @@
 ﻿@model Vigma.TimbradoGateway.ViewsModels.Errores.TimbradoErrorLogRowVM
- @{   ViewData["Title"] = $"Error #{Model.Id} - Detalle";
+@{
+    ViewData["Title"] = $"Error #{Model.Id} - Detalle";
+    Layout = "_Layout";
 }
 
-<link href="~/css/detalleerror.css" rel="stylesheet" />
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/errores.css" rel="stylesheet" />
 
-<div class="container-fluid py-4">
+<div class="errores-page">
 
-    <!-- Header -->
-    <div class="error-detail-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <span class="error-badge-large mb-3">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Error de Timbrado
-                </span>
-                <h1 class="display-6 fw-bold mb-3">Detalle del Error #@Model.Id</h1>
-                <div class="d-flex flex-wrap gap-3 align-items-center">
-                    <span class="time-badge">
-                        <i class="bi bi-clock me-2"></i>
+    <!-- ── Header ── -->
+    <div class="ed-header-card">
+        <div class="ed-header-top">
+            <span class="ed-badge-top">
+                <i class="bi bi-exclamation-octagon-fill"></i> Error de Timbrado
+            </span>
+            <div class="ed-header-actions">
+                <!-- Toggle resuelto -->
+                <button class="ed-resolve-btn" id="resolveBtn" onclick="toggleResuelto()">
+                    <span class="ed-resolve-indicator" id="resolveIndicator"></span>
+                    <span id="resolveText">Marcar como resuelto</span>
+                </button>
+                <a href="@Url.Action("Indice", "Errores")" class="vg-btn vg-btn-outline">
+                    <i class="bi bi-arrow-left"></i> Volver al índice
+                </a>
+            </div>
+        </div>
+
+        <div class="ed-header-body">
+            <div class="ed-header-info">
+                <h1 class="errores-title">Detalle del Error #@Model.Id</h1>
+                <div class="ed-header-meta">
+                    <span class="ec-time">
+                        <i class="bi bi-clock"></i>
                         @Model.CreadoUtc.ToString("yyyy-MM-dd HH:mm:ss") UTC
                     </span>
-                    <a href="@Url.Action("Indice", "Errores")" class="btn-icon">
-                        <i class="bi bi-arrow-left"></i> Volver al índice
-                    </a>
+                    @if (Model.CodigoMfNumero.HasValue)
+                    {
+                        <span class="ec-error-code">Código: @Model.CodigoMfNumero</span>
+                    }
+                    <span class="ed-status-pill" id="statusPill">
+                        <span class="ec-status-dot nuevo"></span>
+                        <span id="statusPillText">Nuevo</span>
+                    </span>
                 </div>
             </div>
-            <div class="col-md-4 text-end">
-                @if (Model.CodigoMfNumero.HasValue)
+        </div>
+    </div>
+
+    <!-- ── Info cards ── -->
+    <div class="ed-info-grid">
+
+        <!-- Tenant + RFC -->
+        <div class="errores-ring-card ed-info-card">
+            <div class="ed-info-section">
+                <span class="ec-label">
+                    <i class="bi bi-people-fill"></i> Información del Tenant
+                </span>
+                <span class="ed-info-value">ID: @Model.TenantId</span>
+            </div>
+            <div class="ed-divider"></div>
+            <div class="ed-info-section">
+                <span class="ec-label">
+                    <i class="bi bi-building"></i> RFC Emisor
+                </span>
+                <code class="ec-rfc ed-rfc-large">@Model.RfcEmisor</code>
+            </div>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div class="errores-ring-card ed-info-card ed-info-card-wide">
+            <div class="ed-info-section">
+                <span class="ec-label">
+                    <i class="bi bi-chat-dots-fill"></i> Mensaje de Error
+                </span>
+                @if (!string.IsNullOrEmpty(Model.CodigoMfTexto))
                 {
-                    <div class="error-code-badge">
-                        Código: @Model.CodigoMfNumero
+                    <div class="ed-error-msg">
+                        <i class="bi bi-exclamation-triangle-fill ed-error-icon"></i>
+                        <p>@Model.CodigoMfTexto</p>
                     </div>
+                }
+                else
+                {
+                    <p class="ed-empty-msg">No hay mensaje de error disponible</p>
                 }
             </div>
         </div>
+
     </div>
 
-    <!-- Información del Error -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="info-card">
-                <div class="card-title">
-                    <i class="bi bi-people-fill"></i> Información del Tenant
-                </div>
-                <div class="card-value mb-3">ID: @Model.TenantId</div>
-                <div class="card-title">
-                    <i class="bi bi-building"></i> RFC Emisor
-                </div>
-                <div class="card-value">
-                    <span class="rfc-badge">@Model.RfcEmisor</span>
-                </div>
-            </div>
-        </div>
+    <!-- ── JSON Viewer ── -->
+    <div class="ed-json-card">
 
-        <div class="col-md-8">
-            <div class="info-card h-100">
-                <div class="card-title">
-                    <i class="bi bi-chat-dots-fill"></i> Mensaje de Error
-                </div>
-                <div class="card-value">
-                    @if (!string.IsNullOrEmpty(Model.CodigoMfTexto))
-                    {
-                        <div class="alert alert-danger bg-opacity-10 border-danger" style="border-radius: 12px;">
-                            <div class="d-flex">
-                                <i class="bi bi-exclamation-triangle-fill text-danger me-3 fs-5"></i>
-                                <div>@Model.CodigoMfTexto</div>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-muted fst-italic">
-                            No hay mensaje de error disponible
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JSON Viewer -->
-    <div class="json-editor-container">
-        <div class="json-header">
+        <div class="ed-json-header">
             <div>
-                <h5 class="fw-bold mb-0">
-                    <i class="bi bi-code-slash me-2"></i> JSON Enviado al PAC
-                </h5>
-                <small class="opacity-75">Contenido completo enviado para el timbrado</small>
+                <h4 class="ed-json-title">
+                    <i class="bi bi-code-slash"></i> JSON Enviado al PAC
+                </h4>
+                <span class="ed-json-sub">Contenido completo enviado para el timbrado</span>
             </div>
-            <div class="badge bg-warning">
+            <span class="ed-json-badge @(Model.EsJsonValido ? "ed-json-valid" : "ed-json-invalid")">
                 @(Model.EsJsonValido ? "JSON Válido" : "JSON Inválido")
-            </div>
+            </span>
         </div>
 
-        <div class="json-toolbar">
-            <button class="btn-icon btn-copy" onclick="copiarJSON()">
+        <div class="ed-json-toolbar">
+            <button class="ed-tool-btn" onclick="copiarJSON()">
                 <i class="bi bi-clipboard"></i> Copiar JSON
             </button>
-            <button class="btn-icon btn-download" onclick="descargarJSON()">
+            <button class="ed-tool-btn" onclick="descargarJSON()">
                 <i class="bi bi-download"></i> Descargar
             </button>
-            <button class="btn-icon btn-reload" onclick="formatearJSON()">
+            <button class="ed-tool-btn" onclick="formatearJSON()">
                 <i class="bi bi-arrow-clockwise"></i> Re-formatear
             </button>
-            <button class="btn-icon" onclick="alternarJSON()">
+            <button class="ed-tool-btn" onclick="alternarJSON()">
                 <i class="bi bi-eye"></i> Alternar vista
             </button>
-            <div class="ms-auto">
-                <span class="text-muted small">
-                    Tamaño: <span id="jsonSize">0</span> caracteres
-                </span>
-            </div>
+            <span class="ed-json-size">
+                Tamaño: <strong id="jsonSize">0</strong> caracteres
+            </span>
         </div>
 
-        <div class="json-content" id="jsonViewer">
+        <div class="ed-json-content" id="jsonViewer">
             @if (!string.IsNullOrEmpty(Model.JsonFormateado))
             {
                 <pre id="jsonContent">@Html.Raw(SyntaxHighlightJson(Model.JsonFormateado))</pre>
             }
             else if (!string.IsNullOrEmpty(Model.Jsonenviado))
             {
-                <div class="text-center py-5">
-                    <div class="empty-json">
-                        <i class="bi bi-file-earmark-x empty-json-icon"></i>
-                        <h5 class="fw-bold mb-2">JSON no formateado</h5>
-                        <p class="text-muted mb-4">El JSON no pudo ser formateado automáticamente</p>
-                        <button class="btn btn-primary" onclick="formatearJSON()">
-                            <i class="bi bi-magic me-2"></i> Intentar formatear
-                        </button>
-                    </div>
+                <div class="ed-json-empty">
+                    <i class="bi bi-file-earmark-x ed-empty-icon"></i>
+                    <h5>JSON no formateado</h5>
+                    <p>El JSON no pudo ser formateado automáticamente</p>
+                    <button class="vg-btn vg-btn-primary" onclick="formatearJSON()">
+                        <i class="bi bi-magic"></i> Intentar formatear
+                    </button>
                 </div>
             }
             else
             {
-                <div class="text-center py-5">
-                    <div class="empty-json">
-                        <i class="bi bi-file-earmark-x empty-json-icon"></i>
-                        <h5 class="fw-bold mb-2">No hay JSON disponible</h5>
-                        <p class="text-muted">No se encontró contenido JSON para este error</p>
-                    </div>
+                <div class="ed-json-empty">
+                    <i class="bi bi-file-earmark-x ed-empty-icon"></i>
+                    <h5>No hay JSON disponible</h5>
+                    <p>No se encontró contenido JSON para este error</p>
                 </div>
             }
         </div>
+
     </div>
 
 </div>
 
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<!-- Bootstrap JS para modal -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 @functions {
+    public string SyntaxHighlightJson(string json)
+    {
+        if (string.IsNullOrEmpty(json)) return json;
+        json = json.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+        json = System.Text.RegularExpressions.Regex.Replace(json,
+            @"(\s*)(\""(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\""])*\"")",
+            match =>
+            {
+                var cls = "json-string";
+                return match.Groups[1].Value + "<span class=\"" + cls + "\">" + match.Groups[2].Value + "</span>";
+            });
+        json = System.Text.RegularExpressions.Regex.Replace(json, @"\b(true|false|null)\b", "<span class=\"json-boolean\">$&</span>");
+        json = System.Text.RegularExpressions.Regex.Replace(json, @"\b-?\d+(\.\d+)?([eE][+-]?\d+)?\b", "<span class=\"json-number\">$&</span>");
+        json = System.Text.RegularExpressions.Regex.Replace(json, @"(\""([^""\\]|\\.)*\"")", "<span class=\"json-key\">$&</span>");
+        json = json.Replace(":", "<span class=\"json-punctuation\">:</span>")
+                   .Replace(",", "<span class=\"json-punctuation\">,</span>")
+                   .Replace("[", "<span class=\"json-punctuation\">[</span>")
+                   .Replace("]", "<span class=\"json-punctuation\">]</span>")
+                   .Replace("{", "<span class=\"json-punctuation\">{</span>")
+                   .Replace("}", "<span class=\"json-punctuation\">}</span>");
+        return json;
+    }
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const jsonContent = document.getElementById('jsonContent');
+            if (jsonContent) {
+                const text = jsonContent.textContent || jsonContent.innerText;
+                document.getElementById('jsonSize').textContent = text.length.toLocaleString();
+            }
+        });
+
+        async function copiarJSON() {
+            try {
+                const response = await fetch('@Url.Action("GetJsonFormatted", "Errores")?id=@Model.Id');
+                const data = await response.json();
+                await navigator.clipboard.writeText(data.success ? data.jsonFormatted : `@Model.Jsonenviado`);
+                mostrarNotificacion('JSON copiado al portapapeles');
+            } catch (error) {
+                mostrarNotificacion('Error al copiar: ' + error.message, 'error');
+            }
+        }
+
+        function descargarJSON() {
+            const blob = new Blob([`@Model.Jsonenviado`], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `error_@(Model.Id)_@(DateTime.Now.ToString("yyyyMMdd_HHmmss")).json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function formatearJSON() {
+            try {
+                const response = await fetch('@Url.Action("GetJsonFormatted", "Errores")?id=@Model.Id');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('jsonViewer').innerHTML = `<pre id="jsonContent">${syntaxHighlight(data.jsonFormatted)}</pre>`;
+                    document.getElementById('jsonSize').textContent = data.jsonFormatted.length.toLocaleString();
+                    mostrarNotificacion('JSON formateado correctamente');
+                } else {
+                    mostrarNotificacion('Error al formatear JSON', 'error');
+                }
+            } catch (error) {
+                mostrarNotificacion('Error: ' + error.message, 'error');
+            }
+        }
+
+        function alternarJSON() {
+            const win = window.open('', '_blank');
+            win.document.write('<pre style="font-family:monospace;padding:20px;">' + `@Model.Jsonenviado`.replace(/</g,'&lt;') + '</pre>');
+        }
+
+        function mostrarNotificacion(mensaje, tipo = 'success') {
+            const div = document.createElement('div');
+            div.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;
+                background:${tipo === 'success' ? '#11998e' : '#ff416c'};color:white;
+                padding:12px 20px;border-radius:12px;font-size:14px;
+                box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;align-items:center;gap:8px;`;
+            div.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${mensaje}`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function syntaxHighlight(json) {
+            if (!json) return '';
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?)/g, m =>
+                `<span class="${/:$/.test(m) ? 'json-key' : 'json-string'}">${m}</span>`)
+                .replace(/\b(true|false|null)\b/g, '<span class="json-boolean">$&</span>')
+                .replace(/\b-?\d+(\.\d+)?([eE][+-]?\d+)?\b/g, '<span class="json-number">$&</span>')
+                .replace(/[{},:\[\]]/g, m => `<span class="json-punctuation">${m}</span>`);
+        }
+    </script>
+}
+
+@* ---original-- *@
+@* @functions {
     public string SyntaxHighlightJson(string json)
     {
         if (string.IsNullOrEmpty(json)) return json;
@@ -306,4 +412,4 @@
               return '<span class="json-punctuation">' + match + '</span>';
           });
     }
-</script>
+</script> *@
