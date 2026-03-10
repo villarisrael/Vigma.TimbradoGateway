@@ -1,53 +1,55 @@
 ﻿@model Vigma.TimbradoGateway.ViewModels.Timbrados.TimbradoDetalleVM
 @{
     ViewData["Title"] = $"Timbrado #{Model.Id} - Detalle";
+    Layout = "_Layout";
     var fileNameXml = $"{Model.Uuid}.xml";
 }
 
-<link href="~/css/detalletimbre.css" rel="stylesheet" />
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/errores.css" rel="stylesheet" />
+<link href="~/css/Timbrado.css" rel="stylesheet" />
 
-<div class="container-fluid py-4">
+<div class="errores-page">
 
-    <!-- Header -->
-    <div class="detail-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <span class="badge-large mb-3">
-                    <i class="bi bi-receipt-cutoff me-2"></i>Timbrado
-                </span>
+    <!-- ── Header card ── -->
+    <div class="td-header-card">
+        <div class="td-header-top">
+            <span class="tb-badge-top">
+                <i class="bi bi-receipt-cutoff"></i> Timbrado
+            </span>
+            <div class="td-header-actions">
+                @if (Model.Cancelada)
+                {
+                    <span class="tb-pill tb-pill-cancel">
+                        <i class="bi bi-x-circle-fill"></i> Cancelada
+                    </span>
+                }
+                else
+                {
+                    <span class="tb-pill tb-pill-ok">
+                        <i class="bi bi-check-circle-fill"></i> Vigente
+                    </span>
+                }
+                <a href="@Url.Action("Index", "Timbrados")" class="vg-btn vg-btn-outline">
+                    <i class="bi bi-arrow-left"></i> Volver al índice
+                </a>
+            </div>
+        </div>
 
-                <h1 class="display-6 fw-bold mb-2">Detalle del Timbrado #@Model.Id</h1>
-
-                <div class="d-flex flex-wrap gap-3 align-items-center mt-2">
-                    <span class="time-badge">
+        <div class="td-header-body">
+            <div class="td-header-info">
+                <h1 class="errores-title">Detalle del Timbrado #@Model.Id</h1>
+                <div class="ed-header-meta">
+                    <span class="ec-time">
                         <i class="bi bi-clock"></i>
                         @Model.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss") UTC
                     </span>
-
-                    <a href="@Url.Action("Index", "Timbrados")" class="btn-icon">
-                        <i class="bi bi-arrow-left"></i> Volver al índice
-                    </a>
-
-                    @if (Model.Cancelada)
-                    {
-                        <span class="pill pill-cancel"><i class="bi bi-x-circle-fill"></i> Cancelada</span>
-                    }
-                    else
-                    {
-                        <span class="pill pill-ok"><i class="bi bi-check-circle-fill"></i> Vigente</span>
-                    }
-                </div>
-            </div>
-
-            <div class="col-md-4 text-end">
-                <div class="d-inline-flex flex-column gap-2 align-items-end">
-                    <span class="pill pill-mid">
+                    <span class="tb-pill tb-pill-mid">
                         <i class="bi bi-people"></i> Tenant: @Model.TenantId
                     </span>
-
                     @if (Model.Saldo.HasValue)
                     {
-                        <span class="pill pill-mid">
+                        <span class="tb-pill tb-pill-mid">
                             <i class="bi bi-cash-coin"></i> Saldo: @Model.Saldo.Value.ToString("N2")
                         </span>
                     }
@@ -56,287 +58,217 @@
         </div>
     </div>
 
-    <!-- Info: 3 tarjetas en la MISMA fila -->
-    <div class="row g-3 timbrado-info-row">
-        <div class="col-12 col-lg-4">
-            <div class="info-card h-100">
-                <div class="card-title"><i class="bi bi-building"></i> RFC Emisor</div>
-                <div class="card-value mb-3">
-                    <span class="mono-badge">@Model.RfcEmisor</span>
-                </div>
+    <!-- ── Info cards (3 columnas) ── -->
+    <div class="td-info-grid">
 
-                <div class="card-title"><i class="bi bi-box-arrow-in-right"></i> Origen</div>
-                <div class="card-value mb-3">@(!string.IsNullOrWhiteSpace(Model.Origen) ? Model.Origen : "—")</div>
-
-                <div class="card-title"><i class="bi bi-file-earmark-text"></i> Tipo de comprobante</div>
-                <div class="card-value">
-                    @if (!string.IsNullOrWhiteSpace(Model.TipoDeComprobante))
-                    {
-                        <span class="pill pill-ok"><i class="bi bi-file-earmark-check"></i>@Model.TipoDeComprobante</span>
-                    }
-                    else
-                    {
-                        <span class="pill pill-mid"><i class="bi bi-dash-circle"></i> N/A</span>
-                    }
-                </div>
+        <!-- Tarjeta 1: RFC, Origen, Tipo -->
+        <div class="errores-ring-card timbrado-cards-row">
+            <div class="ed-info-section">
+                <span class="ec-label"><i class="bi bi-building"></i> RFC Emisor</span>
+                <code class="ec-rfc td-rfc-large">@Model.RfcEmisor</code>
+            </div>
+            <div class="ed-divider"></div>
+            <div class="ed-info-section">
+                <span class="ec-label"><i class="bi bi-box-arrow-in-right"></i> Origen</span>
+                <span class="ed-info-value">@(!string.IsNullOrWhiteSpace(Model.Origen) ? Model.Origen : "—")</span>
+            </div>
+            <div class="ed-divider"></div>
+            <div class="ed-info-section">
+                <span class="ec-label"><i class="bi bi-file-earmark-text"></i> Tipo de comprobante</span>
+                @if (!string.IsNullOrWhiteSpace(Model.TipoDeComprobante))
+                {
+                    <span class="tb-pill tb-pill-ok" style="width:fit-content">
+                        <i class="bi bi-file-earmark-check"></i> @Model.TipoDeComprobante
+                    </span>
+                }
+                else
+                {
+                    <span class="ec-na">N/A</span>
+                }
             </div>
         </div>
 
-        <div class="col-12 col-lg-4">
-            <div class="info-card h-100">
-                <div class="card-title"><i class="bi bi-collection"></i> Serie</div>
-                <div class="card-value mb-3">@(!string.IsNullOrWhiteSpace(Model.Serie) ? Model.Serie : "—")</div>
-
-                <div class="card-title"><i class="bi bi-hash"></i> Folio</div>
-                <div class="card-value mb-3">@(!string.IsNullOrWhiteSpace(Model.Folio) ? Model.Folio : "—")</div>
-
-                <div class="card-title"><i class="bi bi-patch-check"></i> UUID</div>
-                <div class="card-value">
-                    <span class="mono-badge">@Model.Uuid</span>
-                </div>
+        <!-- Tarjeta 2: Serie, Folio, UUID -->
+        <div class="errores-ring-card timbrado-cards-row">
+            <div class="ed-info-section">
+                <span class="ec-label"><i class="bi bi-collection"></i> Serie</span>
+                <span class="ed-info-value">@(!string.IsNullOrWhiteSpace(Model.Serie) ? Model.Serie : "—")</span>
+            </div>
+            <div class="ed-divider"></div>
+            <div class="ed-info-section">
+                <span class="ec-label"><i class="bi bi-hash"></i> Folio</span>
+                <span class="ed-info-value">@(!string.IsNullOrWhiteSpace(Model.Folio) ? Model.Folio : "—")</span>
+            </div>
+            <div class="ed-divider"></div>
+            <div class="ed-info-section">
+                <span class="ec-label"><i class="bi bi-patch-check"></i> UUID</span>
+                <code class="ec-rfc td-uuid-full" title="@Model.Uuid">@Model.Uuid</code>
             </div>
         </div>
 
-        <div class="col-12 col-lg-4">
-            <div class="info-card h-100">
-                <div class="card-title"><i class="bi bi-chat-dots-fill"></i> Mensaje MF</div>
-                <div class="card-value">
-                    @if (!string.IsNullOrWhiteSpace(Model.MensajeMf))
-                    {
-                        <div class="alert alert-warning bg-opacity-10 border-warning mb-0" style="border-radius: 12px;">
-                            <div class="d-flex">
-                                <i class="bi bi-info-circle-fill text-warning me-3 fs-5"></i>
-                                <div>@Model.MensajeMf</div>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-success bg-opacity-10 border-success mb-0" style="border-radius: 12px;">
-                            <div class="d-flex">
-                                <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
-                                <div>OK</div>
-                            </div>
-                        </div>
-                    }
-                </div>
+        <!-- Tarjeta 3: Mensaje MF -->
+        <div class="errores-ring-card timbrado-cards-row">
+            <div class="ed-info-section">
+                <span class="ec-label"><i class="bi bi-chat-dots-fill"></i> Mensaje MF</span>
+                @if (!string.IsNullOrWhiteSpace(Model.MensajeMf))
+                {
+                    <div class="td-msg-box td-msg-warn">
+                        <i class="bi bi-info-circle-fill td-msg-icon warn"></i>
+                        <p>@Model.MensajeMf</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="td-msg-box td-msg-ok">
+                        <i class="bi bi-check-circle-fill td-msg-icon ok"></i>
+                        <p>OK — Sin observaciones</p>
+                    </div>
+                }
             </div>
         </div>
+
     </div>
 
+    <!-- ── XML Viewer ── -->
+    <div class="ed-json-card">
 
-
-    <!-- XML Viewer -->
-    <div class="xml-editor-container">
-        <div class="xml-header">
+        <div class="ed-json-header">
             <div>
-                <h5 class="fw-bold mb-0">
-                    <i class="bi bi-code-slash me-2"></i> XML Timbrado
-                </h5>
-                <small class="opacity-75">Contenido XML completo del CFDI timbrado</small>
+                <h4 class="ed-json-title">
+                    <i class="bi bi-code-slash"></i> XML Timbrado
+                </h4>
+                <span class="ed-json-sub">Contenido XML completo del CFDI timbrado</span>
             </div>
-            <div class="badge bg-success">
-                XML
-            </div>
+            <span class="ed-json-badge ed-json-valid">XML</span>
         </div>
 
-        <div class="xml-toolbar">
-            <button class="btn-icon btn-copy" onclick="copiarXML()">
+        <div class="ed-json-toolbar">
+            <button class="ed-tool-btn" onclick="copiarXML()">
                 <i class="bi bi-clipboard"></i> Copiar XML
             </button>
-            <button class="btn-icon btn-download" onclick="descargarXML()">
+            <button class="ed-tool-btn" onclick="descargarXML()">
                 <i class="bi bi-download"></i> Descargar
             </button>
-            <button class="btn-icon btn-reload" onclick="formatearXML()">
+            <button class="ed-tool-btn" onclick="formatearXML()">
                 <i class="bi bi-arrow-clockwise"></i> Re-formatear
             </button>
-           
-            <div class="ms-auto">
-                <span class="text-muted small">
-                    Tamaño: <span id="xmlSize">0</span> caracteres
-                </span>
-            </div>
+            <span class="ed-json-size">
+                Tamaño: <strong id="xmlSize">0</strong> caracteres
+            </span>
         </div>
 
-        <div class="xml-content" id="xmlViewer">
+        <div class="ed-json-content" id="xmlViewer">
             @if (!string.IsNullOrWhiteSpace(Model.XmlTimbrado))
             {
                 <pre id="xmlContent">@Html.Raw(System.Net.WebUtility.HtmlEncode(Model.XmlTimbrado))</pre>
-
             }
             else
             {
-                <div class="empty-xml">
-                    <i class="bi bi-file-earmark-x empty-xml-icon"></i>
-                    <h5 class="fw-bold mb-2 text-white">No hay XML disponible</h5>
-                    <p class="mb-0">No se encontró contenido XML para este timbrado.</p>
+                <div class="ed-json-empty">
+                    <i class="bi bi-file-earmark-x ed-empty-icon"></i>
+                    <h5>No hay XML disponible</h5>
+                    <p>No se encontró contenido XML para este timbrado.</p>
                 </div>
             }
         </div>
+
     </div>
 
 </div>
 
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const el = document.getElementById('xmlContent');
+            if (!el) return;
+            const raw = el.textContent || el.innerText || '';
+            renderXmlInViewer(raw);
+        });
 
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<!-- Bootstrap JS para modal -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        function mostrarNotificacion(mensaje, tipo = 'success') {
+            const div = document.createElement('div');
+            div.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;
+                background:${tipo === 'success' ? '#11998e' : '#ff416c'};color:white;
+                padding:12px 20px;border-radius:12px;font-size:14px;
+                box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;align-items:center;gap:8px;`;
+            div.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${mensaje}`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const el = document.getElementById('xmlContent');
-        if (!el) return;
-        const raw = el.textContent || el.innerText || '';
-        renderXmlInViewer(raw);
-    });
-
-
-    function mostrarNotificacion(mensaje, tipo = 'success') {
-        const div = document.createElement('div');
-        div.className = 'copy-success';
-        div.style.background = (tipo === 'success') ? '#10b981' : '#ef4444';
-        div.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-                    <span>${mensaje}</span>
-                </div>`;
-        document.body.appendChild(div);
-        setTimeout(() => div.remove(), 3000);
-    }
-
-    async function copiarXML() {
-        try {
-            const response = await fetch('@Url.Action("GetXmlFormatted", "Timbrados")?id=@Model.Id');
-            const data = await response.json();
-
-            if (data.success && data.xmlFormatted) {
-                await navigator.clipboard.writeText(data.xmlFormatted);
-                mostrarNotificacion('XML copiado al portapapeles');
-            } else {
-                // fallback: copia el crudo
-                const raw = document.getElementById('xmlContent')?.innerText ?? '';
-                await navigator.clipboard.writeText(raw);
-                mostrarNotificacion('XML copiado (crudo)');
+        async function copiarXML() {
+            try {
+                const response = await fetch('@Url.Action("GetXmlFormatted", "Timbrados")?id=@Model.Id');
+                const data = await response.json();
+                if (data.success && data.xmlFormatted) {
+                    await navigator.clipboard.writeText(data.xmlFormatted);
+                    mostrarNotificacion('XML copiado al portapapeles');
+                } else {
+                    const raw = document.getElementById('xmlContent')?.innerText ?? '';
+                    await navigator.clipboard.writeText(raw);
+                    mostrarNotificacion('XML copiado (crudo)');
+                }
+            } catch (error) {
+                mostrarNotificacion('Error al copiar: ' + error.message, 'error');
             }
-        } catch (error) {
-            mostrarNotificacion('Error al copiar: ' + error.message, 'error');
         }
-    }
 
-    function descargarXML() {
-        const xmlContent = document.getElementById('xmlContent')?.innerText ?? '';
-        if (!xmlContent.trim()) {
-            mostrarNotificacion('No hay XML para descargar', 'error');
-            return;
-        }
-        const blob = new Blob([xmlContent], { type: 'application/xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "@fileNameXml";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    async function formatearXML() {
-        try {
-            const response = await fetch('@Url.Action("GetXmlFormatted", "Timbrados")?id=@Model.Id');
-            const data = await response.json();
-
-            if (data.success && data.xmlFormatted) {
-                const viewer = document.getElementById('xmlViewer');
-                viewer.innerHTML = `<pre id="xmlContent"></pre>`;
-                renderXmlInViewer(data.xmlFormatted);
-
-                mostrarNotificacion('XML formateado correctamente');
-            } else {
-                mostrarNotificacion('No se pudo formatear XML', 'error');
+        function descargarXML() {
+            const xmlContent = document.getElementById('xmlContent')?.innerText ?? '';
+            if (!xmlContent.trim()) {
+                mostrarNotificacion('No hay XML para descargar', 'error');
+                return;
             }
-        } catch (error) {
-            mostrarNotificacion('Error: ' + error.message, 'error');
+            const blob = new Blob([xmlContent], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "@fileNameXml";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
-    }
 
-    function alternarXML() {
-        const modal = new bootstrap.Modal(document.getElementById('rawXmlModal'));
-        const textarea = document.getElementById('rawXmlTextarea');
-        textarea.value = document.getElementById('xmlContent')?.innerText ?? '';
-        modal.show();
-    }
-
-    async function copiarTextoCrudo() {
-        try {
-            const textarea = document.getElementById('rawXmlTextarea');
-            await navigator.clipboard.writeText(textarea.value);
-            mostrarNotificacion('Texto copiado al portapapeles');
-        } catch (e) {
-            mostrarNotificacion('No se pudo copiar', 'error');
+        async function formatearXML() {
+            try {
+                const response = await fetch('@Url.Action("GetXmlFormatted", "Timbrados")?id=@Model.Id');
+                const data = await response.json();
+                if (data.success && data.xmlFormatted) {
+                    const viewer = document.getElementById('xmlViewer');
+                    viewer.innerHTML = `<pre id="xmlContent"></pre>`;
+                    renderXmlInViewer(data.xmlFormatted);
+                    mostrarNotificacion('XML formateado correctamente');
+                } else {
+                    mostrarNotificacion('No se pudo formatear XML', 'error');
+                }
+            } catch (error) {
+                mostrarNotificacion('Error: ' + error.message, 'error');
+            }
         }
-    }
 
-    function escapeHtml(str) {
-        return (str || '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
+        function highlightXml(xml) {
+            if (!xml) return '';
+            xml = xml.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            xml = xml.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="xml-comment">$1</span>');
+            xml = xml.replace(/(&lt;\/?)([\w:.-]+)([^&]*?)(\/?&gt;)/g,
+                function (m, p1, tag, attrs, p4) {
+                    attrs = attrs.replace(/([\w:.-]+)=(".*?")/g,
+                        '<span class="xml-attr-name">$1</span>=<span class="xml-attr-val">$2</span>');
+                    return '<span class="xml-punct">&lt;</span>'
+                        + '<span class="xml-tag">' + tag + '</span>'
+                        + attrs
+                        + '<span class="xml-punct">' + p4.replace('&gt;', '&gt;') + '</span>';
+                });
+            return xml;
+        }
 
-
-    // Convierte XML (string) a HTML con spans para colorear
-    function highlightXml(xml) {
-
-        if (!xml) return '';
-
-        // escapar primero
-        xml = xml
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-        // comentarios
-        xml = xml.replace(/(&lt;!--[\s\S]*?--&gt;)/g,
-            '<span class="xml-comment">$1</span>');
-
-        // tags + atributos
-        xml = xml.replace(/(&lt;\/?)([\w:.-]+)([^&]*?)(\/?&gt;)/g,
-            function(m, p1, tag, attrs, p4) {
-
-                attrs = attrs.replace(/([\w:.-]+)=(".*?")/g,
-                    '<span class="xml-attr-name">$1</span>=<span class="xml-attr-val">$2</span>');
-
-                return '<span class="xml-punct">&lt;</span>'
-                    + '<span class="xml-tag">' + tag + '</span>'
-                    + attrs
-                    + '<span class="xml-punct">' + p4.replace('&gt;', '&gt;') + '</span>';
-            });
-
-        return xml;
-    }
-
-    function renderXml() {
-        const pre = document.getElementById("xmlContent");
-        if (!pre) return;
-
-        const raw = pre.textContent;
-        pre.innerHTML = highlightXml(raw);
-
-        document.getElementById("xmlSize").textContent = raw.length.toLocaleString();
-    }
-
-    function renderXmlInViewer(xmlText) {
-        const pre = document.getElementById('xmlContent');
-        if (!pre) return;
-
-        pre.innerHTML = highlightXml(xmlText);
-
-        const sizeEl = document.getElementById('xmlSize');
-        if (sizeEl) sizeEl.textContent = (xmlText?.length || 0).toLocaleString();
-    }
-    
-
-</script>
+        function renderXmlInViewer(xmlText) {
+            const pre = document.getElementById('xmlContent');
+            if (!pre) return;
+            pre.innerHTML = highlightXml(xmlText);
+            const sizeEl = document.getElementById('xmlSize');
+            if (sizeEl) sizeEl.textContent = (xmlText?.length || 0).toLocaleString();
+        }
+    </script>
+}

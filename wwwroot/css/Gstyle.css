@@ -84,7 +84,7 @@
     --container-sm: 540px; /* Bootstrap container en pantallas sm */
     --container-md: 720px; /* Bootstrap container en pantallas md */
     --container-lg: 960px; /* Bootstrap container en pantallas lg */
-    --container-xl: 1140px; /* Bootstrap container en pantallas xl */
+    --container-xl: 1200px; /* Bootstrap container en pantallas xl */
     --container-xxl: 1320px; /* Bootstrap container en pantallas xxl */
     --container-padding: 1rem; /* padding lateral del container */
     /* ── Breakpoints ─────────────────────────────────────────────────────
