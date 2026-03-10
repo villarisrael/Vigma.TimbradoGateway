@@ -1,148 +1,119 @@
 ﻿@model Vigma.TimbradoGateway.ViewModels.Timbrados.TimbradoIndiceVM
 @{
     ViewData["Title"] = "Índice de Timbrados";
-     var from = Model.TotalRows == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
+    Layout = "_Layout";
+    var from = Model.TotalRows == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
     var to = Math.Min(Model.Page * Model.PageSize, Model.TotalRows);
 }
 
-<link href="~/css/indicetimbrado.css" rel="stylesheet" />
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/errores.css" rel="stylesheet" />
+<link href="~/css/timbrados.css" rel="stylesheet" />
 
-<div class="container-fluid py-4">
+<div class="errores-page">
 
-    <span class="page-badge mb-2">
-        <i class="bi bi-receipt-cutoff"></i> Timbrados
-    </span>
-
-    <div class="page-header py-2">
-        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-2">
-
-            <div>
-                <h1 class="h3 fw-bold mb-1">Monitor de Timbrados</h1>
-                <div class="text-muted small">
-                    Últimos timbrados registrados • Ordenados por <strong>created_utc DESC</strong>
-                </div>
+    <!-- ── Header ── -->
+    <div class="errores-header">
+        <div class="errores-header-left">
+            <span class="tb-badge-top">
+                <i class="bi bi-receipt-cutoff"></i> Timbrados
+            </span>
+            <h1 class="errores-title">Monitor de Timbrados</h1>
+            <span class="errores-subtitle">
+                Últimos timbrados registrados • Ordenados por <strong>created_utc DESC</strong>
+            </span>
+        </div>
+        <div class="errores-header-right">
+            <div class="ec-stat-pill">
+                <span class="ec-stat-num">@(Model.Rows?.Count() ?? 0)</span>
+                <span class="ec-stat-label">Resultados</span>
             </div>
-
-            <!-- Stats compactos -->
-            <div class="stats-compact">
-                <div class="stat">
-                    <div class="stat-number">@((Model.Rows?.Count() ?? 0))</div>
-                    <div class="stat-label">Resultados</div>
-                </div>
-
-                <div class="stat-divider"></div>
-
-                <div class="stat">
-                    <div class="stat-number">@Model.CanceladasCount</div>
-                    <div class="stat-label">Canceladas</div>
-                </div>
+            <div class="ec-stat-pill tb-stat-cancel">
+                <span class="ec-stat-num">@Model.CanceladasCount</span>
+                <span class="ec-stat-label">Canceladas</span>
             </div>
         </div>
     </div>
 
-
-    <!-- Filtros -->
-    <div class="filter-card">
-        <h5 class="fw-bold mb-4">
-            <i class="bi bi-funnel-fill me-2" style="color:#f59e0b;"></i>Filtros de búsqueda
-        </h5>
+    <!-- ── Filtros ── -->
+    <div class="ec-filter-card tb-filter-card">
+        <div class="ec-filter-header">
+            <i class="bi bi-funnel-fill" style="color:var(--color-warning)"></i>
+            <span>Filtros de búsqueda</span>
+        </div>
 
         <form asp-action="Index" asp-controller="Timbrados" method="get">
-
-
             <input type="hidden" name="page" value="1" />
             <input type="hidden" name="pageSize" value="@Model.PageSize" />
 
-            <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2">
-                        <i class="bi bi-people me-1"></i> Tenant
-                    </label>
-                    @Html.DropDownListFor(m => m.TenantId, Model.Tenants,
-                    new { @class = "form-select form-select-sm" })
+            <div class="ec-filter-grid">
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-people"></i> Tenant</label>
+                    @Html.DropDownListFor(m => m.TenantId, Model.Tenants, new { @class = "ec-select" })
                 </div>
 
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold mb-2">
-                        <i class="bi bi-building me-1"></i> RFC Emisor
-                    </label>
-                    @Html.TextBoxFor(m => m.RfcEmisor,
-                                        new { @class = "form-control form-control-sm", placeholder = "EKU9003173C9..." })
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-building"></i> RFC Emisor</label>
+                    @Html.TextBoxFor(m => m.RfcEmisor, new { @class = "ec-input", placeholder = "EKU9003173C9..." })
                 </div>
 
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2">
-                        <i class="bi bi-calendar me-1"></i> Fecha inicio
-                    </label>
-                    @Html.TextBoxFor(m => m.FechaInicio, "{0:yyyy-MM-dd}",
-                                        new { @type = "date", @class = "form-control form-control-sm" })
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-calendar"></i> Fecha inicio</label>
+                    @Html.TextBoxFor(m => m.FechaInicio, "{0:yyyy-MM-dd}", new { @type = "date", @class = "ec-input" })
                 </div>
 
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2">
-                        <i class="bi bi-calendar-check me-1"></i> Fecha final
-                    </label>
-                    @Html.TextBoxFor(m => m.FechaFinal, "{0:yyyy-MM-dd}",
-                                        new { @type = "date", @class = "form-control form-control-sm" })
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-calendar-check"></i> Fecha final</label>
+                    @Html.TextBoxFor(m => m.FechaFinal, "{0:yyyy-MM-dd}", new { @type = "date", @class = "ec-input" })
                 </div>
 
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-gold w-100">
-                        <i class="bi bi-search me-2"></i> Buscar
+                <div class="ec-field ec-field-actions">
+                    <button type="submit" class="vg-btn vg-btn-primary">
+                        <i class="bi bi-search"></i> Buscar
                     </button>
-                    <a class="btn btn-outline-soft w-100" href="@Url.Action("Index", "Timbrados")">
-                        <i class="bi bi-arrow-clockwise me-2"></i> Limpiar
+                    <a class="vg-btn vg-btn-outline" href="@Url.Action("Index", "Timbrados")">
+                        <i class="bi bi-arrow-clockwise"></i> Limpiar
                     </a>
                 </div>
             </div>
         </form>
     </div>
 
-    <!-- Tabla -->
-    <div class="table-card">
-        <div class="table-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0">
-                    <i class="bi bi-table me-2"></i>Registro de timbrados
-                </h6>
-                <span class="badge bg-light text-dark">
-                    Mostrando @(Model.Rows?.Count() ?? 0) resultados
-                </span>
+    <!-- ── Tabla ── -->
+    <div class="ec-table-card">
+        <div class="ec-table-header">
+            <div class="ec-table-title">
+                <i class="bi bi-table"></i> Registro de timbrados
             </div>
+            <span class="ec-table-count">Mostrando @(Model.Rows?.Count() ?? 0) resultados</span>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
+        <div class="ec-table-wrap">
+            <table class="ec-table tb-table">
                 <thead>
                     <tr>
-                        <th>Tenant</th>
-                        <th>RFC Emisor</th>
-                        <th>Origen</th>
-                        <th>Tipo</th>
-                        <th>Serie</th>
-                        <th>Folio</th>
-                        <th>UUID</th>
+                        <th style="width:40px;">Tenant</th>
+                        <th style="width:150px;">RFC Emisor</th>
+                        <th style="width:80px;">Origen</th>
+                        <th style="width:40px;">Tipo</th>
+                        <th style="width:40px;">Serie</th>
+                        <th style="width:40px;">Folio</th>
+                        <th style="width:200px;">UUID</th>
                         <th>Mensaje MF</th>
-                        <th>Cancelada</th>
-                        <th>Saldo</th>
-                        <th>Creado (UTC)</th>
-                        <th class="text-center">Acciones</th>
+                        <th style="width:90px;">Saldo</th>
+                        <th style="width:155px;">Creado (UTC)</th>
+                        <th style="width:170px;" class="ec-th-center">Acciones</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     @if (Model.Rows == null || !Model.Rows.Any())
                     {
                         <tr>
-                            <td colspan="12">
-                                <div class="empty-state">
-                                    <div class="empty-state-icon">
-                                        <i class="bi bi-inbox"></i>
-                                    </div>
-                                    <h5 class="fw-bold mb-2">No se encontraron timbrados</h5>
-                                    <p class="text-muted mb-0">
-                                        Ajusta filtros o selecciona otro rango de fechas.
-                                    </p>
+                            <td colspan="11">
+                                <div class="ec-empty">
+                                    <i class="bi bi-inbox ec-empty-icon"></i>
+                                    <h5>No se encontraron timbrados</h5>
+                                    <p>Ajusta los filtros o selecciona otro rango de fechas.</p>
                                 </div>
                             </td>
                         </tr>
@@ -151,73 +122,62 @@
                     {
                         foreach (var r in Model.Rows)
                         {
-                            <tr>
-                                <td><span class="pill pill-mid"><i class="bi bi-person-badge"></i>@r.TenantId</span></td>
-                                <td><code class="mono" title="@r.RfcEmisor">@r.RfcEmisor</code></td>
+                            <tr class="ec-row @(r.Cancelada ? "tb-row-cancel" : "")">
+                                <td><span class="ec-tenant">@r.TenantId</span></td>
+                                <td><code class="ec-rfc" title="@r.RfcEmisor">@r.RfcEmisor</code></td>
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(r.Origen))
                                     {
-                                        <span class="pill pill-mid"><i class="bi bi-box-arrow-in-right"></i>@r.Origen</span>
+                                        <span class="tb-pill tb-pill-mid">@r.Origen</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">N/A</span>
+
+                                        <span class="ec-na">N/A</span>
                                     }
                                 </td>
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(r.TipoDeComprobante))
                                     {
-                                        <span class="pill pill-ok"><i class="bi bi-file-earmark-check"></i>@r.TipoDeComprobante</span>
+                                        <span class="tb-pill tb-pill-ok">@r.TipoDeComprobante</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">N/A</span>
+
+                                        <span class="ec-na">N/A</span>
                                     }
                                 </td>
-                                <td>@(string.IsNullOrWhiteSpace(r.Serie) ? "-" : r.Serie)</td>
-                                <td>@(string.IsNullOrWhiteSpace(r.Folio) ? "-" : r.Folio)</td>
-                                <td><code class="mono" title="@r.Uuid">@r.Uuid</code></td>
+                                <td><span class="tb-plain">@(string.IsNullOrWhiteSpace(r.Serie) ? "-" : r.Serie)</span></td>
+                                <td><span class="tb-plain">@(string.IsNullOrWhiteSpace(r.Folio) ? "-" : r.Folio)</span></td>
+                                <td><code class="ec-rfc tb-uuid" title="@r.Uuid">@r.Uuid</code></td>
                                 <td>
-                                    <div class="msg" title="@r.MensajeMf">@r.MensajeMf</div>
-                                </td>
-                                <td>
-                                    @if (r.Cancelada)
-                                    {
-                                        <span class="pill pill-cancel"><i class="bi bi-x-circle-fill"></i> Sí</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="pill pill-ok"><i class="bi bi-check-circle-fill"></i> No</span>
-                                    }
+                                    <div class="ec-message" title="@r.MensajeMf">@r.MensajeMf</div>
                                 </td>
                                 <td>
                                     @if (r.Saldo.HasValue)
                                     {
-                                        <span class="pill pill-mid">
-                                            <i class="bi bi-cash-coin"></i>@r.Saldo.Value.ToString("N2")
-                                        </span>
+                                        <span class="tb-pill tb-pill-mid">@r.Saldo.Value.ToString("N2")</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">N/A</span>
+
+                                        <span class="ec-na">N/A</span>
                                     }
                                 </td>
                                 <td>
-                                    <span class="pill pill-mid">
+                                    <span class="ec-time">
                                         <i class="bi bi-clock"></i>
                                         @r.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss")
                                     </span>
                                 </td>
-                                <td class="text-center">
-                                    <a class="btn btn-detail"
-                                       href="@Url.Action("TimbradosDetalle", "Timbrados", new { id = r.Id })">
-                                        <i class="bi bi-eye me-1"></i> Detalle
+                                <td class="ec-td-center">
+                                    <a class="ec-btn-action"
+                                           href="@Url.Action("TimbradosDetalle", "Timbrados", new { id = r.Id })">
+                                        <i class="bi bi-eye"></i> Detalle
                                     </a>
-                                </td>
-                                <td class="text-center">
-                                    <a class="btn btn-detail"
-                                       href="@Url.Action("TimbradosAdicionales", "Timbrados", new { id = r.Id })">
-                                        <i class="bi bi-eye me-1"></i> Adicionales
+                                    <a class="ec-btn-action"
+                                           href="@Url.Action("TimbradosAdicionales", "Timbrados", new { id = r.Id })">
+                                        <i class="bi bi-plus-circle"></i> Adicionales
                                     </a>
                                 </td>
                             </tr>
@@ -226,36 +186,22 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
-    <!-- Footer/Paginación -->
-   @if (Model.TotalPages > 1)
-{
-    <div class="pagination-nav">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="small text-muted">
-                Página <strong>@Model.Page</strong> de <strong>@Model.TotalPages</strong> • @Model.PageSize por página
-            </div>
+        <!-- ── Paginación ── -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="tb-pagination">
+                <span class="tb-page-info">
+                    Página <strong>@Model.Page</strong> de <strong>@Model.TotalPages</strong> • @Model.PageSize por página
+                </span>
 
-            <nav aria-label="Paginación">
-                <ul class="pagination pagination-sm mb-0">
-
-                    <li class="page-item @(Model.HasPrev ? "" : "disabled")">
-                        <a class="page-link"
-                           href="@Url.Action("Index", "Timbrados", new {
-                                tenantId = Model.TenantId,
-                                rfcEmisor = Model.RfcEmisor,
-                                fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"),
-                                fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"),
-                                page = Model.Page - 1,
-                                pageSize = Model.PageSize
-                           })">
-                            «
-                        </a>
-                    </li>
+                <div class="tb-page-btns">
+                    <a class="tb-page-btn @(!Model.HasPrev ? "tb-page-btn-disabled" : "")"
+                           href="@(Model.HasPrev? Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = Model.Page - 1, pageSize = Model.PageSize }) : "#")">
+                        «
+                    </a>
 
                     @{
-                        // Ventana de páginas (máx 7 botones)
                         var start = Math.Max(1, Model.Page - 3);
                         var end = Math.Min(Model.TotalPages, start + 6);
                         start = Math.Max(1, end - 6);
@@ -263,53 +209,34 @@
 
                     @for (int p = start; p <= end; p++)
                     {
-                        <li class="page-item @(p == Model.Page ? "active" : "")">
-                            <a class="page-link"
-                               href="@Url.Action("Index", "Timbrados", new {
-                                    tenantId = Model.TenantId,
-                                    rfcEmisor = Model.RfcEmisor,
-                                    fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"),
-                                    fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"),
-                                    page = p,
-                                    pageSize = Model.PageSize
-                               })">@p</a>
-                        </li>
+                        <a class="tb-page-btn @(p == Model.Page ? "tb-page-btn-active" : "")"
+                               href="@Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = p, pageSize = Model.PageSize })">
+                            @p
+                        </a>
                     }
 
-                    <li class="page-item @(Model.HasNext ? "" : "disabled")">
-                        <a class="page-link"
-                           href="@Url.Action("Index", "Timbrados", new {
-                                tenantId = Model.TenantId,
-                                rfcEmisor = Model.RfcEmisor,
-                                fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"),
-                                fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"),
-                                page = Model.Page + 1,
-                                pageSize = Model.PageSize
-                           })">
-                            »
-                        </a>
-                    </li>
-
-                </ul>
-            </nav>
-        </div>
+                    <a class="tb-page-btn @(!Model.HasNext ? "tb-page-btn-disabled" : "")"
+                           href="@(Model.HasNext? Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = Model.Page + 1, pageSize = Model.PageSize }) : "#")">
+                        »
+                    </a>
+                </div>
+            </div>
+        }
     </div>
-}
 
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const rows = document.querySelectorAll('tbody tr');
-        rows.forEach((row, index) => {
+@section Scripts {
+    <script>
+        document.querySelectorAll('.ec-row').forEach((row, i) => {
             row.style.opacity = '0';
-            row.style.transform = 'translateY(10px)';
+            row.style.transform = 'translateY(8px)';
             setTimeout(() => {
-                row.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                row.style.transition = 'all 0.35s ease';
                 row.style.opacity = '1';
                 row.style.transform = 'translateY(0)';
-            }, index * 35);
+            }, i * 35);
         });
-    });
-</script>
+    </script>
+}
+

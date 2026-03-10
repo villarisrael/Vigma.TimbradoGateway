@@ -1,0 +1,347 @@
+﻿/* =============================================================================
+   TIMBRADOS — timbrados.css
+   Depende de gstyle.css y de las clases ec-* de errores.css
+   ============================================================================= */
+
+/* ── Badge top ───────────────────────────────────────────────────────────── */
+.tb-badge-top {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: #f7971e;
+    background: rgba(247,151,30,0.1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-2);
+}
+
+/* ── Stat pill canceladas ─────────────────────────────────────────────────── */
+.tb-stat-cancel {
+    background: rgba(255,65,108,0.08) !important;
+}
+
+/* ── Filter card acento dorado ───────────────────────────────────────────── */
+.tb-filter-card {
+    border-left-color: var(--color-warning) !important;
+}
+
+/* ── Pills de estado en tabla ────────────────────────────────────────────── */
+.tb-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.tb-pill-ok {
+    background: rgba(17,153,142,0.1);
+    color: #11998e;
+}
+
+.tb-pill-cancel {
+    background: rgba(255,65,108,0.1);
+    color: #ff416c;
+}
+
+.tb-pill-mid {
+    background: var(--bg-light-subtle);
+    color: #475569;
+    border: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .tb-pill-mid {
+    background: var(--bg-dark-subtle);
+    color: #9090b0;
+    border-color: var(--bg-dark-muted);
+}
+
+/* ── UUID truncado ───────────────────────────────────────────────────────── */
+.tb-uuid {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* ── Texto plano (serie/folio) ───────────────────────────────────────────── */
+.tb-plain {
+    font-size: var(--text-sm);
+    color: #475569;
+}
+
+[data-theme="dark"] .tb-plain {
+    color: #9090b0;
+}
+
+/* ── Tabla sin overflow horizontal forzado ───────────────────────────────── */
+.tb-table {
+    table-layout: auto;
+}
+
+/* ── Fila cancelada ──────────────────────────────────────────────────────── */
+.tb-row-cancel {
+    background: rgba(255, 65, 108, 0.06) !important;
+    border-left: 3px solid #ff416c;
+}
+
+    .tb-row-cancel:hover {
+        background: rgba(255, 65, 108, 0.1) !important;
+    }
+
+[data-theme="dark"] .tb-row-cancel {
+    background: rgba(255, 65, 108, 0.08) !important;
+}
+
+    [data-theme="dark"] .tb-row-cancel:hover {
+        background: rgba(255, 65, 108, 0.14) !important;
+    }
+
+/* ── Paginación ──────────────────────────────────────────────────────────── */
+.tb-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid var(--bg-light-muted);
+    background: var(--bg-light-subtle);
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+[data-theme="dark"] .tb-pagination {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+}
+
+.tb-page-info {
+    font-size: var(--text-xs);
+    color: #6c757d;
+}
+
+.tb-page-btns {
+    display: flex;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+}
+
+.tb-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    background: var(--bg-light-card);
+    color: var(--color-dark);
+    text-decoration: none;
+    border: 1px solid var(--bg-light-muted);
+    transition: var(--transition-fast);
+}
+
+[data-theme="dark"] .tb-page-btn {
+    background: var(--bg-dark-card);
+    color: #e0e0f0;
+    border-color: var(--bg-dark-muted);
+}
+
+.tb-page-btn:hover {
+    background: var(--color-vigma);
+    color: white;
+    border-color: var(--color-vigma);
+}
+
+.tb-page-btn-active {
+    background: var(--vigma-gradient);
+    color: white !important;
+    border-color: transparent;
+}
+
+.tb-page-btn-disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+
+
+/* =============================================================================
+   TIMBRADOS DETALLE — agregar al final de timbrados.css
+   ============================================================================= */
+
+/* ── Header card ─────────────────────────────────────────────────────────── */
+.td-header-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid #f7971e;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+[data-theme="dark"] .td-header-card {
+    background: var(--bg-dark-card);
+}
+
+.td-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.td-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.td-header-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.td-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+/* ── Info grid 3 columnas ────────────────────────────────────────────────── */
+div.timbrado-cards-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 16px !important;
+    align-items: start !important;
+}
+
+    div.timbrado-cards-row > div.errores-ring-card {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        min-width: 0 !important;
+        width: auto !important;
+    }
+
+        div.timbrado-cards-row > div.errores-ring-card > * {
+            width: 100% !important;
+            flex-shrink: 0 !important;
+        }
+
+
+/* ── RFC y UUID en detalle ───────────────────────────────────────────────── */
+.td-rfc-large {
+    font-size: var(--text-base);
+    padding: var(--space-2) var(--space-3);
+    width: fit-content;
+}
+
+.td-uuid-full {
+    font-size: var(--text-xs);
+    padding: var(--space-2) var(--space-3);
+    word-break: break-all;
+    white-space: normal;
+    max-width: 100%;
+    display: block;
+}
+
+/* ── Mensaje MF box ──────────────────────────────────────────────────────── */
+.td-msg-box {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+}
+
+.td-msg-warn {
+    background: rgba(247, 151, 30, 0.07);
+    border: 1px solid rgba(247, 151, 30, 0.25);
+}
+
+.td-msg-ok {
+    background: rgba(17, 153, 142, 0.07);
+    border: 1px solid rgba(17, 153, 142, 0.25);
+}
+
+.td-msg-icon {
+    font-size: var(--text-xl);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+    .td-msg-icon.warn {
+        color: #f7971e;
+    }
+
+    .td-msg-icon.ok {
+        color: #11998e;
+    }
+
+.td-msg-box p {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-dark);
+    line-height: 1.6;
+}
+
+[data-theme="dark"] .td-msg-box p {
+    color: #e0e0f0;
+}
+
+/* ── XML syntax colors ───────────────────────────────────────────────────── */
+.xml-tag {
+    color: #5b5bd6;
+}
+
+.xml-attr-name {
+    color: #f7971e;
+}
+
+.xml-attr-val {
+    color: #11998e;
+}
+
+.xml-comment {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.xml-punct {
+    color: #9090b0;
+}
+
+[data-theme="dark"] .xml-tag {
+    color: #9d9df0;
+}
+
+[data-theme="dark"] .xml-attr-name {
+    color: #ffd200;
+}
+
+[data-theme="dark"] .xml-attr-val {
+    color: #4ecdc4;
+}
+
+[data-theme="dark"] .xml-comment {
+    color: #6c7a8a;
+}
+
+[data-theme="dark"] .xml-punct {
+    color: #6060a0;
+}
