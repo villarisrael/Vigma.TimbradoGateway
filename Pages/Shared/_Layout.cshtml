@@ -11,13 +11,71 @@
     <link rel="stylesheet" href="~/css/gstyle.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Vigma.TimbradoGateway.styles.css" asp-append-version="true" />
     <script>
-            /* Aplica el tema ANTES de renderizar para evitar flash */
-            (function () {
-                if (localStorage.getItem('theme') === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                }
-            })();
+        /* Aplica el tema ANTES de renderizar para evitar flash */
+        (function () {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
     </script>
+
+    <!-- ── NUEVO: Estilos para el submenu SAK Alerts ───────────────────────── -->
+    <style>
+        /* Grupo colapsable en sidebar */
+        .sidebar-group { width: 100%; }
+
+        .sidebar-group-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.6rem 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            font-size: 0.9rem;
+            text-align: left;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .sidebar-group-toggle:hover { background: rgba(255,255,255,0.06); }
+
+        .sidebar-group-toggle .chevron {
+            margin-left: auto;
+            font-size: 0.75rem;
+            transition: transform 0.25s;
+        }
+        .sidebar-group.open .chevron { transform: rotate(180deg); }
+
+        .sidebar-submenu {
+            display: none;
+            flex-direction: column;
+            padding-left: 1rem;
+            margin-top: 0.15rem;
+            gap: 0.1rem;
+        }
+        .sidebar-group.open .sidebar-submenu { display: flex; }
+
+        .sidebar-submenu .sidebar-link {
+            font-size: 0.82rem;
+            padding: 0.45rem 0.8rem;
+            opacity: 0.85;
+        }
+        .sidebar-submenu .sidebar-link:hover { opacity: 1; }
+
+        /* Badge contador de alertas hoy */
+        .sak-badge {
+            margin-left: auto;
+            background: #3b82f6;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 20px;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
 
@@ -49,6 +107,31 @@
                 <i class="bi bi-file-check"></i>
                 <span class="sidebar-label">Timbrados</span>
             </a>
+
+            <!-- ── NUEVO: SAK Alerts (grupo colapsable) ──────────────────── -->
+            <div class="sidebar-group" id="sakGroup">
+                <button class="sidebar-group-toggle" onclick="toggleSakMenu()">
+                    <i class="bi bi-bell-fill" style="color:#3b82f6;"></i>
+                    <span class="sidebar-label">SAK Alerts</span>
+                    <i class="bi bi-chevron-down chevron"></i>
+                </button>
+                <div class="sidebar-submenu">
+                    <a class="sidebar-link" href="/Alerts/Dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                        <span class="sidebar-label">Dashboard</span>
+                    </a>
+                    <a class="sidebar-link" href="/Alerts/Tokens">
+                        <i class="bi bi-phone"></i>
+                        <span class="sidebar-label">Tokens FCM</span>
+                    </a>
+                    <a class="sidebar-link" href="/Alerts/Logs">
+                        <i class="bi bi-list-ul"></i>
+                        <span class="sidebar-label">Logs</span>
+                    </a>
+                </div>
+            </div>
+            <!-- ── FIN SAK Alerts ─────────────────────────────────────────── -->
+
         </nav>
 
         <!-- Footer -->
@@ -97,39 +180,62 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
-            /* Sincroniza el ícono del botón con el tema guardado */
-            (function () {
-                if (localStorage.getItem('theme') === 'dark') {
-                    var icon = document.getElementById('themeIcon');
-                    var label = document.querySelector('#themeToggle .sidebar-label');
-                    if (icon) icon.className = 'bi bi-sun-fill';
-                    if (label) label.textContent = 'Tema claro';
+        /* Sincroniza el ícono del botón con el tema guardado */
+        (function () {
+            if (localStorage.getItem('theme') === 'dark') {
+                var icon = document.getElementById('themeIcon');
+                var label = document.querySelector('#themeToggle .sidebar-label');
+                if (icon) icon.className = 'bi bi-sun-fill';
+                if (label) label.textContent = 'Tema claro';
+            }
+        })();
+
+        function toggleTheme() {
+            const root = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const label = document.querySelector('#themeToggle .sidebar-label');
+
+            if (root.getAttribute('data-theme') === 'dark') {
+                root.removeAttribute('data-theme');
+                icon.className = 'bi bi-moon-fill';
+                label.textContent = 'Tema oscuro';
+                localStorage.setItem('theme', 'light');
+                if (window.ApexCharts) {
+                    ApexCharts.exec('actividad', 'updateOptions', { tooltip: { theme: 'light' } });
                 }
-            })();
-
-            function toggleTheme() {
-                const root = document.documentElement;
-                const icon = document.getElementById('themeIcon');
-                const label = document.querySelector('#themeToggle .sidebar-label');
-
-                if (root.getAttribute('data-theme') === 'dark') {
-                    root.removeAttribute('data-theme');
-                    icon.className = 'bi bi-moon-fill';
-                    label.textContent = 'Tema oscuro';
-                    localStorage.setItem('theme', 'light');
-                    if (window.ApexCharts) {
-                        ApexCharts.exec('actividad', 'updateOptions', { tooltip: { theme: 'light' } });
-                    }
-                } else {
-                    root.setAttribute('data-theme', 'dark');
-                    icon.className = 'bi bi-sun-fill';
-                    label.textContent = 'Tema claro';
-                    localStorage.setItem('theme', 'dark');
-                    if (window.ApexCharts) {
-                        ApexCharts.exec('actividad', 'updateOptions', { tooltip: { theme: 'dark' } });
-                    }
+            } else {
+                root.setAttribute('data-theme', 'dark');
+                icon.className = 'bi bi-sun-fill';
+                label.textContent = 'Tema claro';
+                localStorage.setItem('theme', 'dark');
+                if (window.ApexCharts) {
+                    ApexCharts.exec('actividad', 'updateOptions', { tooltip: { theme: 'dark' } });
                 }
             }
+        }
+
+        // ── NUEVO: Toggle submenu SAK Alerts ──────────────────────────────────
+        function toggleSakMenu() {
+            const group = document.getElementById('sakGroup');
+            group.classList.toggle('open');
+            // Persiste estado entre páginas
+            localStorage.setItem('sakMenuOpen', group.classList.contains('open') ? '1' : '0');
+        }
+
+        // Restaurar estado del submenu al cargar
+        (function () {
+            if (localStorage.getItem('sakMenuOpen') === '1') {
+                const group = document.getElementById('sakGroup');
+                if (group) group.classList.add('open');
+            }
+            // Auto-abrir si estamos en una página de Alerts
+            const path = window.location.pathname.toLowerCase();
+            if (path.startsWith('/alerts')) {
+                const group = document.getElementById('sakGroup');
+                if (group) group.classList.add('open');
+            }
+        })();
+        // ── FIN Toggle SAK Alerts ─────────────────────────────────────────────
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

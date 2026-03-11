@@ -1,0 +1,188 @@
+@model Vigma.TimbradoGateway.Models.Alertas.AlertLogIndiceVM
+@{
+    ViewData["Title"] = "Logs de Alertas";
+    var from = Model.Total == 0 ? 0 : ((Model.Filtro.Pagina - 1) * Model.Filtro.TamanoPagina) + 1;
+    var to   = Math.Min(Model.Filtro.Pagina * Model.Filtro.TamanoPagina, Model.Total);
+    int totalPages = Model.Total == 0 ? 1 : (int)Math.Ceiling((double)Model.Total / Model.Filtro.TamanoPagina);
+}
+
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/timbrado.css" rel="stylesheet" />
+
+<div class="container-fluid py-4">
+
+    <span class="page-badge mb-2" style="color:#3b82f6; background:rgba(59,130,246,0.1);">
+        <i class="bi bi-bell-fill"></i> SAK Alerts
+    </span>
+
+    <div class="page-header py-2 mb-4">
+        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Logs de Alertas</h1>
+                <div class="text-muted small">Historial de mensajes push enviados • Ordenados por fecha de envío DESC</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="@Url.Action("Dashboard","Alerts")" class="btn btn-outline-soft btn-sm">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+                <a href="@Url.Action("Tokens","Alerts")" class="btn btn-outline-soft btn-sm">
+                    <i class="bi bi-phone me-1"></i> Tokens
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-card tb-filter-card">
+        <h5 class="fw-bold mb-4">
+            <i class="bi bi-funnel-fill me-2" style="color:#f59e0b;"></i>Filtros
+        </h5>
+        <form asp-action="Logs" asp-controller="Alerts" method="get">
+            <input type="hidden" name="pagina" value="1" />
+            <input type="hidden" name="tamanoPagina" value="@Model.Filtro.TamanoPagina" />
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2"><i class="bi bi-people me-1"></i> Tenant</label>
+                    <select name="tenantId" class="form-select form-select-sm">
+                        @foreach (var t in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Tenants)
+                        { <option value="@t.Value" >@t.Text</option> }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2"><i class="bi bi-person-badge me-1"></i> Entidad ID</label>
+                    <input type="text" name="entidadId" value="@Model.Filtro.EntidadId"
+                           class="form-control form-control-sm" placeholder="ID trabajador..." />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2"><i class="bi bi-box-arrow-in-right me-1"></i> Origin</label>
+                    <input type="text" name="origin" value="@Model.Filtro.Origin"
+                           class="form-control form-control-sm" placeholder="sistema-origen..." />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2"><i class="bi bi-activity me-1"></i> Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="sent"   >Enviado</option>
+                        <option value="failed">Fallido</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2"><i class="bi bi-calendar me-1"></i> Desde</label>
+                    <input type="date" name="fechaDesde" value="@Model.Filtro.FechaDesde?.ToString("yyyy-MM-dd")"
+                           class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-2"><i class="bi bi-calendar-check me-1"></i> Hasta</label>
+                    <input type="date" name="fechaHasta" value="@Model.Filtro.FechaHasta?.ToString("yyyy-MM-dd")"
+                           class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-12 d-flex gap-2 justify-content-end mt-1">
+                    <button type="submit" class="btn btn-gold px-4"><i class="bi bi-search me-2"></i> Buscar</button>
+                    <a class="btn btn-outline-soft px-4" href="@Url.Action("Logs","Alerts")">
+                        <i class="bi bi-arrow-clockwise me-2"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <div class="table-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="bi bi-list-ul me-2" style="color:#3b82f6;"></i>Historial de alertas</h6>
+                <span class="badge bg-light text-dark">@from–@to de @Model.Total</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 tb-table">
+                <thead>
+                    <tr>
+                        <th>Tenant</th><th>Entidad</th><th>Origin</th>
+                        <th>Título</th><th>Mensaje</th><th>Status</th>
+                        <th>Error</th><th>Enviado UTC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Logs.Any())
+                {
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="bi bi-bell-slash"></i></div>
+                            <h5 class="fw-bold mb-2">No hay logs</h5>
+                            <p class="text-muted mb-0">Aún no se han enviado alertas o no coinciden con los filtros.</p>
+                        </div>
+                    </td></tr>
+                }
+                else
+                {
+                    foreach (var r in Model.Logs)
+                    {
+                        <tr class="@(r.Status == "failed" ? "tb-row-cancel" : "")">
+                            <td><span class="tb-pill tb-pill-mid"><i class="bi bi-person-badge"></i> @r.TenantNombre</span></td>
+                            <td>
+                                <div><code class="mono" style="font-size:.8rem;">@r.EntidadId</code></div>
+                                @if (!string.IsNullOrWhiteSpace(r.EntidadNombre)) {
+                                    <div class="tb-plain" style="font-size:.75rem;">@r.EntidadNombre</div>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(r.Origin)) {
+                                    <span class="tb-pill tb-pill-mid"><i class="bi bi-box-arrow-in-right"></i> @r.Origin</span>
+                                } else { <span class="tb-plain">—</span> }
+                            </td>
+                            <td class="tb-plain" style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                                title="@r.Title">@r.Title</td>
+                            <td class="tb-plain" style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                                title="@r.Message">@r.Message</td>
+                            <td>
+                                @if (r.Status == "sent") {
+                                    <span class="tb-pill tb-pill-ok"><i class="bi bi-send-check-fill"></i> Enviado</span>
+                                } else {
+                                    <span class="tb-pill tb-pill-cancel"><i class="bi bi-x-circle-fill"></i> Fallido</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(r.ErrorDetail)) {
+                                    <span class="tb-plain" style="font-size:.75rem; max-width:180px; display:block;
+                                          overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#ef4444;"
+                                          title="@r.ErrorDetail">@r.ErrorDetail</span>
+                                } else { <span class="tb-plain">—</span> }
+                            </td>
+                            <td>
+                                <span class="tb-pill tb-pill-mid">
+                                    <i class="bi bi-clock"></i> @r.SentAt.ToString("yyyy-MM-dd HH:mm:ss")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+
+        @if (totalPages > 1)
+        {
+            <div class="tb-pagination">
+                <span class="tb-page-info">Página <strong>@Model.Filtro.Pagina</strong> de <strong>@totalPages</strong></span>
+                <div class="tb-page-btns">
+                    @{
+                        int ps = Math.Max(1, Model.Filtro.Pagina - 3);
+                        int pe = Math.Min(totalPages, ps + 6); ps = Math.Max(1, pe - 6);
+                        Func<int,string?> pu = p => Url.Action("Logs","Alerts", new {
+                            tenantId=Model.Filtro.TenantId, entidadId=Model.Filtro.EntidadId,
+                            origin=Model.Filtro.Origin, status=Model.Filtro.Status,
+                            fechaDesde=Model.Filtro.FechaDesde?.ToString("yyyy-MM-dd"),
+                            fechaHasta=Model.Filtro.FechaHasta?.ToString("yyyy-MM-dd"),
+                            tamanoPagina=Model.Filtro.TamanoPagina, pagina=p });
+                    }
+                    <a href="@pu(Model.Filtro.Pagina-1)" class="tb-page-btn @(Model.Filtro.Pagina<=1?"tb-page-btn-disabled":"")">«</a>
+                    @for (int p = ps; p <= pe; p++) {
+                        <a href="@pu(p)" class="tb-page-btn @(p==Model.Filtro.Pagina?"tb-page-btn-active":"")">@p</a>
+                    }
+                    <a href="@pu(Model.Filtro.Pagina+1)" class="tb-page-btn @(Model.Filtro.Pagina>=totalPages?"tb-page-btn-disabled":"")">»</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Vigma.TimbradoGateway.Controllers;
 using Vigma.TimbradoGateway.Models;
+using Vigma.TimbradoGateway.Models.Alertas;   // ← NUEVO
 using Vigma.TimbradoGateway.Models.Logs;
 
 namespace Vigma.TimbradoGateway.Infrastructure;
@@ -13,8 +14,19 @@ public class TimbradoDbContext : DbContext
     public DbSet<Certificado> Certificados => Set<Certificado>();
     public DbSet<TimbradoOkLog> TimbradoOkLogs => Set<TimbradoOkLog>();
     public DbSet<TimbradoErrorLog> TimbradoErrorLogs => Set<TimbradoErrorLog>();
-
     public DbSet<UsuarioOficina> UsuariosOficina => Set<UsuarioOficina>();
+
+    // ── NUEVO: Tablas de Alertas ─────────────────────────────────────────────
+    public DbSet<FcmToken> FcmTokens => Set<FcmToken>();
+    public DbSet<AlertLog> AlertLogs => Set<AlertLog>();
+
+    // ── NUEVO: Vistas de Alertas ─────────────────────────────────────────────
+    public DbSet<VwFcmToken> VwFcmTokens => Set<VwFcmToken>();
+    public DbSet<VwAlertLog> VwAlertLogs => Set<VwAlertLog>();
+    public DbSet<VwAlertasPorHora> VwAlertasPorHora => Set<VwAlertasPorHora>();
+    public DbSet<VwAlertasPorDia> VwAlertasPorDia => Set<VwAlertasPorDia>();
+    public DbSet<VwAlertasResumenTenant> VwAlertasResumenTenant => Set<VwAlertasResumenTenant>();
+    public DbSet<VwAlertasPorEntidad> VwAlertasPorEntidad => Set<VwAlertasPorEntidad>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,11 +39,9 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.Nombre).HasColumnName("nombre");
             e.Property(x => x.Activo).HasColumnName("activo");
             e.Property(x => x.ApiKeyHash).HasColumnName("api_key_hash");
-
             e.Property(x => x.ApiKeyEnc).HasColumnName("api_key_enc");
             e.Property(x => x.ApiKeyLast4).HasColumnName("api_key_last4");
             e.Property(x => x.ApiKeyRotatedUtc).HasColumnName("api_key_rotated_utc");
-
             e.Property(x => x.PacUsuario).HasColumnName("pac_usuario");
             e.Property(x => x.PacPasswordEnc).HasColumnName("pac_password_enc");
             e.Property(x => x.PacProduccion).HasColumnName("pac_produccion");
@@ -43,31 +53,22 @@ public class TimbradoDbContext : DbContext
         {
             e.ToTable("certificados");
             e.HasKey(x => x.Id);
-
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.TenantId).HasColumnName("tenant_id");
             e.Property(x => x.RFC).HasColumnName("rfc");
-
             e.Property(x => x.TipoCarga).HasColumnName("tipo_carga");
-
             e.Property(x => x.CerPath).HasColumnName("cer_path");
             e.Property(x => x.KeyPath).HasColumnName("key_path");
             e.Property(x => x.PfxPath).HasColumnName("pfx_path");
-
             e.Property(x => x.CerPemPath).HasColumnName("cer_pem_path");
             e.Property(x => x.KeyPemPath).HasColumnName("key_pem_path");
-
             e.Property(x => x.KeyPasswordEnc).HasColumnName("key_pass_enc");
-
             e.Property(x => x.NoCertificado).HasColumnName("no_certificado");
             e.Property(x => x.VigenciaInicio).HasColumnName("vigencia_inicio");
             e.Property(x => x.VigenciaFin).HasColumnName("vigencia_fin");
-
             e.Property(x => x.Activo).HasColumnName("activo");
-
             e.Property(x => x.CreadoUtc).HasColumnName("creado_utc");
             e.Property(x => x.ActualizadoUtc).HasColumnName("actualizado_utc");
-
             e.Property(x => x.ErrorLast).HasColumnName("error_last");
         });
 
@@ -83,21 +84,112 @@ public class TimbradoDbContext : DbContext
 
         modelBuilder.Entity<EstadisticaDiaria>(entity =>
         {
-            entity.HasNoKey(); // Las vistas no tienen clave primaria en EF Core
+            entity.HasNoKey();
             entity.ToView("vw_TimbradosVsErrores_30dias");
-
-            // Configurar propiedades si es necesario
             entity.Property(e => e.fecha).HasColumnName("fecha");
             entity.Property(e => e.fecha_corta).HasColumnName("fecha_corta");
             entity.Property(e => e.timbrados).HasColumnName("timbrados");
             entity.Property(e => e.errores).HasColumnName("errores");
             entity.Property(e => e.porcentaje_error).HasColumnName("porcentaje_error");
-
-            // Si la vista tiene tenant_id
-            // entity.Property(e => e.tenant_id).HasColumnName("tenant_id");
         });
 
+        // ── NUEVO: Configuración vistas de Alertas ───────────────────────────
+
+        modelBuilder.Entity<VwFcmToken>(e =>
+        {
+            e.HasNoKey();
+            e.ToView("vw_fcm_tokens");
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.TenantNombre).HasColumnName("tenant_nombre");
+            e.Property(x => x.EntidadId).HasColumnName("entidad_id");
+            e.Property(x => x.EntidadNombre).HasColumnName("entidad_nombre");
+            e.Property(x => x.TokenPreview).HasColumnName("token_preview");
+            e.Property(x => x.Activo).HasColumnName("activo");
+            e.Property(x => x.CreadoUtc).HasColumnName("creado_utc");
+            e.Property(x => x.ActualizadoUtc).HasColumnName("actualizado_utc");
+            e.Property(x => x.DiasSinActualizar).HasColumnName("dias_sin_actualizar");
+        });
+
+        modelBuilder.Entity<VwAlertLog>(e =>
+        {
+            e.HasNoKey();
+            e.ToView("vw_alert_logs");
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.TenantNombre).HasColumnName("tenant_nombre");
+            e.Property(x => x.EntidadId).HasColumnName("entidad_id");
+            e.Property(x => x.EntidadNombre).HasColumnName("entidad_nombre");
+            e.Property(x => x.Origin).HasColumnName("origin");
+            e.Property(x => x.Title).HasColumnName("title");
+            e.Property(x => x.Message).HasColumnName("message");
+            e.Property(x => x.Status).HasColumnName("status");
+            e.Property(x => x.FirebaseMsgId).HasColumnName("firebase_msg_id");
+            e.Property(x => x.ErrorDetail).HasColumnName("error_detail");
+            e.Property(x => x.SentAt).HasColumnName("sent_at");
+            e.Property(x => x.Fecha).HasColumnName("fecha");
+            e.Property(x => x.Hora).HasColumnName("hora");
+            e.Property(x => x.EnviadoOk).HasColumnName("enviado_ok");
+        });
+
+        modelBuilder.Entity<VwAlertasPorHora>(e =>
+        {
+            e.HasNoKey();
+            e.ToView("vw_alertas_por_hora");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.TenantNombre).HasColumnName("tenant_nombre");
+            e.Property(x => x.Fecha).HasColumnName("fecha");
+            e.Property(x => x.Hora).HasColumnName("hora");
+            e.Property(x => x.FechaHora).HasColumnName("fecha_hora");
+            e.Property(x => x.Total).HasColumnName("total");
+            e.Property(x => x.Enviados).HasColumnName("enviados");
+            e.Property(x => x.Fallidos).HasColumnName("fallidos");
+            e.Property(x => x.PctError).HasColumnName("pct_error");
+        });
+
+        modelBuilder.Entity<VwAlertasPorDia>(e =>
+        {
+            e.HasNoKey();
+            e.ToView("vw_alertas_por_dia");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.TenantNombre).HasColumnName("tenant_nombre");
+            e.Property(x => x.Fecha).HasColumnName("fecha");
+            e.Property(x => x.FechaCorta).HasColumnName("fecha_corta");
+            e.Property(x => x.Total).HasColumnName("total");
+            e.Property(x => x.Enviados).HasColumnName("enviados");
+            e.Property(x => x.Fallidos).HasColumnName("fallidos");
+            e.Property(x => x.PctError).HasColumnName("pct_error");
+        });
+
+        modelBuilder.Entity<VwAlertasResumenTenant>(e =>
+        {
+            e.HasNoKey();
+            e.ToView("vw_alertas_resumen_tenant");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.TenantNombre).HasColumnName("tenant_nombre");
+            e.Property(x => x.TotalAlertas).HasColumnName("total_alertas");
+            e.Property(x => x.TotalEnviadas).HasColumnName("total_enviadas");
+            e.Property(x => x.TotalFallidas).HasColumnName("total_fallidas");
+            e.Property(x => x.PctError).HasColumnName("pct_error");
+            e.Property(x => x.AlertasHoy).HasColumnName("alertas_hoy");
+            e.Property(x => x.EnviadasHoy).HasColumnName("enviadas_hoy");
+            e.Property(x => x.FallidasHoy).HasColumnName("fallidas_hoy");
+            e.Property(x => x.TokensActivos).HasColumnName("tokens_activos");
+            e.Property(x => x.UltimaAlertaUtc).HasColumnName("ultima_alerta_utc");
+        });
+
+        modelBuilder.Entity<VwAlertasPorEntidad>(e =>
+        {
+            e.HasNoKey();
+            e.ToView("vw_alertas_por_entidad");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.TenantNombre).HasColumnName("tenant_nombre");
+            e.Property(x => x.EntidadId).HasColumnName("entidad_id");
+            e.Property(x => x.EntidadNombre).HasColumnName("entidad_nombre");
+            e.Property(x => x.Total).HasColumnName("total");
+            e.Property(x => x.Enviados).HasColumnName("enviados");
+            e.Property(x => x.Fallidos).HasColumnName("fallidos");
+            e.Property(x => x.UltimaAlertaUtc).HasColumnName("ultima_alerta_utc");
+        });
     }
-
-
 }

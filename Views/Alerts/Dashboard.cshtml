@@ -1,0 +1,234 @@
+@model Vigma.TimbradoGateway.Models.Alertas.AlertDashboardVM
+@{
+    ViewData["Title"] = "Dashboard — SAK Alerts";
+}
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/timbrado.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.46.0/dist/apexcharts.min.js"></script>
+
+<div class="container-fluid py-4">
+
+    <span class="page-badge mb-2" style="color:#3b82f6; background:rgba(59,130,246,0.1);">
+        <i class="bi bi-speedometer2"></i> SAK Alerts
+    </span>
+
+    <div class="page-header py-2 mb-4">
+        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Dashboard</h1>
+                <div class="text-muted small">Resumen de actividad de alertas push por tenant</div>
+            </div>
+            <div class="d-flex gap-2">
+                <!-- Filtro tenant rápido -->
+                <form method="get" class="d-flex gap-2 align-items-center">
+                    <select name="tenantId" class="form-select form-select-sm" style="min-width:160px;"
+                            onchange="this.form.submit()">
+                        @foreach (var t in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Tenants)
+                        { <option value="@t.Value" >@t.Text</option> }
+                    </select>
+                </form>
+                <a href="@Url.Action("Tokens","Alerts")" class="btn btn-outline-soft btn-sm">
+                    <i class="bi bi-phone me-1"></i> Tokens
+                </a>
+                <a href="@Url.Action("Logs","Alerts")" class="btn btn-outline-soft btn-sm">
+                    <i class="bi bi-list-ul me-1"></i> Logs
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs por tenant -->
+    @foreach (var t in Model.ResumenTenants)
+    {
+        <div class="filter-card mb-3" style="border-left:3px solid #3b82f6;">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-person-badge me-2" style="color:#3b82f6;"></i>@t.TenantNombre
+                </h6>
+                @if (t.UltimaAlertaUtc.HasValue) {
+                    <span class="tb-pill tb-pill-mid" style="font-size:.72rem;">
+                        <i class="bi bi-clock"></i> Última: @t.UltimaAlertaUtc.Value.ToString("yyyy-MM-dd HH:mm")
+                    </span>
+                }
+            </div>
+            <div class="row g-3">
+                <div class="col-6 col-md-2">
+                    <div class="text-muted small mb-1"><i class="bi bi-bar-chart-fill me-1"></i>Total alertas</div>
+                    <div class="h4 fw-bold mb-0">@t.TotalAlertas.ToString("N0")</div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="text-muted small mb-1"><i class="bi bi-send-check me-1" style="color:#22c55e;"></i>Enviadas</div>
+                    <div class="h4 fw-bold mb-0" style="color:#22c55e;">@t.TotalEnviadas.ToString("N0")</div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="text-muted small mb-1"><i class="bi bi-x-circle me-1" style="color:#ef4444;"></i>Fallidas</div>
+                    <div class="h4 fw-bold mb-0" style="color:#ef4444;">@t.TotalFallidas.ToString("N0")</div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="text-muted small mb-1"><i class="bi bi-percent me-1" style="color:#f59e0b;"></i>% Error</div>
+                    <div class="h4 fw-bold mb-0" style="color:#f59e0b;">@t.PctError.ToString("N1")%</div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="text-muted small mb-1"><i class="bi bi-calendar-day me-1" style="color:#8b5cf6;"></i>Hoy enviadas</div>
+                    <div class="h4 fw-bold mb-0" style="color:#8b5cf6;">@t.EnviadasHoy</div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="text-muted small mb-1"><i class="bi bi-phone-fill me-1" style="color:#3b82f6;"></i>Tokens activos</div>
+                    <div class="h4 fw-bold mb-0" style="color:#3b82f6;">
+                        <a href="@Url.Action("Tokens","Alerts",new{tenantId=t.TenantId})"
+                           style="color:inherit; text-decoration:none;">@t.TokensActivos</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Gráficas -->
+    <div class="row g-4 mt-1">
+
+        <!-- Gráfica: por hora (hoy) -->
+        <div class="col-12 col-xl-6">
+            <div class="table-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill me-2" style="color:#3b82f6;"></i>Alertas por hora — hoy</h6>
+                    <span class="tb-pill tb-pill-mid" style="font-size:.72rem;">UTC</span>
+                </div>
+                <div id="chart-por-hora"></div>
+            </div>
+        </div>
+
+        <!-- Gráfica: tendencia 30 días -->
+        <div class="col-12 col-xl-6">
+            <div class="table-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-graph-up me-2" style="color:#22c55e;"></i>Tendencia — últimos 30 días</h6>
+                </div>
+                <div id="chart-por-dia"></div>
+            </div>
+        </div>
+
+        <!-- Top entidades -->
+        <div class="col-12">
+            <div class="table-card">
+                <div class="table-header">
+                    <h6 class="fw-bold mb-0">
+                        <i class="bi bi-trophy-fill me-2" style="color:#f59e0b;"></i>Top trabajadores — más alertas recibidas
+                    </h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 tb-table">
+                        <thead>
+                            <tr>
+                                <th>#</th><th>Tenant</th><th>Entidad ID</th><th>Nombre</th>
+                                <th>Total</th><th>Enviadas</th><th>Fallidas</th><th>Última alerta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (!Model.TopEntidades.Any())
+                        {
+                            <tr><td colspan="8">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                                    <h5 class="fw-bold mb-2">Sin datos aún</h5>
+                                </div>
+                            </td></tr>
+                        }
+                        else
+                        {
+                            int rank = 1;
+                            foreach (var e in Model.TopEntidades)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (rank == 1) { <span style="color:#f59e0b; font-size:1.1rem;">🥇</span> }
+                                        else if (rank == 2) { <span style="font-size:1.1rem;">🥈</span> }
+                                        else if (rank == 3) { <span style="font-size:1.1rem;">🥉</span> }
+                                        else { <span class="tb-plain">@rank</span> }
+                                    </td>
+                                    <td><span class="tb-pill tb-pill-mid"><i class="bi bi-person-badge"></i> @e.TenantNombre</span></td>
+                                    <td><code class="mono">@e.EntidadId</code></td>
+                                    <td class="tb-plain">@(e.EntidadNombre ?? "—")</td>
+                                    <td><span class="tb-pill tb-pill-mid">@e.Total.ToString("N0")</span></td>
+                                    <td><span class="tb-pill tb-pill-ok"><i class="bi bi-send-check"></i> @e.Enviados.ToString("N0")</span></td>
+                                    <td>
+                                        @if (e.Fallidos > 0) {
+                                            <span class="tb-pill tb-pill-cancel"><i class="bi bi-x-circle"></i> @e.Fallidos.ToString("N0")</span>
+                                        } else {
+                                            <span class="tb-pill tb-pill-mid">0</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (e.UltimaAlertaUtc.HasValue) {
+                                            <span class="tb-pill tb-pill-mid"><i class="bi bi-clock"></i> @e.UltimaAlertaUtc.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                                        } else { <span class="tb-plain">—</span> }
+                                    </td>
+                                </tr>
+                                rank++;
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /row gráficas -->
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor  = isDark ? '#9090b0' : '#475569';
+    const gridColor  = isDark ? '#2a2a4a' : '#e2e8f0';
+    const bgCard     = isDark ? '#1a1a2e' : '#ffffff';
+
+    // ── Datos desde el servidor ──────────────────────────────────────────────
+    const porHora = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PorHora));
+    const porDia  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PorDia));
+
+    // ── Gráfica por hora ─────────────────────────────────────────────────────
+    const horaLabels  = porHora.map(x => x.hora + ':00');
+    const horaEnv     = porHora.map(x => x.enviados);
+    const horaFall    = porHora.map(x => x.fallidos);
+
+    new ApexCharts(document.getElementById('chart-por-hora'), {
+        chart: { type: 'bar', height: 260, background: bgCard, toolbar: { show: false }, fontFamily: 'inherit' },
+        series: [
+            { name: 'Enviadas', data: horaEnv },
+            { name: 'Fallidas', data: horaFall }
+        ],
+        colors: ['#3b82f6', '#ef4444'],
+        xaxis: { categories: horaLabels, labels: { style: { colors: textColor, fontSize: '11px' } } },
+        yaxis: { labels: { style: { colors: textColor } } },
+        grid: { borderColor: gridColor },
+        legend: { labels: { colors: textColor } },
+        plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
+        dataLabels: { enabled: false },
+        tooltip: { theme: isDark ? 'dark' : 'light' }
+    }).render();
+
+    // ── Gráfica por día ──────────────────────────────────────────────────────
+    const diaLabels = porDia.map(x => x.fechaCorta);
+    const diaEnv    = porDia.map(x => x.enviados);
+    const diaFall   = porDia.map(x => x.fallidos);
+
+    new ApexCharts(document.getElementById('chart-por-dia'), {
+        chart: { type: 'area', height: 260, background: bgCard, toolbar: { show: false }, fontFamily: 'inherit' },
+        series: [
+            { name: 'Enviadas', data: diaEnv },
+            { name: 'Fallidas', data: diaFall }
+        ],
+        colors: ['#22c55e', '#ef4444'],
+        xaxis: { categories: diaLabels, labels: { style: { colors: textColor, fontSize: '11px' }, rotate: -35 } },
+        yaxis: { labels: { style: { colors: textColor } } },
+        grid: { borderColor: gridColor },
+        legend: { labels: { colors: textColor } },
+        stroke: { curve: 'smooth', width: 2 },
+        fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+        dataLabels: { enabled: false },
+        tooltip: { theme: isDark ? 'dark' : 'light' }
+    }).render();
+})();
+</script>
+}

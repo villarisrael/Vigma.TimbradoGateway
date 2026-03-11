@@ -1,0 +1,120 @@
+@* ─────────────────────────────────────────────────────────────────────────
+   _AlertsResumenWidget.cshtml
+   Partial view — widget de resumen SAK Alerts para el Index de Timbrados.
+
+   USO en Views/Timbrados/Index.cshtml:
+       @await Html.PartialAsync("_AlertsResumenWidget")
+
+   Agrega esta línea justo ANTES del bloque <!-- Filtros --> en Index.cshtml
+   ───────────────────────────────────────────────────────────────────────── *@
+
+<div id="sak-widget" class="mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <span style="font-size:0.78rem; font-weight:700; letter-spacing:.07em; opacity:.6; text-transform:uppercase;">
+            <i class="bi bi-bell-fill me-1" style="color:#3b82f6;"></i> SAK Alerts — Resumen hoy
+        </span>
+        <a href="/Alerts/Dashboard"
+           style="font-size:0.78rem; color:#3b82f6; text-decoration:none; font-weight:600;">
+            Ver Dashboard <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Tarjetas KPI -->
+    <div class="row g-2" id="sak-kpi-row">
+
+        <!-- Enviadas hoy -->
+        <div class="col-6 col-md-3">
+            <div class="filter-card py-3 px-3 h-100" style="border-left: 3px solid #22c55e;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-send-check-fill" style="color:#22c55e; font-size:1.1rem;"></i>
+                    <span style="font-size:0.75rem; font-weight:600; opacity:.7;">Enviadas hoy</span>
+                </div>
+                <div id="sak-enviadas-hoy" style="font-size:1.6rem; font-weight:800; line-height:1;">
+                    <span class="placeholder-glow"><span class="placeholder col-4"></span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fallidas hoy -->
+        <div class="col-6 col-md-3">
+            <div class="filter-card py-3 px-3 h-100" style="border-left: 3px solid #ef4444;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-x-circle-fill" style="color:#ef4444; font-size:1.1rem;"></i>
+                    <span style="font-size:0.75rem; font-weight:600; opacity:.7;">Fallidas hoy</span>
+                </div>
+                <div id="sak-fallidas-hoy" style="font-size:1.6rem; font-weight:800; line-height:1;">
+                    <span class="placeholder-glow"><span class="placeholder col-4"></span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tokens activos -->
+        <div class="col-6 col-md-3">
+            <div class="filter-card py-3 px-3 h-100" style="border-left: 3px solid #3b82f6;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-phone-fill" style="color:#3b82f6; font-size:1.1rem;"></i>
+                    <span style="font-size:0.75rem; font-weight:600; opacity:.7;">Tokens activos</span>
+                </div>
+                <div id="sak-tokens-activos" style="font-size:1.6rem; font-weight:800; line-height:1;">
+                    <span class="placeholder-glow"><span class="placeholder col-4"></span></span>
+                </div>
+                <a href="/Alerts/Tokens" style="font-size:0.7rem; color:#3b82f6;">
+                    Gestionar <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- % Error -->
+        <div class="col-6 col-md-3">
+            <div class="filter-card py-3 px-3 h-100" style="border-left: 3px solid #f59e0b;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-graph-up" style="color:#f59e0b; font-size:1.1rem;"></i>
+                    <span style="font-size:0.75rem; font-weight:600; opacity:.7;">% Error general</span>
+                </div>
+                <div id="sak-pct-error" style="font-size:1.6rem; font-weight:800; line-height:1;">
+                    <span class="placeholder-glow"><span class="placeholder col-4"></span></span>
+                </div>
+                <a href="/Alerts/Logs?status=failed" style="font-size:0.7rem; color:#f59e0b;">
+                    Ver fallidas <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Carga los KPIs de SAK Alerts via AJAX al cargar la página
+        (function () {
+            fetch('/Alerts/Dashboard/ResumenWidget')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok) return;
+
+                    const totalEnviadas  = data.resumen.reduce((s, t) => s + t.enviadasHoy, 0);
+                    const totalFallidas  = data.resumen.reduce((s, t) => s + t.fallidasHoy, 0);
+                    const totalTokens    = data.resumen.reduce((s, t) => s + t.tokensActivos, 0);
+                    const totalAlertas   = data.resumen.reduce((s, t) => s + t.totalAlertas, 0);
+                    const totalFallidasG = data.resumen.reduce((s, t) => s + t.totalFallidas, 0);
+                    const pctError       = totalAlertas > 0
+                        ? ((totalFallidasG / totalAlertas) * 100).toFixed(1)
+                        : '0.0';
+
+                    document.getElementById('sak-enviadas-hoy').textContent   = totalEnviadas.toLocaleString();
+                    document.getElementById('sak-fallidas-hoy').textContent   = totalFallidas.toLocaleString();
+                    document.getElementById('sak-tokens-activos').textContent = totalTokens.toLocaleString();
+                    document.getElementById('sak-pct-error').textContent      = pctError + '%';
+
+                    // Colorear fallidas si hay errores
+                    if (totalFallidas > 0) {
+                        document.getElementById('sak-fallidas-hoy').style.color = '#ef4444';
+                    }
+                })
+                .catch(() => {
+                    // Si falla silenciosamente, ocultar widget
+                    document.getElementById('sak-widget').style.display = 'none';
+                });
+        })();
+    </script>
+}
