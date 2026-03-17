@@ -80,6 +80,18 @@ public sealed class AlertService : IAlertService
         string?  errorDetail   = null;
         string   status        = "sent";
 
+
+        var fcmData = new Dictionary<string, string>
+        {
+            ["origin"] = req.Origin?.Trim() ?? ""
+        };
+
+        // Mezclar con el data extra que mande el cliente
+        if (req.Data is not null)
+            foreach (var kv in req.Data)
+                fcmData[kv.Key] = kv.Value;
+
+
         try
         {
             firebaseMsgId = await _fcm.SendAsync(
@@ -220,8 +232,21 @@ public sealed class AlertService : IAlertService
             SentAt        = DateTime.UtcNow
         };
 
-        _db.AlertLogs.Add(log);
-        await _db.SaveChangesAsync();
+        try
+        {
+            _db.AlertLogs.Add(log);
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            // Temporal para debug
+            var inner = ex.InnerException?.Message ?? ex.Message;
+            return new SendAlertResponse
+            {
+                ok = false,
+                mensaje = inner  // ver el error real
+            };
+        }
 
         return new SendAlertResponse
         {

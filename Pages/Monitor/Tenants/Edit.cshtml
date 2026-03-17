@@ -7,96 +7,427 @@
 <link href="~/css/gstyle.css" rel="stylesheet" />
 <link href="~/css/timbrado.css" rel="stylesheet" />
 
+<style>
+    .ct-page {
+        padding: var(--space-5);
+        max-width: 680px;
+    }
 
-<div class="container mt-4">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h3 class="mb-0">Editar Tenant</h3>
-        <a class="btn btn-outline-secondary" href="/Monitor/Tenants">Volver</a>
+    /* ── Header ──────────────────────────────────────────────────────── */
+    .ct-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        margin-bottom: var(--space-5);
+    }
+
+    .ct-header-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius-md);
+        background: var(--vigma-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--text-2xl);
+        flex-shrink: 0;
+        box-shadow: 0 6px 18px rgba(91,91,214,0.35);
+    }
+
+    .ct-header-text h2 {
+        font-family: var(--font-titles);
+        font-weight: var(--weight-bold);
+        font-size: var(--text-2xl);
+        background: var(--vigma-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: var(--space-1);
+    }
+
+    .ct-header-text p {
+        font-size: var(--text-sm);
+        color: var(--color-txt-light);
+        margin: 0;
+    }
+
+    [data-theme="dark"] .ct-header-text p { color: #9090b0; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────────── */
+    .ct-breadcrumb {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-xs);
+        color: #9090b0;
+        margin-bottom: var(--space-4);
+        text-decoration: none;
+        transition: var(--transition-fast);
+    }
+
+    .ct-breadcrumb:hover { color: var(--color-vigma); }
+
+    .ct-breadcrumb span {
+        color: var(--color-vigma);
+        font-weight: var(--weight-semibold);
+    }
+
+    /* ── Alerts ──────────────────────────────────────────────────────── */
+    .ct-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        padding: var(--space-4);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--space-4);
+        font-size: var(--text-sm);
+        line-height: 1.6;
+    }
+
+    .ct-alert-ok {
+        background: rgba(17,153,142,0.07);
+        border: 1px solid rgba(17,153,142,0.25);
+        color: #11998e;
+    }
+
+    .ct-alert-err {
+        background: rgba(255,65,108,0.07);
+        border: 1px solid rgba(255,65,108,0.25);
+        color: #ff416c;
+    }
+
+    /* ── Form card ───────────────────────────────────────────────────── */
+    .ct-form-card {
+        background: var(--bg-light-card);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    [data-theme="dark"] .ct-form-card {
+        background: var(--bg-dark-card);
+        border-color: rgba(255,255,255,0.06);
+    }
+
+    .ct-section { padding: var(--space-5); }
+
+    .ct-section + .ct-section {
+        border-top: 1px solid var(--bg-light-muted);
+    }
+
+    [data-theme="dark"] .ct-section + .ct-section {
+        border-color: var(--bg-dark-muted);
+    }
+
+    .ct-section-label {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-semibold);
+        color: #f7971e;
+        background: rgba(247,151,30,0.1);
+        padding: var(--space-1) var(--space-3);
+        border-radius: var(--radius-full);
+        width: fit-content;
+        margin-bottom: var(--space-4);
+    }
+
+    /* ── Fields ──────────────────────────────────────────────────────── */
+    .ct-field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        margin-bottom: var(--space-4);
+    }
+
+    .ct-field:last-child { margin-bottom: 0; }
+
+    .ct-label {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--color-dark);
+    }
+
+    [data-theme="dark"] .ct-label { color: #e0e0f0; }
+
+    .ct-input {
+        width: 100%;
+        padding: var(--space-3) var(--space-4);
+        border: 1.5px solid var(--bg-light-muted);
+        border-radius: var(--radius-md);
+        background: var(--bg-light-page);
+        color: var(--color-dark);
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        transition: var(--transition-fast);
+        outline: none;
+    }
+
+    [data-theme="dark"] .ct-input {
+        background: var(--bg-dark-subtle);
+        border-color: var(--bg-dark-muted);
+        color: #e0e0f0;
+    }
+
+    .ct-input:focus {
+        border-color: var(--color-vigma);
+        box-shadow: 0 0 0 3px rgba(91,91,214,0.12);
+    }
+
+    .ct-input::placeholder { color: #9090b0; }
+
+    .ct-input[readonly] {
+        background: var(--bg-light-subtle);
+        color: #9090b0;
+        cursor: default;
+    }
+
+    [data-theme="dark"] .ct-input[readonly] {
+        background: var(--bg-dark-muted);
+        color: #6060a0;
+    }
+
+    /* ── Input group ─────────────────────────────────────────────────── */
+    .ct-input-group { display: flex; }
+
+    .ct-input-group .ct-input {
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        flex: 1;
+    }
+
+    .ct-input-group-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 var(--space-4);
+        background: var(--bg-light-subtle);
+        border: 1.5px solid var(--bg-light-muted);
+        border-left: none;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        font-size: var(--text-sm);
+        font-family: var(--font-body);
+        font-weight: var(--weight-medium);
+        color: var(--color-dark);
+        white-space: nowrap;
+    }
+
+    [data-theme="dark"] .ct-input-group-btn {
+        background: var(--bg-dark-muted);
+        border-color: var(--bg-dark-muted);
+        color: #9090b0;
+    }
+
+    .ct-input-group-btn:hover {
+        background: var(--bg-light-muted);
+        color: var(--color-vigma);
+    }
+
+    [data-theme="dark"] .ct-input-group-btn:hover {
+        background: var(--bg-dark-subtle);
+        color: var(--color-vigma);
+    }
+
+    /* Botón rotar — acento naranja warning */
+    .ct-input-group-btn.rotar {
+        color: var(--color-warning);
+        border-color: rgba(247,151,30,0.4);
+    }
+
+    .ct-input-group-btn.rotar:hover {
+        background: rgba(247,151,30,0.1);
+        color: var(--color-warning);
+    }
+
+    /* ── Checkbox ────────────────────────────────────────────────────── */
+    .ct-check-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        background: var(--bg-light-subtle);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+
+    [data-theme="dark"] .ct-check-row { background: var(--bg-dark-subtle); }
+
+    .ct-check-row:hover { background: var(--bg-light-muted); }
+
+    [data-theme="dark"] .ct-check-row:hover { background: var(--bg-dark-muted); }
+
+    .ct-check-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--color-vigma);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .ct-check-label {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-dark);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    [data-theme="dark"] .ct-check-label { color: #e0e0f0; }
+
+    /* ── Hints y errores ─────────────────────────────────────────────── */
+    .ct-hint { font-size: var(--text-xs); color: #9090b0; margin-top: var(--space-1); }
+    .ct-error { font-size: var(--text-xs); color: var(--color-danger); margin-top: var(--space-1); }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    .ct-form-footer {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-4) var(--space-5);
+        background: var(--bg-light-subtle);
+        border-top: 1px solid var(--bg-light-muted);
+    }
+
+    [data-theme="dark"] .ct-form-footer {
+        background: var(--bg-dark-subtle);
+        border-color: var(--bg-dark-muted);
+    }
+</style>
+
+<div class="main-content">
+    <div class="ct-page">
+
+        <!-- ── Breadcrumb ────────────────────────────────────────────── -->
+        <a class="ct-breadcrumb" href="/Monitor/Tenants">
+            ← Tenants / <span>@Model.Input.Nombre</span>
+        </a>
+
+        <!-- ── Header ───────────────────────────────────────────────── -->
+        <div class="ct-header">
+            <div class="ct-header-icon">✏️</div>
+            <div class="ct-header-text">
+                <h2>Editar Tenant</h2>
+                <p>Modifica los datos del cliente y sus credenciales PAC</p>
+            </div>
+        </div>
+
+        <!-- ── Alerts ───────────────────────────────────────────────── -->
+        @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+        {
+            <div class="ct-alert ct-alert-ok">
+                <span>✅</span>
+                <span>@Model.SuccessMessage</span>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="ct-alert ct-alert-err">
+                <span>⚠️</span>
+                <span>@Model.ErrorMessage</span>
+            </div>
+        }
+
+        <!-- ── Form ─────────────────────────────────────────────────── -->
+        <form method="post" class="ct-form-card">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Input.Id" />
+
+            <!-- Sección: información general -->
+            <div class="ct-section">
+                <div class="ct-section-label">📌 Información general</div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="Input.Nombre">Nombre del tenant</label>
+                    <input class="ct-input" asp-for="Input.Nombre" required />
+                    <span class="ct-error" asp-validation-for="Input.Nombre"></span>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-check-row" for="Input_Activo">
+                        <input type="checkbox" asp-for="Input.Activo" id="Input_Activo" />
+                        <span class="ct-check-label">Tenant activo</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección: API Key -->
+            <div class="ct-section">
+                <div class="ct-section-label">🔑 API Key</div>
+
+                <div class="ct-field">
+                    <label class="ct-label">X-Api-Key</label>
+                    <div class="ct-input-group">
+                        <input class="ct-input"
+                               value="@Model.ApiKeyMasked"
+                               readonly />
+                        <button type="submit"
+                                class="ct-input-group-btn rotar"
+                                asp-page-handler="Rotar"
+                                onclick="return confirm('Se generará una nueva API Key. La anterior dejará de funcionar. ¿Continuar?');">
+                            🔄 Rotar
+                        </button>
+                    </div>
+                    <span class="ct-hint">Por seguridad solo se muestran los últimos 4 caracteres.</span>
+                </div>
+            </div>
+
+            <!-- Sección: Credenciales PAC -->
+            <div class="ct-section">
+                <div class="ct-section-label">🔐 Credenciales PAC (MultiFacturas)</div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="Input.PacUsuario">Usuario PAC</label>
+                    <input class="ct-input"
+                           asp-for="Input.PacUsuario"
+                           placeholder="DEMO700101XXX o el usuario real" />
+                    <span class="ct-error" asp-validation-for="Input.PacUsuario"></span>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="Input.PacPassword">Password PAC</label>
+                    <div class="ct-input-group">
+                        <input class="ct-input"
+                               asp-for="Input.PacPassword"
+                               type="password"
+                               id="pacPwd"
+                               autocomplete="new-password"
+                               placeholder="Dejar vacío para conservar el actual" />
+                        <button class="ct-input-group-btn"
+                                type="button"
+                                onclick="const i=document.getElementById('pacPwd');i.type=(i.type==='password'?'text':'password');"
+                                title="Mostrar / ocultar contraseña">
+                            👁
+                        </button>
+                    </div>
+                    <span class="ct-hint">Deja vacío para conservar el password actual. Se guarda cifrado.</span>
+                    <span class="ct-error" asp-validation-for="Input.PacPassword"></span>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-check-row" for="Input_PacProduccion">
+                        <input type="checkbox" asp-for="Input.PacProduccion" id="Input_PacProduccion" />
+                        <span class="ct-check-label">Usar entorno de Producción</span>
+                    </label>
+                    <span class="ct-hint">Sin esta opción se usará el entorno de pruebas (sandbox).</span>
+                </div>
+            </div>
+
+            <!-- Footer acciones -->
+            <div class="ct-form-footer">
+                <button class="vg-btn vg-btn-primary" type="submit">
+                    💾 Guardar cambios
+                </button>
+                <a class="vg-btn vg-btn-outline" href="/Monitor/Tenants">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+
     </div>
-
-    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
-    {
-        <div class="alert alert-success">@Model.SuccessMessage</div>
-    }
-
-    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger">@Model.ErrorMessage</div>
-    }
-
-    <form method="post" class="card p-3">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="Input.Id" />
-
-        <div class="mb-3">
-            <label class="form-label">Nombre</label>
-            <input class="form-control" asp-for="Input.Nombre" required />
-            <span class="text-danger" asp-validation-for="Input.Nombre"></span>
-        </div>
-
-        <div class="form-check mb-3">
-            <input class="form-check-input" asp-for="Input.Activo" />
-            <label class="form-check-label">Activo</label>
-        </div>
-
-        <hr class="my-3" />
-
-        <div class="mb-3">
-            <label class="form-label">X-Api-Key</label>
-
-            <div class="input-group">
-                <input class="form-control" value="@Model.ApiKeyMasked" readonly />
-
-                <button type="submit"
-                        class="btn btn-outline-secondary"
-                        asp-page-handler="Rotar"
-                        onclick="return confirm('Se generará una nueva API Key. La anterior dejará de funcionar. ¿Continuar?');">
-                    Rotar
-                </button>
-            </div>
-
-            <div class="form-text">
-                Por seguridad solo mostramos los últimos 4 caracteres.
-            </div>
-        </div>
-
-        <hr class="my-3" />
-
-        <h6 class="mb-3">Credenciales PAC (MultiFacturas)</h6>
-
-        <div class="mb-3">
-            <label class="form-label">Usuario PAC</label>
-            <input class="form-control" asp-for="Input.PacUsuario" />
-            <span class="text-danger" asp-validation-for="Input.PacUsuario"></span>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Password PAC</label>
-            <div class="input-group">
-                <input class="form-control" asp-for="Input.PacPassword" type="password" id="pacPwd" autocomplete="new-password" />
-                <button class="btn btn-outline-secondary" type="button" onclick="
-                    const i=document.getElementById('pacPwd');
-                    i.type = (i.type==='password'?'text':'password');
-                ">
-                    👁
-                </button>
-            </div>
-            <div class="form-text">
-                Deja vacío para conservar el password actual. (Se guarda cifrado)
-            </div>
-            <span class="text-danger" asp-validation-for="Input.PacPassword"></span>
-        </div>
-
-        <div class="form-check form-switch mb-3">
-            <input class="form-check-input" asp-for="Input.PacProduccion" />
-            <label class="form-check-label">Usar Producción</label>
-        </div>
-
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary" type="submit">Guardar cambios</button>
-            <a class="btn btn-outline-secondary" href="/Monitor/Tenants">Cancelar</a>
-        </div>
-    </form>
 </div>
 
 @section Scripts {

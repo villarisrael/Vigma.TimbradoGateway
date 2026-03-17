@@ -35,9 +35,14 @@ public sealed class FcmService : IFcmService
 
     public FcmService(HttpClient http, IConfiguration config)
     {
-        _http               = http;
-        _projectId          = config["Firebase:ProjectId"]          ?? throw new InvalidOperationException("Firebase:ProjectId no configurado.");
-        _serviceAccountJson = config["Firebase:ServiceAccountJson"] ?? throw new InvalidOperationException("Firebase:ServiceAccountJson no configurado.");
+        _http = http;
+        _projectId = config["Firebase:ProjectId"]
+                     ?? throw new InvalidOperationException("Firebase:ProjectId no configurado.");
+
+        var path = config["Firebase:ServiceAccountPath"]
+                   ?? throw new InvalidOperationException("Firebase:ServiceAccountPath no configurado.");
+
+        _serviceAccountJson = File.ReadAllText(path);
     }
 
     public async Task<string> SendAsync(
@@ -51,6 +56,18 @@ public sealed class FcmService : IFcmService
         var accessToken = await GetAccessTokenAsync(ct);
 
         var url = $"https://fcm.googleapis.com/v1/projects/{_projectId}/messages:send";
+        var dataPayload = new Dictionary<string, string>
+        {
+            ["title"] = title,
+            ["message"] = message,
+            ["priority"] = priority
+         
+        };
+
+        // Agregar los data extras del request encima
+        if (data is not null)
+            foreach (var kv in data)
+                dataPayload[kv.Key] = kv.Value;
 
         // Construir payload FCM HTTP v1
         var payload = new
@@ -68,7 +85,7 @@ public sealed class FcmService : IFcmService
                         click_action = "FLUTTER_NOTIFICATION_CLICK"
                     }
                 },
-                data = data ?? new Dictionary<string, string>()
+                data = dataPayload
             }
         };
 

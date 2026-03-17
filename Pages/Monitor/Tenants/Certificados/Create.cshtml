@@ -4,122 +4,666 @@
     ViewData["Title"] = "Registrar Certificado";
 }
 
-<div class="container mt-4">
-    <h3 class="mb-3">Registrar Certificado - @Model.TenantNombre</h3>
+<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/timbrado.css" rel="stylesheet" />
 
-    @* Mensaje simple (mantén si quieres) *@
-    @if (!string.IsNullOrWhiteSpace(Model.Message))
-    {
-        <div class="alert @(Model.Ok ? "alert-success" : "alert-danger")">
-            @Model.Message
-        </div>
+<style>
+    .ct-page {
+        padding: var(--space-5);
+        max-width: 680px;
     }
 
-    @* ✅ Bloque amigable tipo checklist *@
-    @if (Model.Ui?.Show == true)
-    {
-        <div class="alert alert-danger border-0 shadow-sm">
-            <div class="d-flex align-items-start gap-2">
-                <div style="font-size:1.2rem; line-height:1;">⚠️</div>
-                <div class="w-100">
-                    <div class="fw-bold">@Model.Ui.Title</div>
-                    <div class="small text-muted">@Model.Ui.Message</div>
+    /* ── Header ─────────────────────────────────────────────────────── */
+    .ct-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        margin-bottom: var(--space-5);
+    }
 
-                    <hr class="my-2" />
+    .ct-header-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius-md);
+        background: var(--throughput-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--text-2xl);
+        flex-shrink: 0;
+        box-shadow: 0 6px 18px rgba(15,155,142,0.35);
+    }
 
-                    <div class="d-flex flex-column gap-1">
-                        <div>
-                            <span class="me-2">@((Model.Ui.CerOk) ? "✅" : "❌")</span>
-                            <span>@Model.Ui.CerText</span>
+    .ct-header-text h2 {
+        font-family: var(--font-titles);
+        font-weight: var(--weight-bold);
+        font-size: var(--text-2xl);
+        background: var(--throughput-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: var(--space-1);
+    }
+
+    .ct-header-text p {
+        font-size: var(--text-sm);
+        color: var(--color-txt-light);
+        margin: 0;
+    }
+
+    [data-theme="dark"] .ct-header-text p { color: #9090b0; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────────── */
+    .ct-breadcrumb {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-xs);
+        color: #9090b0;
+        margin-bottom: var(--space-4);
+        text-decoration: none;
+        transition: var(--transition-fast);
+    }
+
+    .ct-breadcrumb:hover { color: var(--color-vigma); }
+
+    .ct-breadcrumb span {
+        color: var(--color-throughput);
+        font-weight: var(--weight-semibold);
+    }
+
+    /* ── Form card ───────────────────────────────────────────────────── */
+    .ct-form-card {
+        background: var(--bg-light-card);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    [data-theme="dark"] .ct-form-card {
+        background: var(--bg-dark-card);
+        border-color: rgba(255,255,255,0.06);
+    }
+
+    .ct-section { padding: var(--space-5); }
+
+    .ct-section + .ct-section {
+        border-top: 1px solid var(--bg-light-muted);
+    }
+
+    [data-theme="dark"] .ct-section + .ct-section {
+        border-color: var(--bg-dark-muted);
+    }
+
+    .ct-section-label {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-semibold);
+        color: var(--color-throughput);
+        background: rgba(15,155,142,0.1);
+        padding: var(--space-1) var(--space-3);
+        border-radius: var(--radius-full);
+        width: fit-content;
+        margin-bottom: var(--space-4);
+    }
+
+    /* ── Fields ──────────────────────────────────────────────────────── */
+    .ct-field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        margin-bottom: var(--space-4);
+    }
+
+    .ct-field:last-child { margin-bottom: 0; }
+
+    .ct-label {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--color-dark);
+    }
+
+    [data-theme="dark"] .ct-label { color: #e0e0f0; }
+
+    .ct-input {
+        width: 100%;
+        padding: var(--space-3) var(--space-4);
+        border: 1.5px solid var(--bg-light-muted);
+        border-radius: var(--radius-md);
+        background: var(--bg-light-page);
+        color: var(--color-dark);
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        transition: var(--transition-fast);
+        outline: none;
+    }
+
+    [data-theme="dark"] .ct-input {
+        background: var(--bg-dark-subtle);
+        border-color: var(--bg-dark-muted);
+        color: #e0e0f0;
+    }
+
+    .ct-input:focus {
+        border-color: var(--color-throughput);
+        box-shadow: 0 0 0 3px rgba(15,155,142,0.12);
+    }
+
+    .ct-input::placeholder { color: #9090b0; }
+
+    /* ── Input group (password) ──────────────────────────────────────── */
+    .ct-input-group { display: flex; }
+
+    .ct-input-group .ct-input {
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        flex: 1;
+    }
+
+    .ct-input-group-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 var(--space-4);
+        background: var(--bg-light-subtle);
+        border: 1.5px solid var(--bg-light-muted);
+        border-left: none;
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        font-size: var(--text-base);
+    }
+
+    [data-theme="dark"] .ct-input-group-btn {
+        background: var(--bg-dark-muted);
+        border-color: var(--bg-dark-muted);
+        color: #9090b0;
+    }
+
+    .ct-input-group-btn:hover {
+        background: var(--bg-light-muted);
+        color: var(--color-throughput);
+    }
+
+    [data-theme="dark"] .ct-input-group-btn:hover {
+        background: var(--bg-dark-subtle);
+        color: var(--color-throughput);
+    }
+
+    /* ── Toggle modo CERKEY / PFX ────────────────────────────────────── */
+    .ct-mode-toggle {
+        display: flex;
+        gap: var(--space-2);
+    }
+
+    .ct-mode-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-md);
+        border: 1.5px solid var(--bg-light-muted);
+        background: var(--bg-light-page);
+        color: #9090b0;
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+
+    [data-theme="dark"] .ct-mode-btn {
+        background: var(--bg-dark-subtle);
+        border-color: var(--bg-dark-muted);
+        color: #6060a0;
+    }
+
+    .ct-mode-btn.active {
+        border-color: var(--color-throughput);
+        background: rgba(15,155,142,0.08);
+        color: var(--color-throughput);
+        font-weight: var(--weight-semibold);
+    }
+
+    /* ── File zone ───────────────────────────────────────────────────── */
+    .ct-file-zone {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: var(--space-5);
+        border: 2px dashed var(--bg-light-muted);
+        border-radius: var(--radius-md);
+        background: var(--bg-light-subtle);
+        cursor: pointer;
+        transition: var(--transition-fast);
+        text-align: center;
+        position: relative;
+    }
+
+    [data-theme="dark"] .ct-file-zone {
+        background: var(--bg-dark-subtle);
+        border-color: var(--bg-dark-muted);
+    }
+
+    .ct-file-zone:hover,
+    .ct-file-zone.has-file {
+        border-color: var(--color-throughput);
+        background: rgba(15,155,142,0.05);
+    }
+
+    .ct-file-zone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .ct-file-icon { font-size: var(--text-2xl); line-height: 1; }
+
+    .ct-file-title {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--color-dark);
+    }
+
+    [data-theme="dark"] .ct-file-title { color: #e0e0f0; }
+
+    .ct-file-sub { font-size: var(--text-xs); color: #9090b0; }
+
+    .ct-file-name {
+        font-size: var(--text-xs);
+        font-weight: var(--weight-medium);
+        color: var(--color-throughput);
+        display: none;
+    }
+
+    /* ── Extension pill ──────────────────────────────────────────────── */
+    .ct-ext-pill {
+        font-size: var(--text-xs);
+        font-weight: var(--weight-semibold);
+        padding: 2px var(--space-2);
+        border-radius: var(--radius-sm);
+        background: rgba(15,155,142,0.12);
+        color: var(--color-throughput);
+        font-family: "Consolas", monospace;
+    }
+
+    /* ── Info box ────────────────────────────────────────────────────── */
+    .ct-info-box {
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-start;
+        padding: var(--space-4);
+        background: rgba(15,155,142,0.06);
+        border: 1px solid rgba(15,155,142,0.2);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--space-5);
+    }
+
+    .ct-info-box-icon { font-size: var(--text-xl); flex-shrink: 0; margin-top: 2px; }
+
+    .ct-info-box p {
+        margin: 0;
+        font-size: var(--text-sm);
+        color: var(--color-dark);
+        line-height: 1.6;
+    }
+
+    [data-theme="dark"] .ct-info-box p { color: #e0e0f0; }
+
+    .ct-info-box strong { color: var(--color-throughput); font-weight: var(--weight-semibold); }
+
+    /* ── Hints ───────────────────────────────────────────────────────── */
+    .ct-hint { font-size: var(--text-xs); color: #9090b0; margin-top: var(--space-1); }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    .ct-form-footer {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-4) var(--space-5);
+        background: var(--bg-light-subtle);
+        border-top: 1px solid var(--bg-light-muted);
+    }
+
+    [data-theme="dark"] .ct-form-footer {
+        background: var(--bg-dark-subtle);
+        border-color: var(--bg-dark-muted);
+    }
+
+    /* ── Checklist Ui (post-submit) ──────────────────────────────────── */
+    .ct-checklist-card {
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        margin-bottom: var(--space-5);
+        box-shadow: var(--shadow-md);
+    }
+
+    .ct-checklist-card.ok  { border-left: 4px solid #11998e; }
+    .ct-checklist-card.err { border-left: 4px solid #ff416c; }
+
+    .ct-checklist-head {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-4) var(--space-5);
+    }
+
+    .ct-checklist-card.ok  .ct-checklist-head { background: rgba(17,153,142,0.08); }
+    .ct-checklist-card.err .ct-checklist-head { background: rgba(255,65,108,0.08); }
+
+    .ct-checklist-head-icon { font-size: var(--text-xl); }
+
+    .ct-checklist-title {
+        font-family: var(--font-titles);
+        font-weight: var(--weight-semibold);
+        font-size: var(--text-base);
+    }
+
+    .ct-checklist-card.ok  .ct-checklist-title { color: #11998e; }
+    .ct-checklist-card.err .ct-checklist-title { color: #ff416c; }
+
+    .ct-checklist-msg {
+        font-size: var(--text-sm);
+        color: var(--color-dark);
+        opacity: 0.7;
+        margin-top: 2px;
+    }
+
+    [data-theme="dark"] .ct-checklist-msg { color: #9090b0; }
+
+    .ct-checklist-body {
+        padding: var(--space-4) var(--space-5);
+        background: var(--bg-light-card);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    [data-theme="dark"] .ct-checklist-body { background: var(--bg-dark-card); }
+
+    .ct-check-item {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+
+    .ct-check-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .ct-check-dot.ok  { background: rgba(17,153,142,0.15); color: #11998e; }
+    .ct-check-dot.err { background: rgba(255,65,108,0.15); color: #ff416c; }
+
+    .ct-check-item-text {
+        font-size: var(--text-sm);
+        color: var(--color-dark);
+        line-height: 1.5;
+    }
+
+    [data-theme="dark"] .ct-check-item-text { color: #c0c0d8; }
+
+    .ct-checklist-actions {
+        display: flex;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+        padding: var(--space-4) var(--space-5);
+        background: var(--bg-light-subtle);
+        border-top: 1px solid var(--bg-light-muted);
+    }
+
+    [data-theme="dark"] .ct-checklist-actions {
+        background: var(--bg-dark-subtle);
+        border-color: var(--bg-dark-muted);
+    }
+</style>
+
+<div class="main-content">
+    <div class="ct-page">
+
+        <!-- ── Breadcrumb ────────────────────────────────────────────── -->
+        <a class="ct-breadcrumb" href="/Monitor/Tenants">
+            ← Tenants / <span>@Model.TenantNombre</span>
+        </a>
+
+        <!-- ── Header ───────────────────────────────────────────────── -->
+        <div class="ct-header">
+            <div class="ct-header-icon">🔐</div>
+            <div class="ct-header-text">
+                <h2>Registrar Certificado</h2>
+                <p>Sube el CSD del SAT para habilitar el timbrado de este tenant</p>
+            </div>
+        </div>
+
+        <!-- ── Checklist Ui (post-submit) ───────────────────────────── -->
+        @if (Model.Ui.Show)
+        {
+            <div class="ct-checklist-card @(Model.Ok ? "ok" : "err")">
+                <div class="ct-checklist-head">
+                    <div class="ct-checklist-head-icon">@(Model.Ok ? "✅" : "⚠️")</div>
+                    <div>
+                        <div class="ct-checklist-title">@Model.Ui.Title</div>
+                        <div class="ct-checklist-msg">@Model.Ui.Message</div>
+                    </div>
+                </div>
+                <div class="ct-checklist-body">
+                    <div class="ct-check-item">
+                        <div class="ct-check-dot @(Model.Ui.CerOk ? "ok" : "err")">
+                            @(Model.Ui.CerOk ? "✔" : "✕")
                         </div>
-
-                        <div>
-                            <span class="me-2">@((Model.Ui.KeyOk) ? "✅" : "❌")</span>
-                            <span>@Model.Ui.KeyText</span>
+                        <div class="ct-check-item-text">@Model.Ui.CerText</div>
+                    </div>
+                    <div class="ct-check-item">
+                        <div class="ct-check-dot @(Model.Ui.KeyOk ? "ok" : "err")">
+                            @(Model.Ui.KeyOk ? "✔" : "✕")
                         </div>
-
-                        <div>
-                            <span class="me-2">@((Model.Ui.PassOk) ? "✅" : "❌")</span>
-                            <span>@Model.Ui.PassText</span>
+                        <div class="ct-check-item-text">@Model.Ui.KeyText</div>
+                    </div>
+                    <div class="ct-check-item">
+                        <div class="ct-check-dot @(Model.Ui.PassOk ? "ok" : "err")">
+                            @(Model.Ui.PassOk ? "✔" : "✕")
                         </div>
+                        <div class="ct-check-item-text">@Model.Ui.PassText</div>
+                    </div>
+                </div>
+                @if (Model.Ok)
+                {
+                    <div class="ct-checklist-actions">
+                        <a class="vg-btn vg-btn-primary"
+                           href="/Monitor/Tenants/@Model.TenantId/Timbrados">
+                            📄 Ver Timbrados
+                        </a>
+                        <a class="vg-btn vg-btn-outline"
+                           href="/Monitor/Tenants/@Model.TenantId">
+                            Ver Tenant
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ── Info contextual ──────────────────────────────────────── -->
+        <div class="ct-info-box">
+            <div class="ct-info-box-icon">ℹ️</div>
+            <p>
+                Modo <strong>CER + KEY</strong>: sube el <strong>.cer</strong> y el <strong>.key</strong>
+                por separado. Modo <strong>PFX</strong>: sube un solo archivo <strong>.pfx / .p12</strong>.
+                En ambos casos se requiere la <strong>contraseña de la llave privada</strong>.
+            </p>
+        </div>
+
+        <!-- ── Form ─────────────────────────────────────────────────── -->
+        <form method="post" enctype="multipart/form-data" class="ct-form-card">
+
+            <!-- Sección: datos generales -->
+            <div class="ct-section">
+                <div class="ct-section-label">📌 Datos generales</div>
+
+                <div class="ct-field">
+                    <label class="ct-label" for="RFC">RFC del certificado</label>
+                    <input class="ct-input"
+                           id="RFC"
+                           name="RFC"
+                           value="@Model.RFC"
+                           placeholder="Ej: XAXX010101000"
+                           maxlength="13"
+                           required />
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label">Tipo de certificado</label>
+                    <div class="ct-mode-toggle">
+                        <button type="button"
+                                class="ct-mode-btn @(Model.Modo != "PFX" ? "active" : "")"
+                                id="btn-cerkey"
+                                onclick="setModo('CERKEY')">
+                            📜 CER + KEY
+                        </button>
+                        <button type="button"
+                                class="ct-mode-btn @(Model.Modo == "PFX" ? "active" : "")"
+                                id="btn-pfx"
+                                onclick="setModo('PFX')">
+                            📦 PFX / P12
+                        </button>
+                    </div>
+                    <input type="hidden" name="Modo" id="modoInput" value="@Model.Modo" />
+                </div>
+            </div>
+
+            <!-- Sección: archivos CER + KEY -->
+            <div class="ct-section" id="section-cerkey"
+                 style="@(Model.Modo == "PFX" ? "display:none" : "")">
+                <div class="ct-section-label">📂 Archivos del certificado</div>
+
+                <div class="ct-field">
+                    <label class="ct-label">
+                        Certificado público <span class="ct-ext-pill">.cer</span>
+                    </label>
+                    <div class="ct-file-zone" id="zone-cer">
+                        <input type="file" name="CerFile" accept=".cer"
+                               onchange="markZone(this,'zone-cer','name-cer')" />
+                        <div class="ct-file-icon">📜</div>
+                        <div class="ct-file-title">Arrastra o haz clic para seleccionar</div>
+                        <div class="ct-file-sub">Archivo .cer emitido por el SAT</div>
+                        <div class="ct-file-name" id="name-cer"></div>
+                    </div>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label">
+                        Llave privada <span class="ct-ext-pill">.key</span>
+                    </label>
+                    <div class="ct-file-zone" id="zone-key">
+                        <input type="file" name="KeyFile" accept=".key"
+                               onchange="markZone(this,'zone-key','name-key')" />
+                        <div class="ct-file-icon">🗝️</div>
+                        <div class="ct-file-title">Arrastra o haz clic para seleccionar</div>
+                        <div class="ct-file-sub">Archivo .key emitido por el SAT</div>
+                        <div class="ct-file-name" id="name-key"></div>
                     </div>
                 </div>
             </div>
-        </div>
-    }
 
-    <form method="post" enctype="multipart/form-data" class="card p-3">
-        <input type="hidden" name="tenantId" value="@Model.TenantId" />
+            <!-- Sección: archivo PFX -->
+            <div class="ct-section" id="section-pfx"
+                 style="@(Model.Modo == "PFX" ? "" : "display:none")">
+                <div class="ct-section-label">📦 Archivo PFX / P12</div>
 
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">RFC Emisor</label>
-                <input class="form-control" asp-for="RFC" placeholder="EKU9003173C9" required />
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Password de la KEY / PFX</label>
-                <div class="input-group">
-                    <input class="form-control" asp-for="KeyPassword" type="password" id="pwd" required />
-                    <button class="btn btn-outline-secondary" type="button" id="btnShowPwd">👁</button>
+                <div class="ct-field">
+                    <label class="ct-label">
+                        Certificado combinado <span class="ct-ext-pill">.pfx</span>
+                    </label>
+                    <div class="ct-file-zone" id="zone-pfx">
+                        <input type="file" name="PfxFile" accept=".pfx,.p12"
+                               onchange="markZone(this,'zone-pfx','name-pfx')" />
+                        <div class="ct-file-icon">📦</div>
+                        <div class="ct-file-title">Arrastra o haz clic para seleccionar</div>
+                        <div class="ct-file-sub">Archivo .pfx o .p12</div>
+                        <div class="ct-file-name" id="name-pfx"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <label class="form-label">Modo</label>
-                <select class="form-select" asp-for="Modo" id="modo">
-                    <option value="CERKEY">Subir .cer + .key</option>
-                    <option value="PFX">Subir .pfx</option>
-                </select>
+            <!-- Sección: contraseña -->
+            <div class="ct-section">
+                <div class="ct-section-label">🔑 Contraseña de la llave privada</div>
+
+                <div class="ct-field">
+                    <label class="ct-label" for="keyPwd">Contraseña</label>
+                    <div class="ct-input-group">
+                        <input class="ct-input"
+                               id="keyPwd"
+                               name="KeyPassword"
+                               type="password"
+                               autocomplete="new-password"
+                               placeholder="Contraseña del archivo .key o .pfx" />
+                        <button class="ct-input-group-btn"
+                                type="button"
+                                onclick="const i=document.getElementById('keyPwd');i.type=(i.type==='password'?'text':'password');"
+                                title="Mostrar / ocultar contraseña">
+                            👁
+                        </button>
+                    </div>
+                    <span class="ct-hint">Se usará para descifrar la llave al timbrar. No se guarda en texto plano.</span>
+                </div>
             </div>
 
-            <div class="col-md-6" id="boxCer">
-                <label class="form-label">.cer</label>
-                <input class="form-control" asp-for="CerFile" type="file" accept=".cer" />
+            <!-- Footer acciones -->
+            <div class="ct-form-footer">
+                <button class="vg-btn vg-btn-primary" type="submit">
+                    🔐 Registrar certificado
+                </button>
+                <a class="vg-btn vg-btn-outline"
+                   href="/Monitor/Tenants/@Model.TenantId">
+                    Cancelar
+                </a>
             </div>
 
-            <div class="col-md-6" id="boxKey">
-                <label class="form-label">.key</label>
-                <input class="form-control" asp-for="KeyFile" type="file" accept=".key" />
-            </div>
-
-            <div class="col-md-6" id="boxPfx">
-                <label class="form-label">.pfx</label>
-                <input class="form-control" asp-for="PfxFile" type="file" accept=".pfx,.p12" />
-            </div>
-
-            <div class="col-12">
-                <button class="btn btn-primary" type="submit">Guardar y generar PEM</button>
-                <a class="btn btn-outline-secondary ms-2" href="/Monitor/Tenants/@Model.TenantId/Certificados">Cancelar</a>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        (function() {
-            const modo = document.getElementById('modo');
-            const boxCer = document.getElementById('boxCer');
-            const boxKey = document.getElementById('boxKey');
-            const boxPfx = document.getElementById('boxPfx');
-
-            function toggle() {
-                const isPfx = (modo.value === 'PFX');
-
-                boxCer.classList.toggle('d-none', isPfx);
-                boxKey.classList.toggle('d-none', isPfx);
-                boxPfx.classList.toggle('d-none', !isPfx);
+        function markZone(input, zoneId, nameId) {
+            const zone = document.getElementById(zoneId);
+            const nameEl = document.getElementById(nameId);
+            if (input.files && input.files[0]) {
+                zone.classList.add('has-file');
+                nameEl.textContent = '✔ ' + input.files[0].name;
+                nameEl.style.display = 'block';
+            } else {
+                zone.classList.remove('has-file');
+                nameEl.style.display = 'none';
             }
+        }
 
-            modo.addEventListener('change', toggle);
-            toggle();
-
-            const btn = document.getElementById("btnShowPwd");
-            const pwd = document.getElementById("pwd");
-            btn.addEventListener("click", function() {
-                pwd.type = (pwd.type === "password") ? "text" : "password";
-            });
-        })();
+        function setModo(modo) {
+            document.getElementById('modoInput').value = modo;
+            const isCerKey = modo === 'CERKEY';
+            document.getElementById('section-cerkey').style.display = isCerKey ? '' : 'none';
+            document.getElementById('section-pfx').style.display   = isCerKey ? 'none' : '';
+            document.getElementById('btn-cerkey').classList.toggle('active', isCerKey);
+            document.getElementById('btn-pfx').classList.toggle('active', !isCerKey);
+        }
     </script>
 }
