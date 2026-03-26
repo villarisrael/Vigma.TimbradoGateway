@@ -35,9 +35,11 @@ public class VwAlertLog
     public string?  FirebaseMsgId   { get; set; }
     public string?  ErrorDetail     { get; set; }
     public DateTime SentAt          { get; set; }
-    public string   Fecha           { get; set; } = "";
-    public string   Hora            { get; set; } = "";
-    public bool     EnviadoOk       { get; set; }
+    public DateTime Fecha => SentAt.Date;
+
+    // Devuelve solo la parte de hora como TimeSpan
+    public TimeSpan Hora => SentAt.TimeOfDay;
+    public bool EnviadoOk => Status == "sent";
 }
 
 /// <summary>vw_alertas_por_hora</summary>

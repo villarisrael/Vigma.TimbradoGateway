@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
+
 
 using Vigma.TimbradoGateway.ViewModels.Errores;
 using Vigma.TimbradoGateway.ViewsModels.Errores;
@@ -266,17 +266,7 @@ namespace Vigma.TimbradoGateway.Controllers
             }
             catch
             {
-                // Si no es JSON válido, intentar con System.Text.Json
-                try
-                {
-                    using var doc = JsonDocument.Parse(json);
-                    return System.Text.Json.JsonSerializer.Serialize(doc.RootElement,
-                        new JsonSerializerOptions { WriteIndented = true });
-                }
-                catch
-                {
-                    return json; // Devolver el original si no se puede formatear
-                }
+                return json; // Devolver el original si no se puede formatear
             }
         }
 
@@ -302,20 +292,149 @@ namespace Vigma.TimbradoGateway.Controllers
         }
 
         [HttpGet]
-        public IActionResult Estadisticaerrores(int? tenantId, string? rfcEmisor, DateTime? fechaInicio, DateTime? fechaFinal)
+        public IActionResult Estadisticaerrores()
         {
-            var vm = new TimbradoErrorIndiceVM
+            var stats = ObtenerEstadisticas();
+
+            // Pasamos las tres listas Top como JSON para que el JS del cliente
+            // pueda cambiar de periodo sin roundtrip al servidor.
+            ViewBag.StatsJson = JsonConvert.SerializeObject(new
             {
-                TenantId = tenantId,
-                RfcEmisor = rfcEmisor,
-                FechaInicio = fechaInicio,
-                FechaFinal = fechaFinal
-            };
+                total      = stats.TotalHoy,
+                categorias = new
+                {
+                    sat         = stats.CatSat,
+                    certificado = stats.CatCertificado,
+                    timeout     = stats.CatTimeout,
+                    otros       = stats.CatOtros
+                },
+                topHoy    = stats.TopHoy.Select(x => new { nombre = x.Nombre, meta = x.Meta, errores = x.Errores }),
+                topSemana = stats.TopSemana.Select(x => new { nombre = x.Nombre, meta = x.Meta, errores = x.Errores }),
+                topMes    = stats.TopMes.Select(x => new { nombre = x.Nombre, meta = x.Meta, errores = x.Errores }),
+                // Totales para el badge del selector
+                totalSemana = stats.TotalSemana,
+                totalMes    = stats.TotalMes
+            });
 
-            vm.Tenants = ObtenerTenants(tenantId);
-            vm.Rows = ObtenerErrores(tenantId, rfcEmisor, fechaInicio, fechaFinal);
+            return View(stats);
+        }
 
-            return View(vm);
+        // ────────────────────────────────────────────────────────────────────
+        //  Consultas agregadas para Estadisticaerrores
+        // ────────────────────────────────────────────────────────────────────
+        private EstadisticasErroresVM ObtenerEstadisticas()
+        {
+            var vm = new EstadisticasErroresVM();
+
+            using var cn = new MySqlConnection(_cs);
+            cn.Open();
+
+            // ── 1) Totales por periodo ────────────────────────────────────
+            using (var cmd = cn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT
+                        SUM(CASE WHEN creado_utc >= DATE_SUB(NOW(), INTERVAL 24 HOUR)  THEN 1 ELSE 0 END) AS hoy,
+                        SUM(CASE WHEN creado_utc >= DATE_SUB(NOW(), INTERVAL 7  DAY)   THEN 1 ELSE 0 END) AS semana,
+                        SUM(CASE WHEN creado_utc >= DATE_SUB(NOW(), INTERVAL 30 DAY)   THEN 1 ELSE 0 END) AS mes
+                    FROM timbrado_error_log
+                    WHERE creado_utc >= DATE_SUB(NOW(), INTERVAL 30 DAY);";
+
+                using var rd = cmd.ExecuteReader();
+                if (rd.Read())
+                {
+                    vm.TotalHoy    = rd["hoy"]    == DBNull.Value ? 0 : Convert.ToInt32(rd["hoy"]);
+                    vm.TotalSemana = rd["semana"]  == DBNull.Value ? 0 : Convert.ToInt32(rd["semana"]);
+                    vm.TotalMes    = rd["mes"]     == DBNull.Value ? 0 : Convert.ToInt32(rd["mes"]);
+                }
+            }
+
+            // ── 2) Categorías últimas 24 h ────────────────────────────────
+            // Clasificación por codigo_mf_numero y texto del PAC.
+            // Rangos SAT: 301-399 (estructura/schema CFDI)
+            // Rangos Cert: 201-299 (certificado/llave)
+            // Timeout: texto libre que mencione timeout / connection
+            // Otros: el resto
+            using (var cmd = cn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT
+                        SUM(CASE
+                            WHEN (codigo_mf_numero BETWEEN 301 AND 399)
+                              OR LOWER(codigo_mf_texto) REGEXP 'sat|sello|firma|cfdi40|esquema|schema|xsd|timbre'
+                            THEN 1 ELSE 0 END) AS cat_sat,
+
+                        SUM(CASE
+                            WHEN (codigo_mf_numero BETWEEN 201 AND 299)
+                              OR LOWER(codigo_mf_texto) REGEXP 'certificado|\.cer|\.key|llave|caducado|vigencia|password|contraseña'
+                            THEN 1 ELSE 0 END) AS cat_cert,
+
+                        SUM(CASE
+                            WHEN LOWER(codigo_mf_texto) REGEXP 'timeout|connection|connect|host|unreachable|refused|network|socket|curl'
+                            THEN 1 ELSE 0 END) AS cat_timeout,
+
+                        COUNT(*) AS cat_total
+                    FROM timbrado_error_log
+                    WHERE creado_utc >= DATE_SUB(NOW(), INTERVAL 24 HOUR);";
+
+                using var rd = cmd.ExecuteReader();
+                if (rd.Read())
+                {
+                    vm.CatSat         = rd["cat_sat"]     == DBNull.Value ? 0 : Convert.ToInt32(rd["cat_sat"]);
+                    vm.CatCertificado = rd["cat_cert"]    == DBNull.Value ? 0 : Convert.ToInt32(rd["cat_cert"]);
+                    vm.CatTimeout     = rd["cat_timeout"] == DBNull.Value ? 0 : Convert.ToInt32(rd["cat_timeout"]);
+                    var total         = rd["cat_total"]   == DBNull.Value ? 0 : Convert.ToInt32(rd["cat_total"]);
+                    // Otros = total - categorías identificadas (sin doble contar)
+                    vm.CatOtros = Math.Max(0, total - vm.CatSat - vm.CatCertificado - vm.CatTimeout);
+                }
+            }
+
+            // ── 3) Top 10 tenants — helper local ─────────────────────────
+            vm.TopHoy    = ObtenerTopTenants(cn, "DATE_SUB(NOW(), INTERVAL 24 HOUR)");
+            vm.TopSemana = ObtenerTopTenants(cn, "DATE_SUB(NOW(), INTERVAL 7 DAY)");
+            vm.TopMes    = ObtenerTopTenants(cn, "DATE_SUB(NOW(), INTERVAL 30 DAY)");
+
+            return vm;
+        }
+
+        private List<TopErrorItem> ObtenerTopTenants(MySqlConnection cn, string desdeExpr)
+        {
+            var list = new List<TopErrorItem>();
+
+            using var cmd = cn.CreateCommand();
+            // Obtenemos top 10 tenants con más errores + el error más frecuente de cada uno
+            cmd.CommandText = $@"
+                SELECT
+                    COALESCE(t.nombre, e.rfc_emisor, 'Desconocido') AS nombre,
+                    COUNT(*)                                          AS total,
+                    (
+                        SELECT COALESCE(i.codigo_mf_texto, CONCAT('Código ', i.codigo_mf_numero), 'Error sin clasificar')
+                        FROM timbrado_error_log i
+                        WHERE i.tenant_id = e.tenant_id
+                          AND i.creado_utc >= {desdeExpr}
+                        GROUP BY COALESCE(i.codigo_mf_texto, i.codigo_mf_numero)
+                        ORDER BY COUNT(*) DESC
+                        LIMIT 1
+                    ) AS error_top
+                FROM timbrado_error_log e
+                LEFT JOIN tenants t ON e.tenant_id = t.id
+                WHERE e.creado_utc >= {desdeExpr}
+                GROUP BY e.tenant_id, t.nombre, e.rfc_emisor
+                ORDER BY total DESC
+                LIMIT 10;";
+
+            using var rd = cmd.ExecuteReader();
+            while (rd.Read())
+            {
+                list.Add(new TopErrorItem
+                {
+                    Nombre  = rd["nombre"]    == DBNull.Value ? "—" : rd["nombre"].ToString()!,
+                    Meta    = rd["error_top"] == DBNull.Value ? "—" : rd["error_top"].ToString()!,
+                    Errores = Convert.ToInt32(rd["total"])
+                });
+            }
+
+            return list;
         }
 
     }

@@ -16,6 +16,12 @@ public interface ITenantConfigService
     Task<(Tenant tenant, Certificado cert)> GetByApiKeyAsync(string apiKey, string rfcEmisor);
 
     Task<Tenant> GetTenantByIdAsync(long tenantId);
+
+    /// <summary>
+    /// Resuelve tenant + certificado a partir de tenantId y rfcEmisor.
+    /// Uso interno (monitor web), no requiere API Key.
+    /// </summary>
+    Task<(Tenant tenant, Certificado cert)> GetByTenantIdAsync(long tenantId, string rfcEmisor);
 }
 
 
@@ -41,6 +47,17 @@ public class TenantConfigService : ITenantConfigService
         if (tenant == null) throw new Exception("API Key inválida o tenant inactivo.");
 
         var cert = await _db.Certificados.FirstOrDefaultAsync(c => c.TenantId == tenant.Id && c.RFC == rfcEmisor);
+        if (cert == null) throw new Exception("No hay certificado registrado para ese RFC emisor.");
+
+        return (tenant, cert);
+    }
+
+    public async Task<(Tenant tenant, Certificado cert)> GetByTenantIdAsync(long tenantId, string rfcEmisor)
+    {
+        var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId && t.Activo);
+        if (tenant == null) throw new Exception("Tenant no encontrado o inactivo.");
+
+        var cert = await _db.Certificados.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.RFC == rfcEmisor);
         if (cert == null) throw new Exception("No hay certificado registrado para ese RFC emisor.");
 
         return (tenant, cert);

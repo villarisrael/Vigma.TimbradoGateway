@@ -124,7 +124,33 @@ public class TimbradoController : ControllerBase
         catch (Exception ex) { return StatusCode(500, new { ok = false, mensaje = ex.Message }); }
     }
 
-   
+    /// <summary>
+    /// POST /v1/timbrar/json
+    /// El cliente manda el JSON ya construido (estructura MultiFacturas).
+    /// El gateway inyecta PAC + certificado del tenant y lo pasa directo a MF.
+    /// </summary>
+    [HttpPost("json")]
+    public async Task<IActionResult> TimbrarDesdeJson([FromBody] TimbradoRawJsonRequest? req, CancellationToken ct)
+    {
+        CapturarHeadersAdicionales();
+        var adicionales = _headersAdicionales
+            .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+        if (!TryGetApiKey(out var apiKey)) return ApiKeyMissing();
+
+        if (req is null || string.IsNullOrWhiteSpace(req.json))
+            return BadRequest(new { ok = false, mensaje = "El campo 'json' es requerido." });
+
+        try
+        {
+            var resp = await _svc.TimbrarDesdeJsonAsync(apiKey, req.json, adicionales, ct);
+            return Ok(resp);
+        }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { ok = false, mensaje = ex.Message }); }
+        catch (ArgumentException ex)           { return BadRequest(new { ok = false, mensaje = ex.Message }); }
+        catch (Exception ex)                   { return StatusCode(500, new { ok = false, mensaje = ex.Message }); }
+    }
+
     // ********************************************checar estados y estadisticas *****///////////
 
 

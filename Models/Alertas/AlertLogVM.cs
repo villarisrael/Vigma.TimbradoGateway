@@ -21,9 +21,9 @@ public class AlertLogRowVM
     public string?  ErrorDetail   { get; set; }
     public string?  FirebaseMsgId { get; set; }
     public DateTime SentAt        { get; set; }
-    public string   Fecha         { get; set; } = "";
-    public string   Hora          { get; set; } = "";
-    public bool     EnviadoOk     { get; set; }
+    public DateTime Fecha => SentAt.Date;        // 2026-03-16 00:00:00
+    public TimeSpan Hora => SentAt.TimeOfDay;   // 14:35:22
+    public bool EnviadoOk => Status == "sent";
 }
 
 public class AlertLogFiltroVM

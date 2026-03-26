@@ -12,6 +12,12 @@ public interface IMultiFacturasApiClient
     /// MF requiere típicamente: modo=JSON, json={...}
     /// </summary>
     Task<string> TimbrarJsonAsync(string json, CancellationToken ct = default);
+
+    /// <summary>
+    /// Cancela un CFDI usando cancelacion2022.
+    /// Envía modo=JSON, json={modulo:"cancelacion2022", accion:"cancelar", ...}
+    /// </summary>
+    Task<string> CancelarJsonAsync(string json, CancellationToken ct = default);
 }
 
 public sealed class MultiFacturasApiClient : IMultiFacturasApiClient
@@ -53,6 +59,25 @@ public sealed class MultiFacturasApiClient : IMultiFacturasApiClient
         // resp.EnsureSuccessStatusCode();
 
         _log.LogInformation("MF API status={StatusCode} len={Len}", (int)resp.StatusCode, raw?.Length ?? 0);
+
+        return raw;
+    }
+
+    public async Task<string> CancelarJsonAsync(string json, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new ArgumentException("El JSON de cancelación es requerido.", nameof(json));
+
+        using var content = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("modo", "JSON"),
+            new KeyValuePair<string, string>("json", json)
+        });
+
+        using var resp = await _http.PostAsync("", content, ct);
+        var raw = await resp.Content.ReadAsStringAsync(ct);
+
+        _log.LogInformation("MF Cancelar status={StatusCode} len={Len}", (int)resp.StatusCode, raw?.Length ?? 0);
 
         return raw;
     }

@@ -193,10 +193,8 @@ public sealed class AlertService : IAlertService
                 Status        = x.Status,
                 ErrorDetail   = x.ErrorDetail,
                 FirebaseMsgId = x.FirebaseMsgId,
-                SentAt        = x.SentAt,
-                Fecha         = x.Fecha,
-                Hora          = x.Hora,
-                EnviadoOk     = x.EnviadoOk
+                SentAt        = x.SentAt
+             
             })
             .ToListAsync(ct);
 

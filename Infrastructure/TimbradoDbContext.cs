@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Vigma.TimbradoGateway.Controllers;
 using Vigma.TimbradoGateway.Models;
-using Vigma.TimbradoGateway.Models.Alertas;   // ← NUEVO
+using Vigma.TimbradoGateway.Models.Alertas;
 using Vigma.TimbradoGateway.Models.Logs;
 
 namespace Vigma.TimbradoGateway.Infrastructure;
@@ -15,6 +15,7 @@ public class TimbradoDbContext : DbContext
     public DbSet<TimbradoOkLog> TimbradoOkLogs => Set<TimbradoOkLog>();
     public DbSet<TimbradoErrorLog> TimbradoErrorLogs => Set<TimbradoErrorLog>();
     public DbSet<UsuarioOficina> UsuariosOficina => Set<UsuarioOficina>();
+    public DbSet<CancelacionLog> CancelacionLogs => Set<CancelacionLog>();
 
     // ── NUEVO: Tablas de Alertas ─────────────────────────────────────────────
     public DbSet<FcmToken> FcmTokens => Set<FcmToken>();
@@ -82,6 +83,26 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.Rol).HasMaxLength(30).IsRequired();
         });
 
+        modelBuilder.Entity<CancelacionLog>(e =>
+        {
+            e.ToTable("cancelacion_log");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenant_id");
+            e.Property(x => x.RfcEmisor).HasColumnName("rfc_emisor");
+            e.Property(x => x.Uuid).HasColumnName("uuid");
+            e.Property(x => x.Motivo).HasColumnName("motivo");
+            e.Property(x => x.UuidSustitucion).HasColumnName("uuid_sustitucion");
+            e.Property(x => x.Resultado).HasColumnName("resultado");
+            e.Property(x => x.CodigoMf).HasColumnName("codigo_mf");
+            e.Property(x => x.MensajeMf).HasColumnName("mensaje_mf");
+            e.Property(x => x.JsonEnviado).HasColumnName("json_enviado");
+            e.Property(x => x.RawPac).HasColumnName("raw_pac");
+            e.Property(x => x.MfProduccion).HasColumnName("mf_produccion");
+            e.Property(x => x.DuracionMs).HasColumnName("duracion_ms");
+            e.Property(x => x.CreadoUtc).HasColumnName("creado_utc");
+        });
+
         modelBuilder.Entity<EstadisticaDiaria>(entity =>
         {
             entity.HasNoKey();
@@ -127,9 +148,7 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.FirebaseMsgId).HasColumnName("firebase_msg_id");
             e.Property(x => x.ErrorDetail).HasColumnName("error_detail");
             e.Property(x => x.SentAt).HasColumnName("sent_at");
-            e.Property(x => x.Fecha).HasColumnName("fecha");
-            e.Property(x => x.Hora).HasColumnName("hora");
-            e.Property(x => x.EnviadoOk).HasColumnName("enviado_ok");
+           
         });
 
         modelBuilder.Entity<VwAlertasPorHora>(e =>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Routing;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,9 +24,18 @@ public interface ITimbradoService
     Task<TimbradoResponse> TimbrarDesdeIniAsync(string apiKey, string ini,
          IReadOnlyDictionary<string, string>? adicionales = null,
         CancellationToken ct = default); // SOAP actual
+
     Task<TimbradoResponse> TimbrarDesdeIniJsonAsync(string apiKey, string ini,
          IReadOnlyDictionary<string, string>? adicionales = null,
-        CancellationToken ct = default); // NUEVO REST /api
+        CancellationToken ct = default); // REST /api vía INI
+
+    /// <summary>
+    /// El cliente manda el JSON ya construido.
+    /// El gateway inyecta PAC + cert del tenant y lo pasa directo a MultiFacturas.
+    /// </summary>
+    Task<TimbradoResponse> TimbrarDesdeJsonAsync(string apiKey, string json,
+        IReadOnlyDictionary<string, string>? adicionales = null,
+        CancellationToken ct = default);
 }
 
 
@@ -351,6 +361,132 @@ public sealed class TimbradoService : ITimbradoService
 
         return string.Join("\n", lines);
     }
+    //************************************timbrar desde JSON ya construido ************************//
+    public async Task<TimbradoResponse> TimbrarDesdeJsonAsync(
+        string apiKey,
+        string json,
+        IReadOnlyDictionary<string, string>? adicionales = null,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey))
+            throw new UnauthorizedAccessException("Falta API Key (X-Api-Key).");
+        if (string.IsNullOrWhiteSpace(json))
+            throw new ArgumentException("El campo 'json' es requerido.");
+
+        // 1) Parsear el JSON entrante
+        JObject jobj;
+        try
+        {
+            jobj = JObject.Parse(json);
+        }
+        catch (Exception ex)
+        {
+            throw new ArgumentException($"El JSON enviado no es válido: {ex.Message}");
+        }
+
+        // 2) Extraer RFC del emisor para identificar el tenant
+        var rfcEmisor = jobj["emisor"]?["rfc"]?.Value<string>()?.Trim();
+        if (string.IsNullOrWhiteSpace(rfcEmisor))
+            throw new ArgumentException("No se encontró emisor.rfc en el JSON.");
+
+        // 3) Extraer datos de identificación para log
+        var serie              = jobj["factura"]?["serie"]?.Value<string>();
+        var folio              = jobj["factura"]?["folio"]?.Value<string>();
+        var tipoDeComprobante  = jobj["factura"]?["tipocomprobante"]?.Value<string>();
+
+        // 4) Resolver tenant + certificado
+        var (tenant, cert) = await _tenantCfg.GetByApiKeyAsync(apiKey, rfcEmisor);
+
+        // 5) Inyectar credenciales PAC del tenant (sobreescribe lo que venga en el JSON)
+        var pacPass = string.IsNullOrWhiteSpace(tenant.PacPasswordEnc)
+            ? ""
+            : _crypto.DecryptFromBase64(tenant.PacPasswordEnc);
+
+        if (jobj["PAC"] == null) jobj["PAC"] = new JObject();
+        jobj["PAC"]!["usuario"]    = tenant.PacUsuario ?? "";
+        jobj["PAC"]!["pass"]       = pacPass;
+        jobj["PAC"]!["produccion"] = tenant.PacProduccion ? "SI" : "NO";
+
+        // 6) Inyectar certificado del tenant (cer / key / pass)
+        if (string.IsNullOrWhiteSpace(cert.CerPath) || string.IsNullOrWhiteSpace(cert.KeyPath))
+            throw new ArgumentException("El certificado del tenant no tiene cer_path / key_path configurado.");
+
+        var cerBytes = await File.ReadAllBytesAsync(cert.CerPath, ct);
+        var keyBytes = await File.ReadAllBytesAsync(cert.KeyPath, ct);
+        var cerB64   = Convert.ToBase64String(cerBytes);
+        var keyB64   = Convert.ToBase64String(keyBytes);
+
+        string keyPass = "";
+        if (!string.IsNullOrWhiteSpace(cert.KeyPasswordEnc))
+        {
+            var s = cert.KeyPasswordEnc.Trim();
+            try   { keyPass = _crypto.DecryptFromBase64(s); }
+            catch { keyPass = s; } // texto plano
+        }
+
+        if (jobj["conf"] == null) jobj["conf"] = new JObject();
+        jobj["conf"]!["cer"]  = cerB64;
+        jobj["conf"]!["key"]  = keyB64;
+        jobj["conf"]!["pass"] = keyPass;
+
+        // 7) Serializar de vuelta y enviar a MultiFacturas
+        var jsonFinal = jobj.ToString(Newtonsoft.Json.Formatting.None);
+        var raw = await _mfApi.TimbrarJsonAsync(jsonFinal, ct);
+
+        // 8) Parsear respuesta
+        var parsed = MfApiResponseParser.Parse(raw);
+        var meta   = parsed.Meta;
+        var ok     = meta.CodigoMfNumero == 0;
+
+        const string tipo = "raw-json";
+
+        // 9) Logging
+        if (ok)
+        {
+            try
+            {
+                await _logs.LogOkAsync(
+                    tenantId:          tenant.Id,
+                    rfcEmisor:         rfcEmisor,
+                    meta:              meta,
+                    uuid:              parsed.Uuid ?? meta.Uuid,
+                    tipo:              tipo,
+                    xmltimbrado:       parsed.XmlTimbrado ?? "",
+                    serie:             serie,
+                    folio:             folio,
+                    tipoDeComprobante: tipoDeComprobante,
+                    adicionales:       adicionales,
+                    ct:                ct);
+            }
+            catch { /* el logger no debe tumbar la respuesta */ }
+        }
+        else
+        {
+            await _logs.LogErrorAsync(
+                tenantId:       tenant.Id,
+                rfcEmisor:      rfcEmisor,
+                meta:           meta,
+                jsonEnviado:    jsonFinal,
+                tipo:           tipo,
+                detalleInterno: meta.CodigoMfTexto,
+                adicionales:    adicionales,
+                ct:             ct);
+        }
+
+        // 10) Respuesta al cliente
+        return new TimbradoResponse
+        {
+            ok          = ok,
+            codigo      = meta.CodigoMfNumero?.ToString() ?? meta.CodigoMfTexto,
+            mensaje     = meta.CodigoMfTexto,
+            uuid        = parsed.Uuid ?? meta.Uuid,
+            xmlTimbrado = parsed.XmlTimbrado,
+            rawPac      = parsed.RawPac,
+            error       = ok ? null : meta.CodigoMfTexto,
+            logId       = 0
+        };
+    }
+
     //************************************timbrar ***************************************************//
     public async Task<TimbradoResponse> TimbrarDesdeIniJsonAsync(
     string apiKey,

@@ -10,7 +10,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
+using Vigma.TimbradoGateway.DTOs;
 using Vigma.TimbradoGateway.Infrastructure;
+using Vigma.TimbradoGateway.Services;
 using Vigma.TimbradoGateway.ViewModels.Timbrados;
 using Formatting = Newtonsoft.Json.Formatting;
 
@@ -20,10 +22,12 @@ namespace Vigma.TimbradoGateway.Controllers
     public class TimbradosController : Controller
     {
         private readonly string _cs;
+        private readonly ICancelacionService _cancelSvc;
 
-        public TimbradosController(IConfiguration cfg)
+        public TimbradosController(IConfiguration cfg, ICancelacionService cancelSvc)
         {
             _cs = cfg.GetConnectionString("MySql")!;
+            _cancelSvc = cancelSvc;
         }
 
        
@@ -371,6 +375,55 @@ namespace Vigma.TimbradoGateway.Controllers
                     return json; // Devolver el original si no se puede formatear
                 }
             }
+        }
+
+        // -------- CANCELAR PRUEBA (solo en modo pruebas) --------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelarPrueba(long id, string motivo = "02")
+        {
+            // Obtener el registro
+            var row = ObtenerTimbradoPorId(id);
+            if (row == null)
+            {
+                TempData["Error"] = "Registro no encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Seguridad: solo si es pruebas y no está cancelado
+            if (row.Cancelada)
+            {
+                TempData["Error"] = "El CFDI ya está marcado como cancelado.";
+                return RedirectToAction(nameof(Index));
+            }
+            if (row.MensajeMf == null || !row.MensajeMf.Contains("[MODO PRUEBAS]"))
+            {
+                TempData["Error"] = "Solo se pueden cancelar CFDIs de modo pruebas desde el monitor.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var req = new CancelacionRequest
+                {
+                    RfcEmisor = row.RfcEmisor ?? "",
+                    Uuid = row.Uuid ?? "",
+                    Motivo = motivo
+                };
+
+                var resp = await _cancelSvc.CancelarPorTenantIdAsync(row.TenantId, req);
+
+                if (resp.Ok)
+                    TempData["Exito"] = $"UUID {row.Uuid} cancelado correctamente. (Log #{resp.LogId})";
+                else
+                    TempData["Error"] = $"PAC rechazó la cancelación: [{resp.Codigo}] {resp.Mensaje}";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al cancelar: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         private (List<TimbradoRowVM> rows, int total) ObtenerTimbradosPaginado(

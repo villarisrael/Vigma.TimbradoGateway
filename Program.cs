@@ -53,6 +53,13 @@ builder.Services.AddScoped<ITimbradoService, TimbradoService>();
 builder.Services.AddScoped<IIniParserService, IniParserService>();
 builder.Services.AddScoped<ITimbradoLogService, TimbradoLogService>();
 
+// Cancelación CFDI — cliente SOAP (misma llamada que WSCancelarFactura40 de VB.NET)
+builder.Services.AddHttpClient<IMultiFacturasCancelacionSoapClient, MultiFacturasCancelacionSoapClient>(http =>
+{
+    http.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddScoped<ICancelacionService, CancelacionService>();
+
 // ── NUEVO: Servicios de Alertas ──────────────────────────────────────────────
 builder.Services.AddScoped<IAlertTokenService, AlertTokenService>();
 builder.Services.AddScoped<IAlertService, AlertService>();

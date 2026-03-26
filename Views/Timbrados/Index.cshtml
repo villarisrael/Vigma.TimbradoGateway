@@ -6,9 +6,24 @@
     var to = Math.Min(Model.Page * Model.PageSize, Model.TotalRows);
 }
 
-<link href="~/css/gstyle.css" rel="stylesheet" />
-<link href="~/css/errores.css" rel="stylesheet" />
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+<link href="~/css/Errores.css" rel="stylesheet" />
 <link href="~/css/timbrados.css" rel="stylesheet" />
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mx-3 mt-3" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <div class="errores-page">
 
@@ -179,6 +194,17 @@
                                            href="@Url.Action("TimbradosAdicionales", "Timbrados", new { id = r.Id })">
                                         <i class="bi bi-plus-circle"></i> Adicionales
                                     </a>
+                                    @if (!r.Cancelada && r.MensajeMf != null && r.MensajeMf.Contains("[MODO PRUEBAS]"))
+                                    {
+                                        <button type="button"
+                                                class="ec-btn-action ec-btn-danger"
+                                                data-id="@r.Id"
+                                                data-uuid="@r.Uuid"
+                                                data-rfc="@r.RfcEmisor"
+                                                onclick="abrirModalCancelar(this)">
+                                            <i class="bi bi-x-circle"></i> Cancelar
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -226,6 +252,47 @@
 
 </div>
 
+<!-- ── Modal Cancelar Prueba ── -->
+<div class="modal fade" id="modalCancelarPrueba" tabindex="-1" aria-labelledby="modalCancelarPruebaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="modalCancelarPruebaLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Cancelar CFDI de Prueba
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Confirmas la cancelación del siguiente CFDI?</p>
+                <table class="table table-sm table-borderless">
+                    <tr><th>UUID:</th><td><code id="cancelPruebaUuid"></code></td></tr>
+                    <tr><th>RFC Emisor:</th><td><code id="cancelPruebaRfc"></code></td></tr>
+                </table>
+                <form id="formCancelarPrueba" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="cancelPruebaId" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Motivo de cancelación</label>
+                        <select name="motivo" class="form-select">
+                            <option value="02" selected>02 - Errores sin relación</option>
+                            <option value="03">03 - No se llevó a cabo la operación</option>
+                            <option value="04">04 - Operación nominativa en factura global</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Cerrar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('formCancelarPrueba').submit()">
+                    <i class="bi bi-x-circle"></i> Confirmar Cancelación
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.querySelectorAll('.ec-row').forEach((row, i) => {
@@ -237,6 +304,23 @@
                 row.style.transform = 'translateY(0)';
             }, i * 35);
         });
+
+        function abrirModalCancelar(btn) {
+            const id = btn.getAttribute('data-id');
+            const uuid = btn.getAttribute('data-uuid');
+            const rfc = btn.getAttribute('data-rfc');
+
+            document.getElementById('cancelPruebaId').value = id;
+            document.getElementById('cancelPruebaUuid').textContent = uuid;
+            document.getElementById('cancelPruebaRfc').textContent = rfc;
+
+            // Apunta el form al action correcto
+            document.getElementById('formCancelarPrueba').action =
+                '@Url.Action("CancelarPrueba", "Timbrados")';
+
+            const modal = new bootstrap.Modal(document.getElementById('modalCancelarPrueba'));
+            modal.show();
+        }
     </script>
 }
 

@@ -1,188 +1,637 @@
 @model Vigma.TimbradoGateway.Models.Alertas.AlertLogIndiceVM
 @{
+    Layout = "_Layout";
     ViewData["Title"] = "Logs de Alertas";
     var from = Model.Total == 0 ? 0 : ((Model.Filtro.Pagina - 1) * Model.Filtro.TamanoPagina) + 1;
     var to   = Math.Min(Model.Filtro.Pagina * Model.Filtro.TamanoPagina, Model.Total);
     int totalPages = Model.Total == 0 ? 1 : (int)Math.Ceiling((double)Model.Total / Model.Filtro.TamanoPagina);
 }
 
-<link href="~/css/gstyle.css" rel="stylesheet" />
+<link href="~/css/Gstyle.css" rel="stylesheet" />
 <link href="~/css/timbrado.css" rel="stylesheet" />
 
-<div class="container-fluid py-4">
+<style>
+/* =============================================================================
+   LOGS DE ALERTAS — estilos scoped
+   ============================================================================= */
 
-    <span class="page-badge mb-2" style="color:#3b82f6; background:rgba(59,130,246,0.1);">
-        <i class="bi bi-bell-fill"></i> SAK Alerts
-    </span>
+.al-page {
+    padding: var(--space-5);
+    max-width: var(--container-xxl);
+}
 
-    <div class="page-header py-2 mb-4">
-        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-2">
-            <div>
-                <h1 class="h3 fw-bold mb-1">Logs de Alertas</h1>
-                <div class="text-muted small">Historial de mensajes push enviados • Ordenados por fecha de envío DESC</div>
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.al-hero {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.al-hero-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.al-hero-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-3xl);
+    flex-shrink: 0;
+    backdrop-filter: blur(8px);
+}
+
+.al-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-2);
+    backdrop-filter: blur(4px);
+    width: fit-content;
+}
+
+.al-hero-title {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-2xl);
+    color: white;
+    margin-bottom: var(--space-1);
+    line-height: 1.2;
+}
+
+.al-hero-sub {
+    font-size: var(--text-xs);
+    color: rgba(255,255,255,0.75);
+}
+
+.al-hero-actions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.al-hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    transition: var(--transition-fast);
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+}
+
+.al-hero-btn:hover {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    border-color: rgba(255,255,255,0.5);
+}
+
+/* ── Filter card ─────────────────────────────────────────────────────────── */
+.al-filter-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    border-left: 4px solid var(--color-warning);
+    margin-bottom: var(--space-5);
+}
+
+[data-theme="dark"] .al-filter-card {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,0.05);
+    border-left-color: var(--color-warning);
+}
+
+.al-filter-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-titles);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-base);
+    color: var(--color-warning);
+    margin-bottom: var(--space-4);
+}
+
+.al-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-3);
+    align-items: end;
+}
+
+@@media (max-width: 1200px) { .al-filter-grid { grid-template-columns: repeat(3, 1fr); } }
+@@media (max-width: 768px)  { .al-filter-grid { grid-template-columns: 1fr 1fr; } }
+@@media (max-width: 480px)  { .al-filter-grid { grid-template-columns: 1fr; } }
+
+.al-filter-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+}
+
+.al-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: #9090b0;
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.al-input,
+.al-select {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1.5px solid var(--bg-light-muted);
+    border-radius: var(--radius-md);
+    background: var(--bg-light-page);
+    color: var(--color-dark);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    transition: var(--transition-fast);
+    outline: none;
+}
+
+[data-theme="dark"] .al-input,
+[data-theme="dark"] .al-select {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+    color: #e0e0f0;
+}
+
+.al-input:focus,
+.al-select:focus {
+    border-color: var(--color-warning);
+    box-shadow: 0 0 0 3px rgba(247,151,30,0.12);
+}
+
+.al-input::placeholder { color: #9090b0; }
+
+.al-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239090b0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-3) center;
+    padding-right: var(--space-6);
+    cursor: pointer;
+}
+
+/* ── Table card ──────────────────────────────────────────────────────────── */
+.al-table-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .al-table-card {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,0.05);
+}
+
+.al-table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .al-table-header { border-color: var(--bg-dark-muted); }
+
+.al-table-header-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-titles);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-base);
+    color: var(--color-dark);
+}
+
+[data-theme="dark"] .al-table-header-title { color: #e0e0f0; }
+
+.al-table-header-title span { color: #3b82f6; font-size: var(--text-xl); }
+
+.al-count-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    background: var(--bg-light-subtle);
+    color: #9090b0;
+}
+
+[data-theme="dark"] .al-count-pill {
+    background: var(--bg-dark-subtle);
+    color: #6060a0;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────────────────── */
+.al-table-wrap { overflow-x: auto; }
+
+.al-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+    table-layout: auto;
+}
+
+.al-table thead tr { background: var(--bg-light-subtle); }
+
+[data-theme="dark"] .al-table thead tr { background: var(--bg-dark-subtle); }
+
+.al-table th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: #9090b0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.al-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--bg-light-muted);
+    font-size: var(--text-sm);
+    color: var(--color-dark);
+    vertical-align: middle;
+}
+
+[data-theme="dark"] .al-table td {
+    border-color: var(--bg-dark-muted);
+    color: #c0c0d8;
+}
+
+.al-table tbody tr { transition: var(--transition-fast); }
+.al-table tbody tr:hover { background: var(--bg-light-subtle); }
+
+[data-theme="dark"] .al-table tbody tr:hover { background: var(--bg-dark-subtle); }
+
+/* Fila fallida — reutiliza tb-row-cancel de timbrado.css */
+
+/* ── Celdas específicas ──────────────────────────────────────────────────── */
+.al-mono {
+    font-family: "Consolas", monospace;
+    font-size: var(--text-xs);
+    background: var(--bg-light-subtle);
+    color: var(--color-dark);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+}
+
+[data-theme="dark"] .al-mono {
+    background: var(--bg-dark-subtle);
+    color: #c0c0d8;
+}
+
+.al-truncate {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.al-error-text {
+    font-size: var(--text-xs);
+    color: #ff416c;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.al-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-8) var(--space-5);
+    text-align: center;
+}
+
+.al-empty-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: var(--radius-full);
+    background: var(--bg-light-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-4xl);
+}
+
+[data-theme="dark"] .al-empty-icon { background: var(--bg-dark-subtle); }
+
+.al-empty-title {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-xl);
+    color: var(--color-dark);
+}
+
+[data-theme="dark"] .al-empty-title { color: #e0e0f0; }
+
+.al-empty-sub { font-size: var(--text-sm); color: #9090b0; }
+</style>
+
+<div class="al-page">
+
+        <!-- ── Hero ─────────────────────────────────────────────────── -->
+        <div class="al-hero">
+            <div class="al-hero-left">
+                <div class="al-hero-icon">🔔</div>
+                <div>
+                    <div class="al-hero-badge">📡 SAK Alerts</div>
+                    <div class="al-hero-title">Logs de Alertas</div>
+                    <div class="al-hero-sub">
+                        Historial de mensajes push enviados · Ordenados por fecha de envío DESC
+                    </div>
+                </div>
             </div>
-            <div class="d-flex gap-2">
-                <a href="@Url.Action("Dashboard","Alerts")" class="btn btn-outline-soft btn-sm">
-                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            <div class="al-hero-actions">
+                <a href="@Url.Action("Dashboard","Alerts")" class="al-hero-btn">
+                    📊 Dashboard
                 </a>
-                <a href="@Url.Action("Tokens","Alerts")" class="btn btn-outline-soft btn-sm">
-                    <i class="bi bi-phone me-1"></i> Tokens
+                <a href="@Url.Action("Tokens","Alerts")" class="al-hero-btn">
+                    📱 Tokens
                 </a>
             </div>
         </div>
-    </div>
 
-    <!-- Filtros -->
-    <div class="filter-card tb-filter-card">
-        <h5 class="fw-bold mb-4">
-            <i class="bi bi-funnel-fill me-2" style="color:#f59e0b;"></i>Filtros
-        </h5>
-        <form asp-action="Logs" asp-controller="Alerts" method="get">
-            <input type="hidden" name="pagina" value="1" />
-            <input type="hidden" name="tamanoPagina" value="@Model.Filtro.TamanoPagina" />
-            <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2"><i class="bi bi-people me-1"></i> Tenant</label>
-                    <select name="tenantId" class="form-select form-select-sm">
-                        @foreach (var t in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Tenants)
-                        { <option value="@t.Value" >@t.Text</option> }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2"><i class="bi bi-person-badge me-1"></i> Entidad ID</label>
-                    <input type="text" name="entidadId" value="@Model.Filtro.EntidadId"
-                           class="form-control form-control-sm" placeholder="ID trabajador..." />
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2"><i class="bi bi-box-arrow-in-right me-1"></i> Origin</label>
-                    <input type="text" name="origin" value="@Model.Filtro.Origin"
-                           class="form-control form-control-sm" placeholder="sistema-origen..." />
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2"><i class="bi bi-activity me-1"></i> Status</label>
-                    <select name="status" class="form-select form-select-sm">
-                        <option value="">Todos</option>
-                        <option value="sent"   >Enviado</option>
-                        <option value="failed">Fallido</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2"><i class="bi bi-calendar me-1"></i> Desde</label>
-                    <input type="date" name="fechaDesde" value="@Model.Filtro.FechaDesde?.ToString("yyyy-MM-dd")"
-                           class="form-control form-control-sm" />
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold mb-2"><i class="bi bi-calendar-check me-1"></i> Hasta</label>
-                    <input type="date" name="fechaHasta" value="@Model.Filtro.FechaHasta?.ToString("yyyy-MM-dd")"
-                           class="form-control form-control-sm" />
-                </div>
-                <div class="col-md-12 d-flex gap-2 justify-content-end mt-1">
-                    <button type="submit" class="btn btn-gold px-4"><i class="bi bi-search me-2"></i> Buscar</button>
-                    <a class="btn btn-outline-soft px-4" href="@Url.Action("Logs","Alerts")">
-                        <i class="bi bi-arrow-clockwise me-2"></i> Limpiar
-                    </a>
-                </div>
-            </div>
-        </form>
-    </div>
+        <!-- ── Filtros ─────────────────────────────────────────────── -->
+        <div class="al-filter-card">
+            <div class="al-filter-title">🔽 Filtros</div>
+            <form asp-action="Logs" asp-controller="Alerts" method="get">
+                <input type="hidden" name="pagina" value="1" />
+                <input type="hidden" name="tamanoPagina" value="@Model.Filtro.TamanoPagina" />
+                <div class="al-filter-grid">
 
-    <!-- Tabla -->
-    <div class="table-card">
-        <div class="table-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0"><i class="bi bi-list-ul me-2" style="color:#3b82f6;"></i>Historial de alertas</h6>
-                <span class="badge bg-light text-dark">@from–@to de @Model.Total</span>
-            </div>
+                    <div>
+                        <div class="al-label">👥 Tenant</div>
+                        <select name="tenantId" class="al-select">
+                            @foreach (var t in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Tenants)
+                            {
+                                <option value="@t.Value">@t.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="al-label">🪪 Entidad ID</div>
+                        <input type="text" name="entidadId"
+                               value="@Model.Filtro.EntidadId"
+                               class="al-input"
+                               placeholder="ID trabajador…" />
+                    </div>
+
+                    <div>
+                        <div class="al-label">📤 Origin</div>
+                        <input type="text" name="origin"
+                               value="@Model.Filtro.Origin"
+                               class="al-input"
+                               placeholder="sistema-origen…" />
+                    </div>
+
+                    <div>
+                        <div class="al-label">📶 Status</div>
+                        <select name="status" class="al-select">
+                            <option value="">Todos</option>
+                            <option value="sent"   >✅ Enviado</option>
+                            <option value="failed" >❌ Fallido</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="al-label">📅 Desde</div>
+                        <input type="date" name="fechaDesde"
+                               value="@Model.Filtro.FechaDesde?.ToString("yyyy-MM-dd")"
+                               class="al-input" />
+                    </div>
+
+                    <div>
+                        <div class="al-label">📅 Hasta</div>
+                        <input type="date" name="fechaHasta"
+                               value="@Model.Filtro.FechaHasta?.ToString("yyyy-MM-dd")"
+                               class="al-input" />
+                    </div>
+
+                    <div class="al-filter-actions">
+                        <button type="submit" class="vg-btn vg-btn-primary">
+                            🔍 Buscar
+                        </button>
+                        <a class="vg-btn vg-btn-outline"
+                           href="@Url.Action("Logs","Alerts")">
+                            ↺ Limpiar
+                        </a>
+                    </div>
+
+                </div>
+            </form>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 tb-table">
-                <thead>
-                    <tr>
-                        <th>Tenant</th><th>Entidad</th><th>Origin</th>
-                        <th>Título</th><th>Mensaje</th><th>Status</th>
-                        <th>Error</th><th>Enviado UTC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @if (!Model.Logs.Any())
-                {
-                    <tr><td colspan="8">
-                        <div class="empty-state">
-                            <div class="empty-state-icon"><i class="bi bi-bell-slash"></i></div>
-                            <h5 class="fw-bold mb-2">No hay logs</h5>
-                            <p class="text-muted mb-0">Aún no se han enviado alertas o no coinciden con los filtros.</p>
-                        </div>
-                    </td></tr>
-                }
-                else
-                {
-                    foreach (var r in Model.Logs)
-                    {
-                        <tr class="@(r.Status == "failed" ? "tb-row-cancel" : "")">
-                            <td><span class="tb-pill tb-pill-mid"><i class="bi bi-person-badge"></i> @r.TenantNombre</span></td>
-                            <td>
-                                <div><code class="mono" style="font-size:.8rem;">@r.EntidadId</code></div>
-                                @if (!string.IsNullOrWhiteSpace(r.EntidadNombre)) {
-                                    <div class="tb-plain" style="font-size:.75rem;">@r.EntidadNombre</div>
-                                }
-                            </td>
-                            <td>
-                                @if (!string.IsNullOrWhiteSpace(r.Origin)) {
-                                    <span class="tb-pill tb-pill-mid"><i class="bi bi-box-arrow-in-right"></i> @r.Origin</span>
-                                } else { <span class="tb-plain">—</span> }
-                            </td>
-                            <td class="tb-plain" style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
-                                title="@r.Title">@r.Title</td>
-                            <td class="tb-plain" style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
-                                title="@r.Message">@r.Message</td>
-                            <td>
-                                @if (r.Status == "sent") {
-                                    <span class="tb-pill tb-pill-ok"><i class="bi bi-send-check-fill"></i> Enviado</span>
-                                } else {
-                                    <span class="tb-pill tb-pill-cancel"><i class="bi bi-x-circle-fill"></i> Fallido</span>
-                                }
-                            </td>
-                            <td>
-                                @if (!string.IsNullOrWhiteSpace(r.ErrorDetail)) {
-                                    <span class="tb-plain" style="font-size:.75rem; max-width:180px; display:block;
-                                          overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#ef4444;"
-                                          title="@r.ErrorDetail">@r.ErrorDetail</span>
-                                } else { <span class="tb-plain">—</span> }
-                            </td>
-                            <td>
-                                <span class="tb-pill tb-pill-mid">
-                                    <i class="bi bi-clock"></i> @r.SentAt.ToString("yyyy-MM-dd HH:mm:ss")
-                                </span>
-                            </td>
+
+        <!-- ── Tabla ───────────────────────────────────────────────── -->
+        <div class="al-table-card">
+            <div class="al-table-header">
+                <div class="al-table-header-title">
+                    <span>📋</span> Historial de alertas
+                </div>
+                <span class="al-count-pill">@from–@to de @Model.Total</span>
+            </div>
+
+            <div class="al-table-wrap">
+                <table class="al-table">
+                    <thead>
+                        <tr>
+                            <th>Tenant</th>
+                            <th>Entidad</th>
+                            <th>Origin</th>
+                            <th>Título</th>
+                            <th>Mensaje</th>
+                            <th>Status</th>
+                            <th>Error</th>
+                            <th>Enviado UTC</th>
                         </tr>
-                    }
-                }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Logs.Any())
+                        {
+                            <tr>
+                                <td colspan="8">
+                                    <div class="al-empty">
+                                        <div class="al-empty-icon">🔕</div>
+                                        <div class="al-empty-title">No hay logs</div>
+                                        <div class="al-empty-sub">
+                                            Aún no se han enviado alertas o no coinciden con los filtros aplicados.
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var r in Model.Logs)
+                            {
+                                <tr class="@(r.Status == "failed" ? "tb-row-cancel" : "")">
 
-        @if (totalPages > 1)
-        {
-            <div class="tb-pagination">
-                <span class="tb-page-info">Página <strong>@Model.Filtro.Pagina</strong> de <strong>@totalPages</strong></span>
-                <div class="tb-page-btns">
-                    @{
-                        int ps = Math.Max(1, Model.Filtro.Pagina - 3);
-                        int pe = Math.Min(totalPages, ps + 6); ps = Math.Max(1, pe - 6);
-                        Func<int,string?> pu = p => Url.Action("Logs","Alerts", new {
-                            tenantId=Model.Filtro.TenantId, entidadId=Model.Filtro.EntidadId,
-                            origin=Model.Filtro.Origin, status=Model.Filtro.Status,
-                            fechaDesde=Model.Filtro.FechaDesde?.ToString("yyyy-MM-dd"),
-                            fechaHasta=Model.Filtro.FechaHasta?.ToString("yyyy-MM-dd"),
-                            tamanoPagina=Model.Filtro.TamanoPagina, pagina=p });
-                    }
-                    <a href="@pu(Model.Filtro.Pagina-1)" class="tb-page-btn @(Model.Filtro.Pagina<=1?"tb-page-btn-disabled":"")">«</a>
-                    @for (int p = ps; p <= pe; p++) {
-                        <a href="@pu(p)" class="tb-page-btn @(p==Model.Filtro.Pagina?"tb-page-btn-active":"")">@p</a>
-                    }
-                    <a href="@pu(Model.Filtro.Pagina+1)" class="tb-page-btn @(Model.Filtro.Pagina>=totalPages?"tb-page-btn-disabled":"")">»</a>
-                </div>
+                                    <!-- Tenant -->
+                                    <td>
+                                        <span class="tb-pill tb-pill-mid">@r.TenantNombre</span>
+                                    </td>
+
+                                    <!-- Entidad -->
+                                    <td>
+                                        <code class="al-mono">@r.EntidadId</code>
+                                        @if (!string.IsNullOrWhiteSpace(r.EntidadNombre))
+                                        {
+                                            <div class="tb-plain" style="font-size:var(--text-xs); margin-top:2px;">
+                                                @r.EntidadNombre
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <!-- Origin -->
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(r.Origin))
+                                        {
+                                            <span class="tb-pill tb-pill-mid">@r.Origin</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="tb-plain">—</span>
+                                        }
+                                    </td>
+
+                                    <!-- Título -->
+                                    <td>
+                                        <span class="al-truncate tb-plain" title="@r.Title">@r.Title</span>
+                                    </td>
+
+                                    <!-- Mensaje -->
+                                    <td>
+                                        <span class="al-truncate tb-plain" title="@r.Message">@r.Message</span>
+                                    </td>
+
+                                    <!-- Status -->
+                                    <td>
+                                        @if (r.Status == "sent")
+                                        {
+                                            <span class="tb-pill tb-pill-ok">✔ Enviado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="tb-pill tb-pill-cancel">✕ Fallido</span>
+                                        }
+                                    </td>
+
+                                    <!-- Error -->
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(r.ErrorDetail))
+                                        {
+                                            <span class="al-error-text" title="@r.ErrorDetail">
+                                                @r.ErrorDetail
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="tb-plain">—</span>
+                                        }
+                                    </td>
+
+                                    <!-- Enviado UTC -->
+                                    <td>
+                                        <span class="tb-pill tb-pill-mid">
+                                            @r.SentAt.ToString("yyyy-MM-dd HH:mm:ss")
+                                        </span>
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
             </div>
-        }
-    </div>
-</div>
+
+            <!-- Paginación — reutiliza tb-pagination de timbrado.css -->
+            @if (totalPages > 1)
+            {
+                <div class="tb-pagination">
+                    <span class="tb-page-info">
+                        Página <strong>@Model.Filtro.Pagina</strong> de <strong>@totalPages</strong>
+                    </span>
+                    <div class="tb-page-btns">
+                        @{
+                            int ps = Math.Max(1, Model.Filtro.Pagina - 3);
+                            int pe = Math.Min(totalPages, ps + 6);
+                            ps = Math.Max(1, pe - 6);
+
+                            Func<int, string?> pu = p => Url.Action("Logs", "Alerts", new {
+                                tenantId    = Model.Filtro.TenantId,
+                                entidadId   = Model.Filtro.EntidadId,
+                                origin      = Model.Filtro.Origin,
+                                status      = Model.Filtro.Status,
+                                fechaDesde  = Model.Filtro.FechaDesde?.ToString("yyyy-MM-dd"),
+                                fechaHasta  = Model.Filtro.FechaHasta?.ToString("yyyy-MM-dd"),
+                                tamanoPagina = Model.Filtro.TamanoPagina,
+                                pagina      = p
+                            });
+                        }
+                        <a href="@pu(Model.Filtro.Pagina - 1)"
+                           class="tb-page-btn @(Model.Filtro.Pagina <= 1 ? "tb-page-btn-disabled" : "")">«</a>
+
+                        @for (int p = ps; p <= pe; p++)
+                        {
+                            <a href="@pu(p)"
+                               class="tb-page-btn @(p == Model.Filtro.Pagina ? "tb-page-btn-active" : "")">@p</a>
+                        }
+
+                        <a href="@pu(Model.Filtro.Pagina + 1)"
+                           class="tb-page-btn @(Model.Filtro.Pagina >= totalPages ? "tb-page-btn-disabled" : "")">»</a>
+                    </div>
+                </div>
+            }
+
+        </div><!-- /al-table-card -->
+</div><!-- /al-page -->
