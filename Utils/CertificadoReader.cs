@@ -1,4 +1,5 @@
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Vigma.TimbradoGateway.Util;
@@ -23,7 +24,9 @@ public static class CertificadoReader
 
             return new CertificadoInfo
             {
-                NoCertificado = cert.SerialNumber,
+                // El SerialNumber de .NET regresa hex. El SAT codifica el NoCertificado
+                // como bytes ASCII dentro del serial, así que decodificamos hex → ASCII.
+                NoCertificado = DecodificarNoCertificadoSat(cert.SerialNumber),
                 VigenciaInicio = cert.NotBefore.ToUniversalTime(),
                 VigenciaFin = cert.NotAfter.ToUniversalTime(),
                 Subject = cert.Subject,
@@ -38,6 +41,58 @@ public static class CertificadoReader
             // Log el error si tienes un logger
             Console.WriteLine($"Error al leer certificado {cerPath}: {ex.Message}");
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Convierte el SerialNumber hexadecimal de un X509Certificate2 en el NoCertificado
+    /// de 20 dígitos que espera el SAT. El SAT codifica los 20 dígitos como bytes ASCII
+    /// dentro del serial del certificado, por eso X509Certificate2.SerialNumber regresa
+    /// algo como "3030303031..." (hex de '0','0','0','0','1',...).
+    ///
+    /// Estrategia:
+    /// 1. Decodifica hex → bytes
+    /// 2. Interpreta bytes como ASCII
+    /// 3. Filtra solo dígitos
+    /// 4. Si quedan 20 → listo
+    /// 5. Si quedan más de 20 → toma los últimos 20 (descarta bytes de signo/padding)
+    /// 6. Si algo falla → devuelve el serial original (mejor algo que nada)
+    /// </summary>
+    public static string DecodificarNoCertificadoSat(string? serialHex)
+    {
+        if (string.IsNullOrWhiteSpace(serialHex)) return "";
+
+        var hex = serialHex.Trim().Replace(" ", "").Replace("-", "").Replace(":", "");
+
+        // Si la longitud no es par o tiene caracteres no-hex, devolvemos tal cual
+        if (hex.Length % 2 != 0) return serialHex;
+        if (!Regex.IsMatch(hex, @"^[0-9A-Fa-f]+$")) return serialHex;
+
+        try
+        {
+            var bytes = new byte[hex.Length / 2];
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+
+            var ascii = Encoding.ASCII.GetString(bytes);
+
+            // Quedarnos solo con dígitos por si hay padding o bytes raros
+            var soloDigitos = new string(ascii.Where(char.IsDigit).ToArray());
+
+            if (soloDigitos.Length == 20) return soloDigitos;
+
+            // Si vienen más de 20 dígitos (bytes de signo, etc.), tomar últimos 20
+            if (soloDigitos.Length > 20) return soloDigitos[^20..];
+
+            // Si vienen menos, padear a la izquierda con ceros
+            if (soloDigitos.Length > 0) return soloDigitos.PadLeft(20, '0');
+
+            // Si no son ASCII numéricos, no es un CSD del SAT — devolver original
+            return serialHex;
+        }
+        catch
+        {
+            return serialHex;
         }
     }
 

@@ -14,6 +14,8 @@ using Vigma.TimbradoGateway.DTOs;
 using Vigma.TimbradoGateway.Infrastructure;
 using Vigma.TimbradoGateway.Services;
 using Vigma.TimbradoGateway.ViewModels.Timbrados;
+using Microsoft.AspNetCore.Hosting;
+using System.Xml.Linq;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Vigma.TimbradoGateway.Controllers
@@ -23,11 +25,22 @@ namespace Vigma.TimbradoGateway.Controllers
     {
         private readonly string _cs;
         private readonly ICancelacionService _cancelSvc;
+        private readonly FacturaPdfService _pdfSvc;
+        private readonly IWebHostEnvironment _env;
+        private readonly IFacturaloClient _facturalo;
 
-        public TimbradosController(IConfiguration cfg, ICancelacionService cancelSvc)
+        public TimbradosController(
+            IConfiguration cfg,
+            ICancelacionService cancelSvc,
+            FacturaPdfService pdfSvc,
+            IWebHostEnvironment env,
+            IFacturaloClient facturalo)
         {
-            _cs = cfg.GetConnectionString("MySql")!;
+            _cs        = cfg.GetConnectionString("MySql")!;
             _cancelSvc = cancelSvc;
+            _pdfSvc    = pdfSvc;
+            _env       = env;
+            _facturalo = facturalo;
         }
 
        
@@ -35,6 +48,8 @@ namespace Vigma.TimbradoGateway.Controllers
         public IActionResult Index(
                     long? tenantId,
                     string? rfcEmisor,
+                    string? uuid,
+                    string? folio,
                     DateTime? fechaInicio,
                     DateTime? fechaFinal,
                     int page = 1,
@@ -48,6 +63,8 @@ namespace Vigma.TimbradoGateway.Controllers
                             {
                                 TenantId = tenantId,
                                 RfcEmisor = rfcEmisor,
+                                Uuid = uuid,
+                                Folio = folio,
                                 FechaInicio = fechaInicio,
                                 FechaFinal = fechaFinal,
                                 Page = page,
@@ -57,7 +74,7 @@ namespace Vigma.TimbradoGateway.Controllers
                             vm.Tenants = ObtenerTenants(tenantId);
 
                             // ✅ La clave: obtener TOTAL y la página actual
-                            var (rows, total) = ObtenerTimbradosPaginado(tenantId, rfcEmisor, fechaInicio, fechaFinal, page, pageSize);
+                            var (rows, total) = ObtenerTimbradosPaginado(tenantId, rfcEmisor, uuid, folio, fechaInicio, fechaFinal, page, pageSize);
 
                             vm.Rows = rows;
                             vm.TotalRows = total;
@@ -124,7 +141,13 @@ namespace Vigma.TimbradoGateway.Controllers
         }
 
         // -------- LISTADO --------
-        private List<TimbradoRowVM> ObtenerTimbrados(long? tenantId, string? rfcEmisor, DateTime? fechaInicio, DateTime? fechaFinal)
+        private List<TimbradoRowVM> ObtenerTimbrados(
+            long? tenantId,
+            string? rfcEmisor,
+            string? uuid,
+            string? folio,
+            DateTime? fechaInicio,
+            DateTime? fechaFinal)
         {
             var rows = new List<TimbradoRowVM>();
 
@@ -162,6 +185,18 @@ namespace Vigma.TimbradoGateway.Controllers
             {
                 sql.Append(" AND rfcemisor LIKE @rfc ");
                 cmd.Parameters.AddWithValue("@rfc", "%" + rfcEmisor.Trim().ToUpperInvariant() + "%");
+            }
+
+            if (!string.IsNullOrWhiteSpace(uuid))
+            {
+                sql.Append(" AND uuid LIKE @uuid ");
+                cmd.Parameters.AddWithValue("@uuid", "%" + uuid.Trim() + "%");
+            }
+
+            if (!string.IsNullOrWhiteSpace(folio))
+            {
+                sql.Append(" AND folio LIKE @folio ");
+                cmd.Parameters.AddWithValue("@folio", "%" + folio.Trim() + "%");
             }
 
             if (fechaInicio.HasValue)
@@ -234,7 +269,7 @@ namespace Vigma.TimbradoGateway.Controllers
             using var rd = cmd.ExecuteReader();
             if (!rd.Read()) return null;
 
-            return new TimbradoDetalleVM
+            var vm = new TimbradoDetalleVM
             {
                 Id = rd.GetInt64("id"),
                 TenantId = rd.GetInt64("tenantid"),
@@ -251,6 +286,99 @@ namespace Vigma.TimbradoGateway.Controllers
                 Adicionales = rd["Adicionales"] == DBNull.Value ? null : rd["Adicionales"]?.ToString(),
                 CreatedUtc = Convert.ToDateTime(rd["created_utc"])
             };
+
+            if (!string.IsNullOrWhiteSpace(vm.XmlTimbrado))
+                EnriquecerConXml(vm);
+
+            return vm;
+        }
+
+        /// <summary>
+        /// Parsea el XML timbrado y rellena los campos del comprobante en el VM.
+        /// Usa XDocument con búsqueda por LocalName para ignorar prefijos de namespace.
+        /// </summary>
+        private static void EnriquecerConXml(TimbradoDetalleVM vm)
+        {
+            try
+            {
+                var doc = XDocument.Parse(vm.XmlTimbrado!);
+
+                // ── Comprobante (nodo raíz) ────────────────────────────────────────
+                var comp = doc.Descendants()
+                              .FirstOrDefault(e => e.Name.LocalName.Equals("Comprobante", StringComparison.OrdinalIgnoreCase));
+
+                if (comp != null)
+                {
+                    vm.Fecha              = comp.Attribute("Fecha")?.Value;
+                    vm.Subtotal           = comp.Attribute("SubTotal")?.Value;
+                    vm.Total              = comp.Attribute("Total")?.Value;
+                    vm.FormaPago          = comp.Attribute("FormaPago")?.Value;
+                    vm.MetodoPago         = comp.Attribute("MetodoPago")?.Value;
+                    vm.Moneda             = comp.Attribute("Moneda")?.Value;
+                    vm.TipoCambio         = comp.Attribute("TipoCambio")?.Value;
+                    vm.LugarExpedicion    = comp.Attribute("LugarExpedicion")?.Value;
+                    vm.NoCertificado      = comp.Attribute("NoCertificado")?.Value;
+                    vm.CondicionesDePago  = comp.Attribute("CondicionesDePago")?.Value;
+                }
+
+                // ── Emisor ────────────────────────────────────────────────────────
+                var emisor = doc.Descendants()
+                                .FirstOrDefault(e => e.Name.LocalName.Equals("Emisor", StringComparison.OrdinalIgnoreCase));
+
+                if (emisor != null)
+                {
+                    vm.NombreEmisor        = emisor.Attribute("Nombre")?.Value;
+                    vm.RegimenFiscalEmisor = emisor.Attribute("RegimenFiscal")?.Value;
+                }
+
+                // ── Receptor ─────────────────────────────────────────────────────
+                var receptor = doc.Descendants()
+                                  .FirstOrDefault(e => e.Name.LocalName.Equals("Receptor", StringComparison.OrdinalIgnoreCase));
+
+                if (receptor != null)
+                {
+                    vm.RfcReceptor              = receptor.Attribute("Rfc")?.Value;
+                    vm.NombreReceptor           = receptor.Attribute("Nombre")?.Value;
+                    vm.UsoCFDI                  = receptor.Attribute("UsoCFDI")?.Value;
+                    vm.DomicilioFiscalReceptor  = receptor.Attribute("DomicilioFiscalReceptor")?.Value;
+                    vm.RegimenFiscalReceptor    = receptor.Attribute("RegimenFiscalReceptor")?.Value;
+                }
+
+                // ── Sellos del Comprobante ────────────────────────────────────────
+                if (comp != null)
+                {
+                    vm.SelloCFD   = comp.Attribute("Sello")?.Value;
+                    vm.Certificado = comp.Attribute("Certificado")?.Value;
+                }
+
+                // ── TimbreFiscalDigital ───────────────────────────────────────────
+                var tfd = doc.Descendants()
+                             .FirstOrDefault(e => e.Name.LocalName.Equals("TimbreFiscalDigital", StringComparison.OrdinalIgnoreCase));
+
+                if (tfd != null)
+                {
+                    vm.FechaTimbrado    = tfd.Attribute("FechaTimbrado")?.Value;
+                    vm.NoCertificadoSAT = tfd.Attribute("NoCertificadoSAT")?.Value;
+                    vm.SelloSAT         = tfd.Attribute("SelloSAT")?.Value;
+
+                    // Cadena original del TFD v1.1: ||Version|UUID|FechaTimbrado|RfcProvCertif|NoCertificadoSAT||
+                    // Si hay Leyenda (opcional) se inserta antes de NoCertificadoSAT
+                    var tfdVersion   = tfd.Attribute("Version")?.Value ?? "";
+                    var tfdUuid      = tfd.Attribute("UUID")?.Value ?? "";
+                    var tfdFecha     = tfd.Attribute("FechaTimbrado")?.Value ?? "";
+                    var tfdRfcProv   = tfd.Attribute("RfcProvCertif")?.Value ?? "";
+                    var tfdLeyenda   = tfd.Attribute("Leyenda")?.Value;
+                    var tfdNoCert    = tfd.Attribute("NoCertificadoSAT")?.Value ?? "";
+
+                    vm.CadenaOriginalTFD = string.IsNullOrEmpty(tfdLeyenda)
+                        ? $"||{tfdVersion}|{tfdUuid}|{tfdFecha}|{tfdRfcProv}|{tfdNoCert}||"
+                        : $"||{tfdVersion}|{tfdUuid}|{tfdFecha}|{tfdRfcProv}|{tfdLeyenda}|{tfdNoCert}||";
+                }
+            }
+            catch
+            {
+                // Si el XML está malformado, simplemente no enriquecemos el VM
+            }
         }
 
         // -------- XML formateado (AJAX) --------
@@ -270,6 +398,43 @@ namespace Vigma.TimbradoGateway.Controllers
             {
                 return Json(new { success = false, error = ex.Message, xmlRaw = row.XmlTimbrado });
             }
+        }
+
+        // -------- DESCARGAR PDF de factura --------
+        [HttpGet]
+        public IActionResult DescargarPdf(long id)
+        {
+            var vm = ObtenerTimbradoPorId(id);
+            if (vm == null) return NotFound();
+
+            // Obtiene la ruta relativa del logo del tenant (ej: /logos/tenant_3.png)
+            var logoRelPath = ObtenerLogoPath(vm.TenantId);
+
+            byte[] bytes;
+            try
+            {
+                bytes = _pdfSvc.GenerarPdf(vm, logoRelPath);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al generar el PDF: {ex.Message}");
+            }
+
+            var uuid     = string.IsNullOrWhiteSpace(vm.Uuid) ? id.ToString() : vm.Uuid;
+            var fileName = $"Factura_{uuid}.pdf";
+            return File(bytes, "application/pdf", fileName);
+        }
+
+        // -------- Helper: Logo del tenant --------
+        private string? ObtenerLogoPath(long tenantId)
+        {
+            using var cn = new MySqlConnection(_cs);
+            cn.Open();
+            using var cmd = cn.CreateCommand();
+            cmd.CommandText = "SELECT logo_path FROM tenants WHERE id = @id LIMIT 1;";
+            cmd.Parameters.AddWithValue("@id", tenantId);
+            var result = cmd.ExecuteScalar();
+            return result == DBNull.Value || result == null ? null : result.ToString();
         }
 
         /// <summary>
@@ -377,6 +542,141 @@ namespace Vigma.TimbradoGateway.Controllers
             }
         }
 
+        // -------- CONSULTAR ESTADO SAT (AJAX) — FacturaLO PLUS --------
+        [HttpGet]
+        public async Task<IActionResult> ConsultarEstadoSat(long id, CancellationToken ct)
+        {
+            var row = ObtenerTimbradoPorId(id);
+            if (row == null)
+                return Json(new { success = false, error = "Registro de timbrado no encontrado." });
+
+            if (string.IsNullOrWhiteSpace(row.Uuid))
+                return Json(new { success = false, error = "El registro no tiene UUID." });
+
+            if (string.IsNullOrWhiteSpace(row.XmlTimbrado))
+                return Json(new { success = false, error = "El registro no tiene XML timbrado para extraer RFC receptor y Total." });
+
+            // 1) Extraer RfcReceptor y Total del XML
+            string? rfcReceptor;
+            string? total;
+            try
+            {
+                (rfcReceptor, total) = ExtraerReceptorYTotalDelXml(row.XmlTimbrado);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = "No se pudo leer el XML timbrado: " + ex.Message });
+            }
+
+            if (string.IsNullOrWhiteSpace(rfcReceptor) || string.IsNullOrWhiteSpace(total))
+                return Json(new { success = false, error = "El XML no contiene RFC receptor o Total." });
+
+            // 2) Cargar apikey de FacturaLO + flag producción del tenant
+            string? apikeyFl;
+            bool produccion;
+            try
+            {
+                (apikeyFl, produccion) = ObtenerCredencialesFacturaloDelTenant(row.TenantId);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = "No se pudo leer el tenant: " + ex.Message });
+            }
+
+            if (string.IsNullOrWhiteSpace(apikeyFl))
+                return Json(new
+                {
+                    success = false,
+                    error = $"Este tenant no tiene API Key de FacturaLO PLUS configurada para el ambiente " +
+                            $"{(produccion ? "PRODUCCIÓN" : "PRUEBAS")}. Configúrala desde la pantalla de tenant."
+                });
+
+            // 3) Consultar el estado SAT vía FacturaLO
+            try
+            {
+                var resp = await _facturalo.ConsultarEstadoSatAsync(
+                    apikey:      apikeyFl!,
+                    uuid:        row.Uuid!,
+                    rfcEmisor:   row.RfcEmisor ?? "",
+                    rfcReceptor: rfcReceptor!,
+                    total:       total!,
+                    produccion:  produccion,
+                    ct:          ct);
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        codigoEstatus      = resp.CodigoEstatus,
+                        esCancelable       = resp.EsCancelable,
+                        estado             = resp.Estado,
+                        estatusCancelacion = resp.EstatusCancelacion
+                    },
+                    contexto = new
+                    {
+                        uuid        = row.Uuid,
+                        rfcEmisor   = row.RfcEmisor,
+                        rfcReceptor = rfcReceptor,
+                        total       = total,
+                        ambiente    = produccion ? "Producción" : "Pruebas"
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = "Error consultando FacturaLO: " + ex.Message });
+            }
+        }
+
+        // -------- Helpers Estado SAT --------
+        private static (string? rfcReceptor, string? total) ExtraerReceptorYTotalDelXml(string xml)
+        {
+            var doc = XDocument.Parse(xml);
+
+            string? receptor = doc.Descendants()
+                                  .FirstOrDefault(e => e.Name.LocalName.Equals("Receptor", StringComparison.OrdinalIgnoreCase))
+                                  ?.Attribute("Rfc")?.Value?.Trim();
+
+            string? total = doc.Descendants()
+                               .FirstOrDefault(e => e.Name.LocalName.Equals("Comprobante", StringComparison.OrdinalIgnoreCase))
+                               ?.Attribute("Total")?.Value?.Trim();
+
+            return (receptor, total);
+        }
+
+        private (string? apikey, bool produccion) ObtenerCredencialesFacturaloDelTenant(long tenantId)
+        {
+            using var cn = new MySqlConnection(_cs);
+            cn.Open();
+
+            using var cmd = cn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT pac_apikey_facturalo, pac_apikey_facturalo_test, pac_produccion
+                FROM tenants
+                WHERE id = @id AND activo = 1
+                LIMIT 1;";
+            cmd.Parameters.AddWithValue("@id", tenantId);
+
+            using var rd = cmd.ExecuteReader();
+            if (!rd.Read()) return (null, false);
+
+            var apikeyProd = rd["pac_apikey_facturalo"] == DBNull.Value
+                ? null
+                : rd["pac_apikey_facturalo"]?.ToString();
+
+            var apikeyTest = rd["pac_apikey_facturalo_test"] == DBNull.Value
+                ? null
+                : rd["pac_apikey_facturalo_test"]?.ToString();
+
+            var produccion = rd["pac_produccion"] != DBNull.Value && Convert.ToBoolean(rd["pac_produccion"]);
+
+            // Selecciona la apikey correspondiente al ambiente activo
+            var apikey = produccion ? apikeyProd : apikeyTest;
+
+            return (apikey, produccion);
+        }
+
         // -------- CANCELAR PRUEBA (solo en modo pruebas) --------
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -396,11 +696,7 @@ namespace Vigma.TimbradoGateway.Controllers
                 TempData["Error"] = "El CFDI ya está marcado como cancelado.";
                 return RedirectToAction(nameof(Index));
             }
-            if (row.MensajeMf == null || !row.MensajeMf.Contains("[MODO PRUEBAS]"))
-            {
-                TempData["Error"] = "Solo se pueden cancelar CFDIs de modo pruebas desde el monitor.";
-                return RedirectToAction(nameof(Index));
-            }
+           
 
             try
             {
@@ -429,12 +725,14 @@ namespace Vigma.TimbradoGateway.Controllers
         private (List<TimbradoRowVM> rows, int total) ObtenerTimbradosPaginado(
     long? tenantId,
     string? rfcEmisor,
+    string? uuid,
+    string? folio,
     DateTime? fechaInicio,
     DateTime? fechaFinal,
     int page,
     int pageSize)
         {
-            var q = ObtenerTimbrados(tenantId, rfcEmisor, fechaInicio, fechaFinal);
+            var q = ObtenerTimbrados(tenantId, rfcEmisor, uuid, folio, fechaInicio, fechaFinal);
 
            
 

@@ -9,6 +9,7 @@
 <link href="~/css/Gstyle.css" rel="stylesheet" />
 <link href="~/css/Errores.css" rel="stylesheet" />
 <link href="~/css/timbrados.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
 @if (TempData["Exito"] != null)
 {
@@ -73,6 +74,16 @@
                 </div>
 
                 <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-fingerprint"></i> UUID</label>
+                    @Html.TextBoxFor(m => m.Uuid, new { @class = "ec-input", placeholder = "xxxxxxxx-xxxx-xxxx..." })
+                </div>
+
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-hash"></i> Folio</label>
+                    @Html.TextBoxFor(m => m.Folio, new { @class = "ec-input", placeholder = "Folio de la factura..." })
+                </div>
+
+                <div class="ec-field">
                     <label class="ec-label"><i class="bi bi-calendar"></i> Fecha inicio</label>
                     @Html.TextBoxFor(m => m.FechaInicio, "{0:yyyy-MM-dd}", new { @type = "date", @class = "ec-input" })
                 </div>
@@ -117,7 +128,7 @@
                         <th>Mensaje MF</th>
                         <th style="width:90px;">Saldo</th>
                         <th style="width:155px;">Creado (UTC)</th>
-                        <th style="width:170px;" class="ec-th-center">Acciones</th>
+                        <th style="width:240px;" class="ec-th-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -194,7 +205,16 @@
                                            href="@Url.Action("TimbradosAdicionales", "Timbrados", new { id = r.Id })">
                                         <i class="bi bi-plus-circle"></i> Adicionales
                                     </a>
-                                    @if (!r.Cancelada && r.MensajeMf != null && r.MensajeMf.Contains("[MODO PRUEBAS]"))
+                                    <button type="button"
+                                            class="ec-btn-action"
+                                            data-id="@r.Id"
+                                            data-uuid="@r.Uuid"
+                                            data-rfc="@r.RfcEmisor"
+                                            onclick="consultarEstatusSat(this)"
+                                            title="Consultar estado SAT (FacturaLO)">
+                                        <i class="bi bi-shield-check"></i> Estatus SAT
+                                    </button>
+                                    @if (!r.Cancelada && r.MensajeMf != null )
                                     {
                                         <button type="button"
                                                 class="ec-btn-action ec-btn-danger"
@@ -223,7 +243,7 @@
 
                 <div class="tb-page-btns">
                     <a class="tb-page-btn @(!Model.HasPrev ? "tb-page-btn-disabled" : "")"
-                           href="@(Model.HasPrev? Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = Model.Page - 1, pageSize = Model.PageSize }) : "#")">
+                           href="@(Model.HasPrev? Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, uuid = Model.Uuid, folio = Model.Folio, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = Model.Page - 1, pageSize = Model.PageSize }) : "#")">
                         «
                     </a>
 
@@ -236,13 +256,13 @@
                     @for (int p = start; p <= end; p++)
                     {
                         <a class="tb-page-btn @(p == Model.Page ? "tb-page-btn-active" : "")"
-                               href="@Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = p, pageSize = Model.PageSize })">
+                               href="@Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, uuid = Model.Uuid, folio = Model.Folio, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = p, pageSize = Model.PageSize })">
                             @p
                         </a>
                     }
 
                     <a class="tb-page-btn @(!Model.HasNext ? "tb-page-btn-disabled" : "")"
-                           href="@(Model.HasNext? Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = Model.Page + 1, pageSize = Model.PageSize }) : "#")">
+                           href="@(Model.HasNext? Url.Action("Index", "Timbrados", new { tenantId = Model.TenantId, rfcEmisor = Model.RfcEmisor, uuid = Model.Uuid, folio = Model.Folio, fechaInicio = Model.FechaInicio?.ToString("yyyy-MM-dd"), fechaFinal = Model.FechaFinal?.ToString("yyyy-MM-dd"), page = Model.Page + 1, pageSize = Model.PageSize }) : "#")">
                         »
                     </a>
                 </div>
@@ -250,6 +270,71 @@
         }
     </div>
 
+</div>
+
+<!-- ── Modal Estatus SAT (FacturaLO) ── -->
+<div class="modal fade" id="modalEstatusSat" tabindex="-1" aria-labelledby="modalEstatusSatLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalEstatusSatLabel">
+                    <i class="bi bi-shield-check me-2"></i>Estatus SAT del CFDI
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Loading -->
+                <div id="estatusSatLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Consultando…</span>
+                    </div>
+                    <div class="mt-2 text-muted">Consultando al SAT vía FacturaLO PLUS…</div>
+                </div>
+
+                <!-- Error -->
+                <div id="estatusSatError" class="alert alert-danger d-none" role="alert"></div>
+
+                <!-- Resultado -->
+                <div id="estatusSatResultado" class="d-none">
+                    <h6 class="text-muted mb-2">CFDI consultado</h6>
+                    <table class="table table-sm table-borderless mb-3">
+                        <tr><th style="width:140px;">UUID:</th>        <td><code id="estUuid"></code></td></tr>
+                        <tr><th>RFC Emisor:</th>                       <td><code id="estRfcEmisor"></code></td></tr>
+                        <tr><th>RFC Receptor:</th>                     <td><code id="estRfcReceptor"></code></td></tr>
+                        <tr><th>Total:</th>                            <td><code id="estTotal"></code></td></tr>
+                        <tr><th>Ambiente:</th>                         <td><span id="estAmbiente" class="badge bg-secondary"></span></td></tr>
+                    </table>
+
+                    <h6 class="text-muted mb-2">Respuesta del SAT</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <th style="width:200px;"><i class="bi bi-hash"></i> Código de estatus</th>
+                            <td><code id="estCodigoEstatus"></code></td>
+                        </tr>
+                        <tr>
+                            <th><i class="bi bi-flag"></i> Estado</th>
+                            <td><span id="estEstado" class="badge"></span></td>
+                        </tr>
+                        <tr>
+                            <th><i class="bi bi-question-circle"></i> ¿Es cancelable?</th>
+                            <td><span id="estEsCancelable"></span></td>
+                        </tr>
+                        <tr>
+                            <th><i class="bi bi-clock-history"></i> Estatus de cancelación</th>
+                            <td><span id="estEstatusCancelacion"></span></td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ── Modal Cancelar Prueba ── -->
@@ -321,6 +406,69 @@
             const modal = new bootstrap.Modal(document.getElementById('modalCancelarPrueba'));
             modal.show();
         }
+
+        // ── Consulta de Estatus SAT (FacturaLO) ─────────────────────────────
+        function consultarEstatusSat(btn) {
+            const id = btn.getAttribute('data-id');
+
+            const $loading   = document.getElementById('estatusSatLoading');
+            const $error     = document.getElementById('estatusSatError');
+            const $resultado = document.getElementById('estatusSatResultado');
+
+            $loading.classList.remove('d-none');
+            $error.classList.add('d-none');
+            $error.textContent = '';
+            $resultado.classList.add('d-none');
+
+            const modal = new bootstrap.Modal(document.getElementById('modalEstatusSat'));
+            modal.show();
+
+            const url = '@Url.Action("ConsultarEstadoSat", "Timbrados")' + '?id=' + encodeURIComponent(id);
+
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(json => {
+                    $loading.classList.add('d-none');
+
+                    if (!json || json.success === false) {
+                        $error.textContent = (json && json.error) ? json.error : 'No se pudo consultar el estado.';
+                        $error.classList.remove('d-none');
+                        return;
+                    }
+
+                    const ctx  = json.contexto || {};
+                    const data = json.data || {};
+
+                    document.getElementById('estUuid').textContent        = ctx.uuid        || '-';
+                    document.getElementById('estRfcEmisor').textContent   = ctx.rfcEmisor   || '-';
+                    document.getElementById('estRfcReceptor').textContent = ctx.rfcReceptor || '-';
+                    document.getElementById('estTotal').textContent       = ctx.total       || '-';
+
+                    const $amb = document.getElementById('estAmbiente');
+                    $amb.textContent = ctx.ambiente || '-';
+                    $amb.className = 'badge ' + (ctx.ambiente === 'Producción' ? 'bg-success' : 'bg-warning text-dark');
+
+                    document.getElementById('estCodigoEstatus').textContent = data.codigoEstatus || '-';
+
+                    const $estado = document.getElementById('estEstado');
+                    const estado = (data.estado || '').trim();
+                    $estado.textContent = estado || '-';
+                    if (estado.toLowerCase() === 'vigente')        { $estado.className = 'badge bg-success'; }
+                    else if (estado.toLowerCase() === 'cancelado') { $estado.className = 'badge bg-danger'; }
+                    else                                           { $estado.className = 'badge bg-secondary'; }
+
+                    document.getElementById('estEsCancelable').textContent       = data.esCancelable       || '-';
+                    document.getElementById('estEstatusCancelacion').textContent = data.estatusCancelacion || '(null)';
+
+                    $resultado.classList.remove('d-none');
+                })
+                .catch(err => {
+                    $loading.classList.add('d-none');
+                    $error.textContent = 'Error de red: ' + err.message;
+                    $error.classList.remove('d-none');
+                });
+        }
     </script>
 }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 

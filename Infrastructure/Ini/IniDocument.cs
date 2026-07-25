@@ -193,9 +193,24 @@ namespace TimbradoGateway.Infrastructure.Ini
                 }
             }
 
+            // Caso 1.5: [CfdisRelacionados.UUID] con claves numéricas 0=uuid, 1=uuid ...
+            // Estructura generada por algunos clientes: TipoRelacion en [CfdisRelacionados]
+            // y los UUIDs en sección separada [CfdisRelacionados.UUID] con índices 0=, 1=, ...
+            if (parsed.TryGetValue("CfdisRelacionados.UUID", out var uuidSec))
+            {
+                doc.CfdiRelacionados ??= new IniCfdiRelacionados();
+                foreach (var kv in uuidSec)
+                {
+                    var v = kv.Value?.Trim();
+                    if (!string.IsNullOrWhiteSpace(v))
+                        doc.CfdiRelacionados.Uuids.Add(v);
+                }
+            }
+
             // Caso 2: [CfdisRelacionados.0], [CfdisRelacionados.1] ...
             var relSections = parsed.Keys
                 .Where(k => k.StartsWith("CfdisRelacionados.", StringComparison.OrdinalIgnoreCase))
+                .Where(k => !k.Equals("CfdisRelacionados.UUID", StringComparison.OrdinalIgnoreCase)) // ya procesado arriba
                 .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 

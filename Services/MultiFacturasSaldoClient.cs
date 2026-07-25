@@ -52,7 +52,7 @@ namespace Vigma.TimbradoGateway.Services
                     Ok = false,
                     Codigo = ((int)resp.StatusCode).ToString(),
                     Mensaje = "Error HTTP al consultar saldo en Multifacturas.",
-                    Saldo = 0,
+                    Saldo = null,
                     XmlCrudo = xml
                 };
             }
@@ -64,8 +64,12 @@ namespace Vigma.TimbradoGateway.Services
             string? mensaje = xdoc.Descendants("codigo_mf_texto").FirstOrDefault()?.Value;
             string? saldoStr = xdoc.Descendants("saldo").FirstOrDefault()?.Value;
 
-            int saldo = 0;
-            _ = int.TryParse(saldoStr, out saldo);
+            // El PAC puede regresar <saldo xsi:nil="true"/> (vacío): eso NO es un
+            // saldo real de 0, es "no envió el dato". Lo dejamos null para
+            // diferenciarlo de un saldo verdadero en 0.
+            int? saldo = null;
+            if (!string.IsNullOrWhiteSpace(saldoStr) && int.TryParse(saldoStr, out var saldoParsed))
+                saldo = saldoParsed;
 
             return new SaldoTimbresResponse
             {

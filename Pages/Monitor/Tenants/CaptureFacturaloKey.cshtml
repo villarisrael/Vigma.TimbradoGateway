@@ -1,0 +1,356 @@
+@page "{id:int}"
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.CaptureFacturaloKeyModel
+@{
+    ViewData["Title"] = "API Key FacturaLO";
+}
+
+<link href="~/css/Gstyle.css"   rel="stylesheet" />
+<link href="~/css/timbrado.css" rel="stylesheet" />
+
+<style>
+/* ── Capture FacturaLO Key — estilos scoped ─────────────────────────────── */
+.fk-page  { padding: var(--space-5); max-width: 620px; }
+
+.fk-header {
+    display: flex; align-items: center;
+    gap: var(--space-4); margin-bottom: var(--space-5);
+}
+
+.fk-header-icon {
+    width: 52px; height: 52px;
+    border-radius: var(--radius-md);
+    background: var(--vigma-gradient);
+    display: flex; align-items: center;
+    justify-content: center; font-size: var(--text-2xl);
+    flex-shrink: 0; box-shadow: 0 6px 18px rgba(91,91,214,.35);
+}
+
+.fk-header-text h2 {
+    font-family: var(--font-titles); font-weight: var(--weight-bold);
+    font-size: var(--text-2xl);
+    background: var(--vigma-gradient);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: var(--space-1);
+}
+
+.fk-header-text p { font-size: var(--text-sm); color: var(--color-txt-light); margin:0; }
+[data-theme="dark"] .fk-header-text p { color: #9090b0; }
+
+/* Card */
+.fk-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,.05);
+    overflow: hidden;
+}
+[data-theme="dark"] .fk-card {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,.06);
+}
+
+.fk-section { padding: var(--space-5); }
+.fk-section + .fk-section { border-top: 1px solid var(--bg-light-muted); }
+[data-theme="dark"] .fk-section + .fk-section { border-color: var(--bg-dark-muted); }
+
+.fk-section-label {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+    color: #f7971e; background: rgba(247,151,30,.1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    width: fit-content; margin-bottom: var(--space-4);
+}
+
+.fk-current {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-3); padding: var(--space-3) var(--space-4);
+    background: var(--bg-light-subtle);
+    border: 1px solid var(--bg-light-muted);
+    border-radius: var(--radius-md);
+    font-family: monospace; font-size: var(--text-sm);
+    color: var(--color-dark);
+    word-break: break-all;
+}
+[data-theme="dark"] .fk-current {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+    color: #e0e0f0;
+}
+
+.fk-empty {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-light-subtle);
+    border: 1px dashed var(--bg-light-muted);
+    border-radius: var(--radius-md);
+    color: #9090b0; font-size: var(--text-sm);
+    text-align: center;
+}
+[data-theme="dark"] .fk-empty {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+}
+
+.fk-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 10px; border-radius: var(--radius-full);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+}
+.fk-pill-facturalo  { background: rgba(91,91,214,.12);  color: var(--color-vigma); }
+.fk-pill-multi      { background: rgba(17,153,142,.10); color: #11998e; }
+
+/* Form */
+.fk-field         { margin-bottom: var(--space-4); }
+.fk-field label   {
+    display: block; font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-txt-light); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: .5px;
+}
+[data-theme="dark"] .fk-field label { color: #b0b0c8; }
+
+.fk-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--bg-light-muted);
+    border-radius: var(--radius-md);
+    background: var(--bg-light-page);
+    color: var(--color-dark);
+    font-family: monospace;
+    font-size: var(--text-sm);
+    transition: var(--transition-fast);
+}
+[data-theme="dark"] .fk-input {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+    color: #e0e0f0;
+}
+.fk-input:focus {
+    outline: none;
+    border-color: var(--color-vigma);
+    box-shadow: 0 0 0 3px rgba(91,91,214,.15);
+}
+
+.fk-help {
+    font-size: var(--text-xs); color: #9090b0;
+    margin-top: 6px;
+}
+
+.fk-check {
+    display: flex; align-items: center; gap: 8px;
+    font-size: var(--text-sm); color: var(--color-dark);
+    cursor: pointer;
+}
+[data-theme="dark"] .fk-check { color: #e0e0f0; }
+
+/* Footer */
+.fk-footer {
+    display: flex; align-items: center;
+    gap: var(--space-3); padding: var(--space-4) var(--space-5);
+    background: var(--bg-light-subtle);
+    border-top: 1px solid var(--bg-light-muted);
+}
+[data-theme="dark"] .fk-footer {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+}
+
+/* Alertas */
+.fk-alert {
+    display: flex; align-items: center;
+    gap: var(--space-3); padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md); margin-bottom: var(--space-4);
+    font-size: var(--text-sm); font-weight: var(--weight-medium);
+}
+.fk-alert-ok    { background: rgba(17,153,142,.08); color: #11998e; border: 1px solid rgba(17,153,142,.25); }
+.fk-alert-error { background: rgba(255,65,108,.08); color: #ff416c; border: 1px solid rgba(255,65,108,.25); }
+</style>
+
+<div class="main-content">
+<div class="fk-page">
+
+    <!-- Header -->
+    <div class="fk-header">
+        <div class="fk-header-icon">🔑</div>
+        <div class="fk-header-text">
+            <h2>API Key FacturaLO PLUS</h2>
+            <p>@Model.TenantNombre · ID @Model.TenantId</p>
+        </div>
+    </div>
+
+    <!-- Alertas TempData -->
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+    {
+        <div class="fk-alert fk-alert-ok">✅ @Model.MensajeOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+    {
+        <div class="fk-alert fk-alert-error">❌ @Model.MensajeError</div>
+    }
+
+    <div class="fk-card">
+
+        <!-- Sección: estado actual -->
+        <div class="fk-section">
+            <div class="fk-section-label">📌 Estado actual</div>
+
+            <div class="fk-field">
+                <label>PAC activo</label>
+                @if (string.Equals(Model.PacProveedorActual, "facturalo", StringComparison.OrdinalIgnoreCase))
+                {
+                    <span class="fk-pill fk-pill-facturalo">⚡ FacturaLO PLUS</span>
+                }
+                else
+                {
+                    <span class="fk-pill fk-pill-multi">☁ MultiFacturas</span>
+                }
+
+                <span class="fk-pill" style="margin-left: var(--space-2); background: rgba(247,151,30,.1); color: #f7971e;">
+                    @(Model.PacProduccion ? "🚀 Ambiente: PRODUCCIÓN" : "🧪 Ambiente: PRUEBAS")
+                </span>
+
+                <div style="margin-top: var(--space-3); display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    @if (!string.Equals(Model.PacProveedorActual, "multifacturas", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form method="post" asp-page-handler="CambiarProveedor"
+                              asp-route-id="@Model.TenantId" style="margin:0">
+                            <input type="hidden" name="proveedor" value="multifacturas" />
+                            <button type="submit" class="vg-btn vg-btn-outline"
+                                    onclick="return confirm('¿Cambiar el PAC activo a MultiFacturas?')">
+                                ☁ Usar MultiFacturas
+                            </button>
+                        </form>
+                    }
+
+                    @if (!string.Equals(Model.PacProveedorActual, "facturalo", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form method="post" asp-page-handler="CambiarProveedor"
+                              asp-route-id="@Model.TenantId" style="margin:0">
+                            <input type="hidden" name="proveedor" value="facturalo" />
+                            <button type="submit" class="vg-btn vg-btn-primary"
+                                    onclick="return confirm('¿Cambiar el PAC activo a FacturaLO PLUS?');"
+                                    disabled="@(!Model.TieneApiKeyDelAmbienteActivo)"
+                                    title="@(Model.TieneApiKeyDelAmbienteActivo ? "Cambiar a FacturaLO" : "Captura primero la API Key del ambiente activo")">
+                                ⚡ Usar FacturaLO
+                            </button>
+                        </form>
+                    }
+                </div>
+                @if (!Model.TieneApiKeyDelAmbienteActivo && !string.Equals(Model.PacProveedorActual, "facturalo", StringComparison.OrdinalIgnoreCase))
+                {
+                    <div class="fk-help" style="margin-top: 6px;">
+                        Para activar FacturaLO necesitas capturar primero la API Key de <strong>@Model.AmbienteActivoLabel</strong>.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Sección: API Key PRUEBAS -->
+        <div class="fk-section">
+            <div class="fk-section-label" style="color:#f7971e; background: rgba(247,151,30,.1);">🧪 API Key — Pruebas / Sandbox</div>
+
+            <div class="fk-field">
+                <label>Estado actual</label>
+                @if (Model.TieneApiKeyTest)
+                {
+                    <div class="fk-current">
+                        <span>@Model.ApiKeyTestMasked</span>
+                        <form method="post" asp-page-handler="EliminarTest"
+                              asp-route-id="@Model.TenantId" style="margin:0">
+                            <button type="submit" class="vg-btn vg-btn-danger-outline"
+                                    onclick="return confirm('¿Eliminar la API Key de PRUEBAS? Si el ambiente activo es Pruebas y el PAC actual es FacturaLO, se regresará a MultiFacturas.')">
+                                🗑 Eliminar
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="fk-empty">No hay API Key de Pruebas configurada.</div>
+                }
+            </div>
+
+            <form method="post" asp-page-handler="GuardarTest" asp-route-id="@Model.TenantId">
+                <div class="fk-field">
+                    <label for="NuevaApiKeyTest">Nueva API Key (Pruebas)</label>
+                    <input type="text" id="NuevaApiKeyTest"
+                           asp-for="NuevaApiKeyTest"
+                           class="fk-input"
+                           placeholder="ej. 0123456789abcdef0123456789abcdef"
+                           autocomplete="off"
+                           spellcheck="false"
+                           maxlength="64" />
+                    <div class="fk-help">Apikey emitida por FacturaLO PLUS para su ambiente de Sandbox.</div>
+                </div>
+
+                <div class="fk-field">
+                    <label class="fk-check">
+                        <input type="checkbox" asp-for="ActivarFacturalo" />
+                        <span>Activar FacturaLO como PAC al guardar (solo aplica si el ambiente activo es Pruebas)</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="vg-btn vg-btn-primary">
+                    💾 Guardar API Key Pruebas
+                </button>
+            </form>
+        </div>
+
+        <!-- Sección: API Key PRODUCCIÓN -->
+        <div class="fk-section">
+            <div class="fk-section-label" style="color:#11998e; background: rgba(17,153,142,.1);">🚀 API Key — Producción</div>
+
+            <div class="fk-field">
+                <label>Estado actual</label>
+                @if (Model.TieneApiKeyProd)
+                {
+                    <div class="fk-current">
+                        <span>@Model.ApiKeyProdMasked</span>
+                        <form method="post" asp-page-handler="EliminarProd"
+                              asp-route-id="@Model.TenantId" style="margin:0">
+                            <button type="submit" class="vg-btn vg-btn-danger-outline"
+                                    onclick="return confirm('¿Eliminar la API Key de PRODUCCIÓN? Si el ambiente activo es Producción y el PAC actual es FacturaLO, se regresará a MultiFacturas.')">
+                                🗑 Eliminar
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="fk-empty">No hay API Key de Producción configurada.</div>
+                }
+            </div>
+
+            <form method="post" asp-page-handler="GuardarProd" asp-route-id="@Model.TenantId">
+                <div class="fk-field">
+                    <label for="NuevaApiKeyProd">Nueva API Key (Producción)</label>
+                    <input type="text" id="NuevaApiKeyProd"
+                           asp-for="NuevaApiKeyProd"
+                           class="fk-input"
+                           placeholder="ej. 0123456789abcdef0123456789abcdef"
+                           autocomplete="off"
+                           spellcheck="false"
+                           maxlength="64" />
+                    <div class="fk-help">Apikey emitida por FacturaLO PLUS para su ambiente de Producción.</div>
+                </div>
+
+                <div class="fk-field">
+                    <label class="fk-check">
+                        <input type="checkbox" asp-for="ActivarFacturalo" />
+                        <span>Activar FacturaLO como PAC al guardar (solo aplica si el ambiente activo es Producción)</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="vg-btn vg-btn-primary">
+                    💾 Guardar API Key Producción
+                </button>
+            </form>
+        </div>
+
+        <div class="fk-footer">
+            <a href="/Monitor/Tenants" class="vg-btn vg-btn-outline">← Volver</a>
+        </div>
+
+    </div>
+</div>
+</div>

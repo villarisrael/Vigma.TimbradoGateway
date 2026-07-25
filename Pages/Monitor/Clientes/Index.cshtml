@@ -1,0 +1,460 @@
+@page
+@model Vigma.TimbradoGateway.Pages.Monitor.Clientes.IndexModel
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+
+<style>
+/* ── Clientes Index — estilos scoped ──────────────────────────────────────── */
+
+.cl-page {
+    padding: var(--space-5);
+    max-width: var(--container-xxl);
+}
+
+/* Hero */
+.cl-hero {
+    background: var(--vigma-gradient);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.cl-hero-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.cl-hero-icon {
+    width: 60px; height: 60px;
+    border-radius: var(--radius-lg);
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--text-3xl);
+    flex-shrink: 0;
+    backdrop-filter: blur(8px);
+}
+
+.cl-hero-title {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-3xl);
+    color: white;
+    margin-bottom: var(--space-2);
+    line-height: 1.1;
+}
+
+.cl-hero-badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.cl-hero-badge {
+    display: inline-flex; align-items: center; gap: var(--space-1);
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: var(--text-xs); font-weight: var(--weight-medium);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(4px);
+}
+
+/* Alert banner */
+.cl-alert {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    background: rgba(17,153,142,0.1);
+    border: 1px solid rgba(17,153,142,0.3);
+    border-left: 4px solid var(--color-success);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm); color: #11998e;
+    font-weight: var(--weight-medium);
+}
+
+/* Table card */
+.cl-table-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .cl-table-card {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,0.05);
+}
+
+.cl-table-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .cl-table-header { border-color: var(--bg-dark-muted); }
+
+.cl-table-header-title {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-family: var(--font-titles); font-weight: var(--weight-semibold);
+    font-size: var(--text-base); color: var(--color-dark);
+}
+
+[data-theme="dark"] .cl-table-header-title { color: #e0e0f0; }
+
+.cl-table-wrapper { overflow-x: auto; }
+
+.cl-table {
+    width: 100%; border-collapse: collapse; min-width: 780px;
+}
+
+.cl-table thead tr { background: var(--bg-light-subtle); }
+[data-theme="dark"] .cl-table thead tr { background: var(--bg-dark-subtle); }
+
+.cl-table th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left; font-size: var(--text-xs);
+    font-weight: var(--weight-semibold); color: #9090b0;
+    text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+}
+
+.cl-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--bg-light-muted);
+    font-size: var(--text-sm); color: var(--color-dark); vertical-align: middle;
+}
+
+[data-theme="dark"] .cl-table td { border-color: var(--bg-dark-muted); color: #c0c0d8; }
+
+.cl-table tbody tr { transition: var(--transition-fast); }
+.cl-table tbody tr:hover { background: var(--bg-light-subtle); }
+[data-theme="dark"] .cl-table tbody tr:hover { background: var(--bg-dark-subtle); }
+
+/* ID badge */
+.cl-id {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 24px; padding: 0 var(--space-2);
+    background: var(--bg-light-subtle); border-radius: var(--radius-sm);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold); color: #9090b0;
+}
+
+[data-theme="dark"] .cl-id { background: var(--bg-dark-subtle); color: #6060a0; }
+
+/* Client cell */
+.cl-client-cell { display: flex; align-items: center; gap: var(--space-3); }
+
+.cl-avatar {
+    width: 38px; height: 38px; border-radius: var(--radius-md);
+    background: linear-gradient(135deg, rgba(91,91,214,0.12), rgba(139,47,201,0.12));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-titles); font-weight: var(--weight-bold);
+    font-size: var(--text-base); color: var(--color-vigma); flex-shrink: 0;
+    overflow: hidden;
+}
+
+.cl-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+
+.cl-client-name {
+    font-weight: var(--weight-semibold); color: var(--color-dark);
+    font-size: var(--text-sm); line-height: 1.3;
+}
+
+[data-theme="dark"] .cl-client-name { color: #e0e0f0; }
+
+.cl-client-rfc { font-size: var(--text-xs); color: #9090b0; margin-top: 2px; }
+
+/* Status badge */
+.cl-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px var(--space-2); border-radius: var(--radius-full);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold); white-space: nowrap;
+}
+
+.cl-status-on  { background: rgba(17,153,142,0.1); color: #11998e; }
+.cl-status-off { background: var(--bg-light-subtle); color: #9090b0; border: 1px solid var(--bg-light-muted); }
+[data-theme="dark"] .cl-status-off { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); }
+
+/* Tenants pill */
+.cl-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px var(--space-2); border-radius: var(--radius-full);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+    background: rgba(91,91,214,0.1); color: var(--color-vigma);
+}
+
+/* Action buttons */
+.cl-action-group { display: flex; align-items: center; gap: var(--space-2); }
+
+.cl-btn-action {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 10px; border-radius: var(--radius-md);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+    text-decoration: none; cursor: pointer; border: 1.5px solid transparent;
+    transition: var(--transition-fast); white-space: nowrap; font-family: var(--font-body);
+}
+
+.cl-btn-edit {
+    border-color: var(--color-vigma); color: var(--color-vigma); background: transparent;
+}
+.cl-btn-edit:hover { background: rgba(91,91,214,0.1); }
+
+.cl-btn-detail {
+    border-color: var(--bg-light-muted); color: #9090b0; background: transparent;
+}
+[data-theme="dark"] .cl-btn-detail { border-color: var(--bg-dark-muted); }
+.cl-btn-detail:hover { border-color: var(--color-vigma); color: var(--color-vigma); }
+
+.cl-btn-suspend {
+    border-color: rgba(247,151,30,0.4); color: var(--color-warning); background: transparent;
+}
+.cl-btn-suspend:hover { background: rgba(247,151,30,0.1); border-color: var(--color-warning); }
+
+.cl-btn-activate {
+    border-color: rgba(17,153,142,0.4); color: var(--color-success); background: transparent;
+}
+.cl-btn-activate:hover { background: rgba(17,153,142,0.1); border-color: var(--color-success); }
+
+/* Empty state */
+.cl-empty {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: var(--space-4);
+    padding: var(--space-8) var(--space-5); text-align: center;
+}
+
+.cl-empty-icon {
+    width: 100px; height: 100px; border-radius: var(--radius-full);
+    background: var(--bg-light-subtle);
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--text-4xl);
+}
+
+[data-theme="dark"] .cl-empty-icon { background: var(--bg-dark-subtle); }
+
+.cl-empty-title {
+    font-family: var(--font-titles); font-weight: var(--weight-bold);
+    font-size: var(--text-2xl); color: var(--color-dark);
+}
+
+[data-theme="dark"] .cl-empty-title { color: #e0e0f0; }
+
+.cl-empty-sub { font-size: var(--text-sm); color: #9090b0; max-width: 340px; }
+</style>
+
+<div class="main-content">
+    <div class="cl-page">
+
+        <!-- Hero -->
+        <div class="cl-hero">
+            <div class="cl-hero-left">
+                <div class="cl-hero-icon"><i class="bi bi-building"></i></div>
+                <div>
+                    <div class="cl-hero-title">Clientes / Distribuidores</div>
+                    <div class="cl-hero-badges">
+                        <span class="cl-hero-badge">
+                            <i class="bi bi-people-fill"></i>
+                            @Model.Items.Count @(Model.Items.Count == 1 ? "cliente" : "clientes")
+                        </span>
+                        <span class="cl-hero-badge">
+                            <i class="bi bi-circle-fill" style="font-size:7px"></i>
+                            @Model.Items.Count(c => c.Activo) activos
+                        </span>
+                        <span class="cl-hero-badge">
+                            <i class="bi bi-hdd-stack-fill"></i>
+                            @Model.Items.Sum(c => c.NumTenants) tenants asignados
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <a asp-page="Crear" class="vg-btn"
+               style="background:white; color:var(--color-vigma); font-weight:var(--weight-semibold);">
+                <i class="bi bi-plus-lg"></i> Nuevo Cliente
+            </a>
+        </div>
+
+        <!-- Alert mensaje de éxito -->
+        @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+        {
+            <div class="cl-alert">
+                <i class="bi bi-check-circle-fill"></i>
+                @Model.SuccessMessage
+            </div>
+        }
+
+        <!-- Tabla / Empty -->
+        @if (!Model.Items.Any())
+        {
+            <div class="cl-table-card">
+                <div class="cl-empty">
+                    <div class="cl-empty-icon"><i class="bi bi-building"></i></div>
+                    <div class="cl-empty-title">No hay clientes registrados</div>
+                    <div class="cl-empty-sub">
+                        Comienza registrando el primer cliente distribuidor del sistema.
+                    </div>
+                    <a asp-page="Crear" class="vg-btn vg-btn-primary">
+                        <i class="bi bi-plus-lg"></i> Crear Primer Cliente
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="cl-table-card">
+                <div class="cl-table-header">
+                    <div class="cl-table-header-title">
+                        <i class="bi bi-card-list" style="color:var(--color-vigma)"></i>
+                        Listado de Clientes
+                    </div>
+                </div>
+
+                <div class="cl-table-wrapper">
+                    <table class="cl-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>RFC</th>
+                                <th>Tenants</th>
+                                <th>Estado</th>
+                                <th>Creado</th>
+                                <th style="text-align:center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Items)
+                            {
+                                <tr>
+                                    <!-- ID -->
+                                    <td><span class="cl-id">@c.Id</span></td>
+
+                                    <!-- Cliente -->
+                                    <td>
+                                        <div class="cl-client-cell">
+                                            @if (!string.IsNullOrWhiteSpace(c.LogoPath))
+                                            {
+                                                <div class="cl-avatar">
+                                                    <img src="@c.LogoPath?v=@c.Id" alt="@c.Nombre" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="cl-avatar">
+                                                    @c.Nombre.Substring(0, 1).ToUpper()
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="cl-client-name">@c.Nombre</div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- RFC -->
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(c.Rfc))
+                                        {
+                                            <code style="font-size:var(--text-xs);background:var(--bg-light-subtle);
+                                                         padding:2px 6px;border-radius:var(--radius-sm);">
+                                                @c.Rfc
+                                            </code>
+                                        }
+                                        else
+                                        {
+                                            <span style="color:#9090b0">—</span>
+                                        }
+                                    </td>
+
+                                    <!-- Tenants -->
+                                    <td>
+                                        <span class="cl-pill">
+                                            <i class="bi bi-hdd-stack"></i>
+                                            @c.NumTenants
+                                        </span>
+                                    </td>
+
+                                    <!-- Estado -->
+                                    <td>
+                                        @if (c.Activo)
+                                        {
+                                            <span class="cl-status cl-status-on">
+                                                <i class="bi bi-circle-fill" style="font-size:7px"></i> Activo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="cl-status cl-status-off">
+                                                <i class="bi bi-circle" style="font-size:7px"></i> Suspendido
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <!-- Creado -->
+                                    <td style="color:#9090b0; font-size:var(--text-xs);">
+                                        @c.CreadoUtc.ToLocalTime().ToString("dd/MM/yyyy")
+                                    </td>
+
+                                    <!-- Acciones -->
+                                    <td>
+                                        <div class="cl-action-group">
+                                            <a asp-page="Editar" asp-route-id="@c.Id"
+                                               class="cl-btn-action cl-btn-edit">
+                                                <i class="bi bi-pencil-fill"></i> Editar
+                                            </a>
+                                            <a asp-page="Detalles" asp-route-id="@c.Id"
+                                               class="cl-btn-action cl-btn-detail">
+                                                <i class="bi bi-eye-fill"></i> Ver
+                                            </a>
+                                            <form method="post" asp-page-handler="ToggleActivo"
+                                                  style="display:inline;"
+                                                  onsubmit="return confirmarToggle(this, '@c.Nombre', @c.Activo.ToString().ToLower())">
+                                                <input type="hidden" name="id" value="@c.Id" />
+                                                @if (c.Activo)
+                                                {
+                                                    <button type="submit" class="cl-btn-action cl-btn-suspend">
+                                                        <i class="bi bi-pause-fill"></i> Suspender
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="submit" class="cl-btn-action cl-btn-activate">
+                                                        <i class="bi bi-play-fill"></i> Activar
+                                                    </button>
+                                                }
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmarToggle(form, nombre, esActivo) {
+        const accion = esActivo ? 'suspender' : 'activar';
+        const color  = esActivo ? '#f7971e'   : '#11998e';
+        Swal.fire({
+            title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} cliente?`,
+            html: `<span style="color:#9090b0">${nombre}</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: color,
+            cancelButtonColor: '#9090b0',
+            confirmButtonText: `Sí, ${accion}`,
+            cancelButtonText: 'Cancelar'
+        }).then(res => { if (res.isConfirmed) form.submit(); });
+        return false;
+    }
+</script>
+}

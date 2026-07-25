@@ -1,0 +1,493 @@
+@page
+@model TimbradosModel
+@{
+    ViewData["Title"] = "Timbrados";
+    Layout = "/Pages/Shared/_LayoutCliente.cshtml";
+}
+
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+<link href="~/css/Errores.css" rel="stylesheet" />
+<link href="~/css/timbrados.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    .ec-td-center {
+        text-align: center !important;
+    }
+
+    .ec-th-center {
+        text-align: center !important;
+    }
+
+    .ec-btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.35rem 0.65rem;
+        margin: 0.15rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #f8f9fa;
+        color: #333;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .ec-btn-action:hover {
+        background: #e9ecef;
+        border-color: #999;
+    }
+
+    .ec-btn-action.ec-btn-danger {
+        background: #ffebee;
+        border-color: #f44336;
+        color: #f44336;
+    }
+
+    .ec-btn-action.ec-btn-danger:hover {
+        background: #ffcdd2;
+        border-color: #d32f2f;
+        color: #d32f2f;
+    }
+
+    body[data-theme="dark"] .ec-btn-action {
+        background: #374151;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+
+    body[data-theme="dark"] .ec-btn-action:hover {
+        background: #4b5563;
+        border-color: #6b7280;
+    }
+</style>
+
+<div class="errores-page">
+    <!-- ── Alertas ── -->
+    @if (TempData["Exito"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mx-3 mt-3" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Exito"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- ── Header ── -->
+    <div class="errores-header">
+        <div class="errores-header-left">
+            <span class="tb-badge-top">
+                <i class="bi bi-receipt-cutoff"></i> Timbrados
+            </span>
+            <h1 class="errores-title">Mis Timbrados</h1>
+            <span class="errores-subtitle">
+                Últimos timbrados registrados • Ordenados por <strong>created_utc DESC</strong>
+            </span>
+        </div>
+        <div class="errores-header-right">
+            <div class="ec-stat-pill">
+                <span class="ec-stat-num">@(Model.Rows?.Count() ?? 0)</span>
+                <span class="ec-stat-label">Resultados</span>
+            </div>
+            <div class="ec-stat-pill tb-stat-cancel">
+                <span class="ec-stat-num">@Model.CanceladasCount</span>
+                <span class="ec-stat-label">Canceladas</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Filtros ── -->
+    <div class="ec-filter-card tb-filter-card">
+        <div class="ec-filter-header">
+            <i class="bi bi-funnel-fill" style="color:var(--color-warning)"></i>
+            <span>Filtros de búsqueda</span>
+        </div>
+        <form method="get">
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            <div class="ec-filter-grid">
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-people"></i> Tenant</label>
+                    <select name="tenantId" class="ec-select">
+                        @foreach (var item in Model.Tenants)
+                        {
+                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-building"></i> RFC Emisor</label>
+                    <input type="text" name="rfcEmisor" class="ec-input" placeholder="EKU9003173C9..." value="@Model.RfcEmisor" />
+                </div>
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-fingerprint"></i> UUID</label>
+                    <input type="text" name="uuid" class="ec-input" placeholder="xxxxxxxx-xxxx-xxxx..." value="@Model.Uuid" />
+                </div>
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-hash"></i> Folio</label>
+                    <input type="text" name="folio" class="ec-input" placeholder="Folio de la factura..." value="@Model.Folio" />
+                </div>
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-calendar"></i> Fecha inicio</label>
+                    <input type="date" name="fechaInicio" class="ec-input" value="@Model.FechaInicio?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="ec-field">
+                    <label class="ec-label"><i class="bi bi-calendar-check"></i> Fecha final</label>
+                    <input type="date" name="fechaFinal" class="ec-input" value="@Model.FechaFinal?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="ec-field ec-field-actions">
+                    <button type="submit" class="vg-btn vg-btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                    <a class="vg-btn vg-btn-outline" href="/Cliente/Timbrados">
+                        <i class="bi bi-arrow-clockwise"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ── Tabla ── -->
+    <div class="ec-table-card">
+        <div class="ec-table-header">
+            <div class="ec-table-title">
+                <i class="bi bi-table"></i> Registro de timbrados
+            </div>
+            <span class="ec-table-count">Mostrando @(Model.Rows?.Count() ?? 0) resultados</span>
+        </div>
+        <div class="ec-table-wrap">
+            <table class="ec-table tb-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;">Tenant</th>
+                        <th style="width:150px;">RFC Emisor</th>
+                        <th style="width:80px;">Origen</th>
+                        <th style="width:40px;">Tipo</th>
+                        <th style="width:40px;">Serie</th>
+                        <th style="width:40px;">Folio</th>
+                        <th style="width:200px;">UUID</th>
+                        <th>Mensaje MF</th>
+                        <th style="width:90px;">Saldo</th>
+                        <th style="width:155px;">Creado (UTC)</th>
+                        <th style="width:240px;" class="ec-th-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Rows == null || !Model.Rows.Any())
+                    {
+                        <tr>
+                            <td colspan="10">
+                                <div class="ec-empty">
+                                    <i class="bi bi-inbox ec-empty-icon"></i>
+                                    <h5>No se encontraron timbrados</h5>
+                                    <p>Ajusta los filtros o selecciona otro rango de fechas.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Rows)
+                        {
+                            <tr class="ec-row @(r.Cancelada ? "tb-row-cancel" : "")">
+                                <td><span class="ec-tenant">@r.TenantId</span></td>
+                                <td><code class="ec-rfc" title="@r.RfcEmisor">@r.RfcEmisor</code></td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(r.Origen))
+                                    {
+                                        <span class="tb-pill tb-pill-mid">@r.Origen</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ec-na">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(r.TipoDeComprobante))
+                                    {
+                                        <span class="tb-pill tb-pill-ok">@r.TipoDeComprobante</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ec-na">N/A</span>
+                                    }
+                                </td>
+                                <td><span class="tb-plain">@(string.IsNullOrWhiteSpace(r.Serie) ? "-" : r.Serie)</span></td>
+                                <td><span class="tb-plain">@(string.IsNullOrWhiteSpace(r.Folio) ? "-" : r.Folio)</span></td>
+                                <td><code class="ec-rfc tb-uuid" title="@r.Uuid">@r.Uuid</code></td>
+                                <td>
+                                    <div class="ec-message" title="@r.MensajeMf">@r.MensajeMf</div>
+                                </td>
+                                <td>
+                                    @if (r.Saldo.HasValue)
+                                    {
+                                        <span class="tb-pill tb-pill-mid">@r.Saldo.Value.ToString("N2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ec-na">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="ec-time">
+                                        <i class="bi bi-clock"></i>
+                                        @r.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss")
+                                    </span>
+                                </td>
+                                <td class="ec-td-center">
+                                    <a class="ec-btn-action"
+                                       href="/Cliente/TimbradoDetalle/@r.Id">
+                                        <i class="bi bi-eye"></i> Detalle
+                                    </a>
+                                    <button type="button"
+                                            class="ec-btn-action"
+                                            data-id="@r.Id"
+                                            data-uuid="@r.Uuid"
+                                            data-rfc="@r.RfcEmisor"
+                                            onclick="consultarEstatusSat(this)"
+                                            title="Consultar estado SAT">
+                                        <i class="bi bi-shield-check"></i> Estatus SAT
+                                    </button>
+                                    @if (!r.Cancelada && r.MensajeMf != null)
+                                    {
+                                        <button type="button"
+                                                class="ec-btn-action ec-btn-danger"
+                                                data-id="@r.Id"
+                                                data-uuid="@r.Uuid"
+                                                data-rfc="@r.RfcEmisor"
+                                                onclick="abrirModalCancelar(this)">
+                                            <i class="bi bi-x-circle"></i> Cancelar
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── Paginación ── -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="tb-pagination">
+                <span class="tb-page-info">
+                    Página <strong>@Model.Page</strong> de <strong>@Model.TotalPages</strong> • @Model.PageSize por página
+                </span>
+                <div class="tb-page-btns">
+                    <a class="tb-page-btn @(!Model.HasPrev ? "tb-page-btn-disabled" : "")"
+                       href="@(Model.HasPrev ? $"?tenantId={Model.TenantId}&rfcEmisor={Model.RfcEmisor}&uuid={Model.Uuid}&folio={Model.Folio}&fechaInicio={Model.FechaInicio?.ToString("yyyy-MM-dd")}&fechaFinal={Model.FechaFinal?.ToString("yyyy-MM-dd")}&page={Model.Page - 1}&pageSize={Model.PageSize}" : "#")">
+                        «
+                    </a>
+                    @{
+                        var start = Math.Max(1, Model.Page - 3);
+                        var end = Math.Min(Model.TotalPages, start + 6);
+                        start = Math.Max(1, end - 6);
+                    }
+                    @for (int p = start; p <= end; p++)
+                    {
+                        <a class="tb-page-btn @(p == Model.Page ? "tb-page-btn-active" : "")"
+                           href="?tenantId=@Model.TenantId&rfcEmisor=@Model.RfcEmisor&uuid=@Model.Uuid&folio=@Model.Folio&fechaInicio=@Model.FechaInicio?.ToString("yyyy-MM-dd")&fechaFinal=@Model.FechaFinal?.ToString("yyyy-MM-dd")&page=@p&pageSize=@Model.PageSize">
+                            @p
+                        </a>
+                    }
+                    <a class="tb-page-btn @(!Model.HasNext ? "tb-page-btn-disabled" : "")"
+                       href="@(Model.HasNext ? $"?tenantId={Model.TenantId}&rfcEmisor={Model.RfcEmisor}&uuid={Model.Uuid}&folio={Model.Folio}&fechaInicio={Model.FechaInicio?.ToString("yyyy-MM-dd")}&fechaFinal={Model.FechaFinal?.ToString("yyyy-MM-dd")}&page={Model.Page + 1}&pageSize={Model.PageSize}" : "#")">
+                        »
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ── Modal Estatus SAT (FacturaLO) ── -->
+<div class="modal fade" id="modalEstatusSat" tabindex="-1" aria-labelledby="modalEstatusSatLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalEstatusSatLabel">
+                    <i class="bi bi-shield-check me-2"></i>Estatus SAT del CFDI
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Loading -->
+                <div id="estatusSatLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Consultando…</span>
+                    </div>
+                    <div class="mt-2 text-muted">Consultando al SAT vía FacturaLO PLUS…</div>
+                </div>
+                <!-- Error -->
+                <div id="estatusSatError" class="alert alert-danger d-none" role="alert"></div>
+                <!-- Resultado -->
+                <div id="estatusSatResultado" class="d-none">
+                    <h6 class="text-muted mb-2">CFDI consultado</h6>
+                    <table class="table table-sm table-borderless mb-3">
+                        <tr><th style="width:140px;">UUID:</th>        <td><code id="estUuid"></code></td></tr>
+                        <tr><th>RFC Emisor:</th>                       <td><code id="estRfcEmisor"></code></td></tr>
+                        <tr><th>RFC Receptor:</th>                     <td><code id="estRfcReceptor"></code></td></tr>
+                        <tr><th>Total:</th>                            <td><code id="estTotal"></code></td></tr>
+                        <tr><th>Ambiente:</th>                         <td><span id="estAmbiente" class="badge bg-secondary"></span></td></tr>
+                    </table>
+                    <h6 class="text-muted mb-2">Respuesta del SAT</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <th style="width:200px;"><i class="bi bi-hash"></i> Código de estatus</th>
+                            <td><code id="estCodigoEstatus"></code></td>
+                        </tr>
+                        <tr>
+                            <th><i class="bi bi-flag"></i> Estado</th>
+                            <td><span id="estEstado" class="badge"></span></td>
+                        </tr>
+                        <tr>
+                            <th><i class="bi bi-question-circle"></i> ¿Es cancelable?</th>
+                            <td><span id="estEsCancelable"></span></td>
+                        </tr>
+                        <tr>
+                            <th><i class="bi bi-clock-history"></i> Estatus de cancelación</th>
+                            <td><span id="estEstatusCancelacion"></span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal Cancelar ── -->
+<div class="modal fade" id="modalCancelarPrueba" tabindex="-1" aria-labelledby="modalCancelarPruebaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="modalCancelarPruebaLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Cancelar CFDI
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCancelarPrueba" method="post" asp-page-handler="Cancelar">
+                <div class="modal-body">
+                    <p>¿Confirmas la cancelación del siguiente CFDI?</p>
+                    <table class="table table-sm table-borderless">
+                        <tr><th>UUID:</th><td><code id="cancelPruebaUuid"></code></td></tr>
+                        <tr><th>RFC Emisor:</th><td><code id="cancelPruebaRfc"></code></td></tr>
+                    </table>
+                    <input type="hidden" name="id" id="cancelPruebaId" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Motivo de cancelación</label>
+                        <select name="motivo" class="form-select">
+                            <option value="02" selected>02 - Errores sin relación</option>
+                            <option value="03">03 - No se llevó a cabo la operación</option>
+                            <option value="04">04 - Operación nominativa en factura global</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Cerrar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle"></i> Confirmar Cancelación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+@section Scripts {
+    <script>
+        // ── Animación de filas ──
+        document.querySelectorAll('.ec-row').forEach((row, i) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(8px)';
+            setTimeout(() => {
+                row.style.transition = 'all 0.35s ease';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, i * 35);
+        });
+
+        // ── Abrir modal de cancelación ──
+        function abrirModalCancelar(btn) {
+            const id = btn.getAttribute('data-id');
+            const uuid = btn.getAttribute('data-uuid');
+            const rfc = btn.getAttribute('data-rfc');
+            document.getElementById('cancelPruebaId').value = id;
+            document.getElementById('cancelPruebaUuid').textContent = uuid;
+            document.getElementById('cancelPruebaRfc').textContent = rfc;
+            // El form ya tiene el action correcto configurado
+            const modal = new bootstrap.Modal(document.getElementById('modalCancelarPrueba'));
+            modal.show();
+        }
+
+        // ── Consultar estatus SAT ──
+        function consultarEstatusSat(btn) {
+            const id = btn.getAttribute('data-id');
+            const $loading   = document.getElementById('estatusSatLoading');
+            const $error     = document.getElementById('estatusSatError');
+            const $resultado = document.getElementById('estatusSatResultado');
+
+            $loading.classList.remove('d-none');
+            $error.classList.add('d-none');
+            $error.textContent = '';
+            $resultado.classList.add('d-none');
+
+            const modal = new bootstrap.Modal(document.getElementById('modalEstatusSat'));
+            modal.show();
+
+            const url = '/Cliente/Timbrados?handler=SatStatus&id=' + encodeURIComponent(id);
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(json => {
+                    $loading.classList.add('d-none');
+                    if (!json || json.success === false) {
+                        $error.textContent = (json && json.error) ? json.error : 'No se pudo consultar el estado.';
+                        $error.classList.remove('d-none');
+                        return;
+                    }
+                    const ctx  = json.contexto || {};
+                    const data = json.data || {};
+                    document.getElementById('estUuid').textContent        = ctx.uuid        || '-';
+                    document.getElementById('estRfcEmisor').textContent   = ctx.rfcEmisor   || '-';
+                    document.getElementById('estRfcReceptor').textContent = ctx.rfcReceptor || '-';
+                    document.getElementById('estTotal').textContent       = ctx.total       || '-';
+                    const $amb = document.getElementById('estAmbiente');
+                    $amb.textContent = ctx.ambiente || '-';
+                    $amb.className = 'badge ' + (ctx.ambiente === 'Producción' ? 'bg-success' : 'bg-warning text-dark');
+                    document.getElementById('estCodigoEstatus').textContent = data.codigoEstatus || '-';
+                    const $estado = document.getElementById('estEstado');
+                    const estado = (data.estado || '').trim();
+                    $estado.textContent = estado || '-';
+                    if (estado.toLowerCase() === 'vigente')        { $estado.className = 'badge bg-success'; }
+                    else if (estado.toLowerCase() === 'cancelado') { $estado.className = 'badge bg-danger'; }
+                    else                                           { $estado.className = 'badge bg-secondary'; }
+                    document.getElementById('estEsCancelable').textContent       = data.esCancelable       || '-';
+                    document.getElementById('estEstatusCancelacion').textContent = data.estatusCancelacion || '(null)';
+                    $resultado.classList.remove('d-none');
+                })
+                .catch(err => {
+                    $loading.classList.add('d-none');
+                    $error.textContent = 'Error de red: ' + err.message;
+                    $error.classList.remove('d-none');
+                });
+        }
+    </script>
+}

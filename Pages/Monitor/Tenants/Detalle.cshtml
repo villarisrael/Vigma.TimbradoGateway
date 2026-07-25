@@ -1,0 +1,1071 @@
+@page "{id:long}"
+@model Vigma.TimbradoGateway.Pages.Monitor.Tenants.DetalleModel
+@{
+    ViewData["Title"] = Model.Nombre;
+}
+
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DETALLE TENANT — página completa
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.td-page {
+    padding: var(--space-5);
+    max-width: var(--container-xl);
+    margin: 0 auto;
+}
+
+/* ─── Breadcrumb ─────────────────────────────────────────────────────────── */
+.td-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: #9090b0;
+    text-decoration: none;
+    margin-bottom: var(--space-4);
+    transition: var(--transition-fast);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+}
+
+.td-breadcrumb:hover {
+    color: var(--color-vigma);
+    background: rgba(91,91,214,0.07);
+}
+
+.td-breadcrumb i { font-size: 12px; }
+
+.td-breadcrumb .sep { color: var(--bg-light-muted); }
+
+.td-breadcrumb .crumb-active {
+    color: var(--color-vigma);
+    font-weight: var(--weight-semibold);
+}
+
+/* ─── Hero card ──────────────────────────────────────────────────────────── */
+.td-hero {
+    background: var(--vigma-gradient);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5) var(--space-6);
+    margin-bottom: var(--space-4);
+    box-shadow: 0 8px 32px rgba(91,91,214,0.28);
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    position: relative;
+    overflow: hidden;
+}
+
+.td-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+
+.td-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; right: 80px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+}
+
+.td-hero-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-lg);
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.td-hero-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+    background: white;
+}
+
+.td-hero-info {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.td-hero-name {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-2xl);
+    color: white;
+    line-height: 1.2;
+    margin-bottom: var(--space-3);
+}
+
+.td-hero-badges {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.td-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    backdrop-filter: blur(6px);
+    color: white;
+}
+
+.td-hero-badge.on   { background: rgba(56,239,125,0.3);  border: 1px solid rgba(56,239,125,0.5); }
+.td-hero-badge.off  { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); }
+.td-hero-badge.prod { background: rgba(15,155,142,0.45);  border: 1px solid rgba(15,155,142,0.6); }
+.td-hero-badge.test { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
+
+.td-hero-id {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-5);
+    font-size: var(--text-xs);
+    color: rgba(255,255,255,0.5);
+    font-family: monospace;
+    z-index: 1;
+}
+
+/* ─── Action toolbar ─────────────────────────────────────────────────────── */
+.td-toolbar {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-5);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] .td-toolbar {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,0.06);
+}
+
+.td-toolbar-label {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: #9090b0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-right: var(--space-3);
+    border-right: 1px solid var(--bg-light-muted);
+    margin-right: var(--space-1);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .td-toolbar-label { border-color: var(--bg-dark-muted); }
+
+.td-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--bg-light-muted);
+    background: transparent;
+    color: var(--color-dark);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .td-action {
+    border-color: var(--bg-dark-muted);
+    color: #c0c0d8;
+}
+
+.td-action:hover {
+    border-color: var(--color-vigma);
+    color: var(--color-vigma);
+    background: rgba(91,91,214,0.07);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(91,91,214,0.12);
+}
+
+.td-action.primary {
+    background: var(--vigma-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+.td-action.primary:hover {
+    box-shadow: 0 4px 16px rgba(91,91,214,0.38);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.td-action.danger { border-color: rgba(255,65,108,0.3); color: var(--color-danger); }
+.td-action.danger:hover { background: rgba(255,65,108,0.08); border-color: var(--color-danger); box-shadow: 0 3px 10px rgba(255,65,108,0.15); color: var(--color-danger); }
+
+.td-action.success { border-color: rgba(17,153,142,0.3); color: var(--color-success); }
+.td-action.success:hover { background: rgba(17,153,142,0.08); border-color: var(--color-success); box-shadow: 0 3px 10px rgba(17,153,142,0.15); color: var(--color-success); }
+
+/* ─── Alerts ─────────────────────────────────────────────────────────────── */
+.td-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+}
+
+.td-alert-ok  { background: rgba(17,153,142,0.08);  border: 1px solid rgba(17,153,142,0.25); color: #0d8c81; }
+.td-alert-err { background: rgba(255,65,108,0.08);  border: 1px solid rgba(255,65,108,0.25); color: #e03060; }
+
+/* ─── Grid de tarjetas ───────────────────────────────────────────────────── */
+.td-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.td-grid-full { grid-template-columns: 1fr; }
+
+@@media (max-width: 900px) {
+    .td-grid { grid-template-columns: 1fr; }
+}
+
+.td-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+[data-theme="dark"] .td-card {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,0.06);
+}
+
+.td-card-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    color: var(--color-vigma);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid rgba(91,91,214,0.1);
+}
+
+/* ─── Fields ─────────────────────────────────────────────────────────────── */
+.td-field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+@@media (max-width: 680px) {
+    .td-field-grid { grid-template-columns: 1fr; }
+}
+
+.td-field { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.td-label {
+    font-size: 11px;
+    font-weight: var(--weight-bold);
+    color: #9090b0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.td-field-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-2);
+}
+
+.td-value {
+    flex: 1;
+    padding: 10px var(--space-4);
+    background: var(--bg-light-subtle);
+    border: 1.5px solid var(--bg-light-muted);
+    border-radius: var(--radius-md);
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13px;
+    color: var(--color-dark);
+    word-break: break-all;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    transition: border-color 0.18s;
+    line-height: 1.4;
+}
+
+[data-theme="dark"] .td-value {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+    color: #c8c8e8;
+}
+
+.td-value:hover { border-color: rgba(91,91,214,0.35); }
+
+.td-value.empty {
+    color: #b0b0c8;
+    font-style: italic;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+}
+
+.td-copy {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--bg-light-muted);
+    background: var(--bg-light-subtle);
+    color: #9090b0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .td-copy {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+}
+
+.td-copy:hover {
+    border-color: var(--color-vigma);
+    color: var(--color-vigma);
+    background: rgba(91,91,214,0.09);
+    transform: scale(1.06);
+}
+
+.td-copy.ok {
+    border-color: var(--color-success);
+    color: var(--color-success);
+    background: rgba(17,153,142,0.09);
+}
+
+/* ─── Ambiente badge ─────────────────────────────────────────────────────── */
+.td-ambiente {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 14px 24px;
+    border-radius: var(--radius-lg);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-base);
+}
+
+.td-ambiente.prod {
+    background: rgba(15,155,142,0.1);
+    color: var(--color-throughput);
+    border: 1.5px solid rgba(15,155,142,0.3);
+}
+
+.td-ambiente.test {
+    background: var(--bg-light-muted);
+    color: #9090b0;
+    border: 1.5px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .td-ambiente.test {
+    background: var(--bg-dark-muted);
+    border-color: var(--bg-dark-muted);
+}
+
+.td-ambiente-desc {
+    font-size: var(--text-xs);
+    color: #9090b0;
+    margin-top: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* ─── Saldo display ──────────────────────────────────────────────────────── */
+#saldoResult {
+    display: none;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 12px var(--space-4);
+    background: rgba(91,91,214,0.06);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(91,91,214,0.15);
+    margin-top: var(--space-3);
+}
+
+.saldo-num {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-2xl);
+    color: var(--color-vigma);
+}
+
+.saldo-label {
+    font-size: var(--text-xs);
+    color: #9090b0;
+    font-weight: var(--weight-medium);
+}
+
+/* ─── Responsive hero ────────────────────────────────────────────────────── */
+@@media (max-width: 640px) {
+    .td-hero { flex-direction: column; align-items: flex-start; }
+    .td-hero-id { top: var(--space-3); right: var(--space-4); }
+}
+</style>
+
+<div class="main-content">
+<div class="td-page">
+
+    <!-- Breadcrumb -->
+    <a class="td-breadcrumb" href="/Monitor/Tenants">
+        <i class="bi bi-arrow-left"></i>
+        <span>Tenants</span>
+        <span class="sep">/</span>
+        <span class="crumb-active">@Model.Nombre</span>
+    </a>
+
+    <!-- Hero -->
+    <div class="td-hero">
+        <div class="td-hero-avatar">
+            @if (!string.IsNullOrWhiteSpace(Model.LogoPath))
+            {
+                <img src="@Model.LogoPath?v=@Model.Id" alt="@Model.Nombre" />
+            }
+            else
+            {
+                @Model.Nombre.Substring(0, 1).ToUpper()
+            }
+        </div>
+        <div class="td-hero-info">
+            <div class="td-hero-name">@Model.Nombre</div>
+            <div class="td-hero-badges">
+                @if (Model.Activo)
+                {
+                    <span class="td-hero-badge on">
+                        <i class="bi bi-circle-fill" style="font-size:7px"></i> Activo
+                    </span>
+                }
+                else
+                {
+                    <span class="td-hero-badge off">
+                        <i class="bi bi-circle" style="font-size:7px"></i> Inactivo
+                    </span>
+                }
+                @if (Model.PacProduccion)
+                {
+                    <span class="td-hero-badge prod">
+                        <i class="bi bi-cloud-fill"></i> Modo Producción
+                    </span>
+                }
+                else
+                {
+                    <span class="td-hero-badge test">
+                        <i class="bi bi-flask"></i> Modo Pruebas
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="td-hero-id">ID #@Model.Id</div>
+    </div>
+
+    <!-- Alerts -->
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="td-alert td-alert-ok">
+            <i class="bi bi-check-circle-fill"></i>
+            @Model.SuccessMessage
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="td-alert td-alert-err">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <!-- ══ Toolbar de acciones ════════════════════════════════════════════ -->
+    <div class="td-toolbar">
+        <span class="td-toolbar-label">
+            <i class="bi bi-lightning-fill"></i> Acciones
+        </span>
+
+        <a class="td-action primary" href="/Monitor/Tenants/Edit/@Model.Id">
+            <i class="bi bi-pencil-fill"></i> Editar Accesos MF
+        </a>
+
+        <a class="td-action" href="/Monitor/Tenants/UploadLogo/@Model.Id">
+            <i class="bi bi-image-fill"></i> Subir / Cambiar Logo
+        </a>
+
+        <a class="td-action" href="/Monitor/Tenants/CaptureFacturaloKey/@Model.Id">
+            <i class="bi bi-key-fill"></i> API Key FacturaLO
+        </a>
+
+        <button class="td-action" onclick="regenerarApiKey(@Model.Id)">
+            <i class="bi bi-arrow-repeat"></i> Regenerar API Key
+        </button>
+
+        <a class="td-action" href="/Monitor/Tenants/@Model.Id/Certificados">
+            <i class="bi bi-shield-lock-fill"></i> Certificados
+        </a>
+
+        <a class="td-action" href="/Errores?tenantId=@Model.Id">
+            <i class="bi bi-exclamation-triangle-fill"></i> Errores
+        </a>
+
+        <a class="td-action" href="/Timbrados?tenantId=@Model.Id">
+            <i class="bi bi-file-earmark-check-fill"></i> Timbrados
+        </a>
+
+        <button class="td-action success" onclick="consultarSaldo(@Model.Id)">
+            <i class="bi bi-coin"></i> Consultar Saldo MF
+        </button>
+
+        @if (Model.Activo)
+        {
+            <button class="td-action danger" onclick="toggleStatus(@Model.Id, true)">
+                <i class="bi bi-pause-fill"></i> Suspender
+            </button>
+        }
+        else
+        {
+            <button class="td-action success" onclick="toggleStatus(@Model.Id, false)">
+                <i class="bi bi-play-fill"></i> Activar
+            </button>
+        }
+    </div>
+
+    <!-- ══ Credenciales MultiFacturas (fila completa) ══════════════════════ -->
+    <div class="td-grid td-grid-full" style="margin-bottom: var(--space-4);">
+        <div class="td-card">
+            <div class="td-card-title">
+                <i class="bi bi-lock-fill"></i>
+                Credenciales MultiFacturas (PAC)
+            </div>
+
+            <!-- Usuario PAC y Password PAC en columnas -->
+            <div class="td-field-grid">
+
+                <!-- Usuario PAC -->
+                <div class="td-field">
+                    <div class="td-label"><i class="bi bi-person-fill"></i> Usuario PAC</div>
+                    <div class="td-field-row">
+                        <div class="td-value @(string.IsNullOrEmpty(Model.PacUsuario) ? "empty" : "")"
+                             id="val-usuario">
+                            @(string.IsNullOrEmpty(Model.PacUsuario) ? "No configurado" : Model.PacUsuario)
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.PacUsuario))
+                        {
+                            <button class="td-copy" onclick="copiar('val-usuario', this)" title="Copiar usuario">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Password PAC -->
+                <div class="td-field">
+                    <div class="td-label"><i class="bi bi-key-fill"></i> Password PAC</div>
+                    <div class="td-field-row">
+                        <div class="td-value @(string.IsNullOrEmpty(Model.PacPassword) ? "empty" : "")"
+                             id="val-password">
+                            @(string.IsNullOrEmpty(Model.PacPassword) ? "Sin configurar" : Model.PacPassword)
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.PacPassword))
+                        {
+                            <button class="td-copy" onclick="copiar('val-password', this)" title="Copiar password">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- API Key Vigma → MF (fila completa) -->
+            <div class="td-field">
+                <div class="td-label"><i class="bi bi-qr-code"></i> API Key Vigma → MultiFacturas</div>
+                <div class="td-field-row">
+                    <div class="td-value" id="val-apikey">@Model.ApiKeyMasked</div>
+                    <button class="td-copy" onclick="copiar('val-apikey', this)" title="Copiar API Key">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <small style="color:#9090b0;font-size:11px;margin-top:2px;">
+                    <i class="bi bi-info-circle"></i>
+                    Solo se muestran los últimos 4 caracteres por seguridad.
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ PAC Activo — switch de proveedor ════════════════════════════════ -->
+    <div class="td-grid td-grid-full" style="margin-bottom: var(--space-4);">
+        <div class="td-card" style="flex-direction:row; align-items:center; gap:var(--space-6); flex-wrap:wrap;">
+
+            <div style="display:flex; flex-direction:column; gap:var(--space-3); flex:1; min-width:260px;">
+                <div class="td-card-title" style="border:none; padding:0; margin:0;">
+                    <i class="bi bi-lightning-fill"></i>
+                    PAC Activo — Proveedor de Timbrado
+                </div>
+                <div style="display:flex; gap:var(--space-2); flex-wrap:wrap; align-items:center;">
+                    @if (string.Equals(Model.PacProveedor, "facturalo", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 14px;
+                                     border-radius:var(--radius-full);font-size:var(--text-xs);
+                                     font-weight:var(--weight-semibold);
+                                     background:rgba(91,91,214,0.13);color:var(--color-vigma);
+                                     border:1.5px solid rgba(91,91,214,0.25);">
+                            <i class="bi bi-lightning-fill"></i> FacturaLO PLUS
+                        </span>
+                    }
+                    else
+                    {
+                        <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 14px;
+                                     border-radius:var(--radius-full);font-size:var(--text-xs);
+                                     font-weight:var(--weight-semibold);
+                                     background:rgba(17,153,142,0.1);color:var(--color-throughput);
+                                     border:1.5px solid rgba(17,153,142,0.25);">
+                            <i class="bi bi-cloud-fill"></i> MultiFacturas
+                        </span>
+                    }
+                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 14px;
+                                 border-radius:var(--radius-full);font-size:var(--text-xs);
+                                 font-weight:var(--weight-semibold);
+                                 background:@(Model.PacProduccion ? "rgba(247,151,30,0.12)" : "var(--bg-light-muted)");
+                                 color:@(Model.PacProduccion ? "#f7971e" : "#9090b0");
+                                 border:1.5px solid @(Model.PacProduccion ? "rgba(247,151,30,0.3)" : "var(--bg-light-muted)");">
+                        <i class="bi bi-@(Model.PacProduccion ? "rocket-fill" : "flask")"></i>
+                        Ambiente: @(Model.PacProduccion ? "PRODUCCIÓN" : "PRUEBAS")
+                    </span>
+                </div>
+                <div style="font-size:var(--text-xs);color:#9090b0;">
+                    <i class="bi bi-info-circle"></i>
+                    Cambia de proveedor al instante en caso de fallo. El sistema usará el PAC seleccionado para todos los timbrados de este tenant.
+                </div>
+            </div>
+
+            <!-- Botón de cambio de emergencia -->
+            <form method="post" asp-page-handler="CambiarProveedor" asp-route-id="@Model.Id"
+                  style="flex-shrink:0;">
+                @if (string.Equals(Model.PacProveedor, "facturalo", StringComparison.OrdinalIgnoreCase))
+                {
+                    <button type="submit" class="td-action success"
+                            style="padding:12px 24px; font-size:var(--text-base);"
+                            onclick="return confirm('¿Regresar a MultiFacturas como PAC activo?')">
+                        <i class="bi bi-cloud-fill"></i>
+                        Volver a MultiFacturas
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" class="td-action primary"
+                            style="padding:12px 24px; font-size:var(--text-base);"
+                            onclick="return confirm('¿Activar FacturaLO PLUS como PAC activo?')">
+                        <i class="bi bi-lightning-fill"></i>
+                        Usar FacturaLO
+                    </button>
+                }
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ══ Fila inferior: FacturaLO + Ambiente + Saldo ══════════════════════ -->
+    <div class="td-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+
+        <!-- API Key FacturaLO -->
+        <div class="td-card">
+            <div class="td-card-title">
+                <i class="bi bi-key-fill"></i>
+                API Key FacturaLO — @Model.FlKeyLabel
+            </div>
+
+            <div class="td-field">
+                <div class="td-label"><i class="bi bi-shield-check"></i> Clave del PAC</div>
+                <div class="td-field-row">
+                    <div class="td-value @(string.IsNullOrEmpty(Model.FlKeyActiva) ? "empty" : "")"
+                         id="val-flkey">
+                        @(string.IsNullOrEmpty(Model.FlKeyActiva) ? "No configurada" : Model.FlKeyActiva)
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.FlKeyActiva))
+                    {
+                        <button class="td-copy" onclick="copiar('val-flkey', this)" title="Copiar API Key FacturaLO">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Ambiente -->
+        <div class="td-card">
+            <div class="td-card-title">
+                <i class="bi bi-cloud-fill"></i>
+                Ambiente de Operación
+            </div>
+
+            @if (Model.PacProduccion)
+            {
+                <div class="td-ambiente prod">
+                    <i class="bi bi-rocket-fill" style="font-size:1.4rem"></i>
+                    <div>
+                        <div>Modo Producción</div>
+                        <div style="font-size:11px;font-weight:400;opacity:.75">Timbrado real ante el SAT</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="td-ambiente test">
+                    <i class="bi bi-flask" style="font-size:1.4rem"></i>
+                    <div>
+                        <div>Modo Pruebas</div>
+                        <div style="font-size:11px;font-weight:400;opacity:.75">Sandbox — sin efectos fiscales</div>
+                    </div>
+                </div>
+            }
+
+            <form method="post" asp-page-handler="CambiarAmbiente" asp-route-id="@Model.Id"
+                  style="margin-top:auto;">
+                @if (Model.PacProduccion)
+                {
+                    <button type="submit" class="td-action"
+                            style="width:100%; justify-content:center;
+                                   border-color:rgba(247,151,30,0.35); color:#f7971e;"
+                            onclick="return confirm('⚠️ ¿Cambiar a PRUEBAS/Sandbox?\n\nEl tenant dejará de timbrar en producción.')">
+                        <i class="bi bi-flask"></i> Cambiar a Pruebas
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" class="td-action danger"
+                            style="width:100%; justify-content:center;"
+                            onclick="return confirm('🚀 ¿Cambiar a PRODUCCIÓN?\n\nLos timbrados tendrán efectos fiscales reales ante el SAT.')">
+                        <i class="bi bi-rocket-fill"></i> Cambiar a Producción
+                    </button>
+                }
+            </form>
+        </div>
+
+        <!-- Saldo Timbres -->
+        <div class="td-card">
+            <div class="td-card-title">
+                <i class="bi bi-coin"></i>
+                Saldo de Timbres (MultiFacturas)
+            </div>
+
+            <p style="font-size:var(--text-sm);color:#9090b0;margin:0;">
+                Consulta en tiempo real los timbres disponibles en la cuenta MultiFacturas de este tenant.
+            </p>
+
+            <button class="td-action success" onclick="consultarSaldo(@Model.Id)"
+                    id="btnSaldo" style="align-self:flex-start;">
+                <i class="bi bi-arrow-repeat"></i> Consultar Saldo
+            </button>
+
+            <div id="saldoResult">
+                <i class="bi bi-coin" style="font-size:1.4rem;color:var(--color-vigma)"></i>
+                <div>
+                    <div class="saldo-num" id="saldoNum">—</div>
+                    <div class="saldo-label">timbres disponibles</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    /* ── Copiar al portapapeles ── */
+    async function copiar(elId, btn) {
+        const el  = document.getElementById(elId);
+        const val = el ? el.textContent.trim() : '';
+        if (!val) return;
+        try {
+            await navigator.clipboard.writeText(val);
+            btn.classList.add('ok');
+            btn.querySelector('i').className = 'bi bi-check-lg';
+            setTimeout(() => {
+                btn.classList.remove('ok');
+                btn.querySelector('i').className = 'bi bi-clipboard';
+            }, 1700);
+        } catch {
+            Swal.fire({ icon:'error', title:'Error', text:'No se pudo copiar.', timer:1800, showConfirmButton:false });
+        }
+    }
+
+    /* ── Consultar Saldo MultiFacturas ── */
+    async function consultarSaldo(tenantId) {
+        const btn = document.getElementById('btnSaldo');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando…'; }
+
+        try {
+            const r = await fetch(`/tenants/saldo-timbres?tenantId=${tenantId}`);
+            const d = await r.json();
+
+            if (!r.ok) throw new Error(d.mensaje || 'Error en la consulta');
+
+            // Mostrar resultado inline
+            const result  = document.getElementById('saldoResult');
+            const numEl   = document.getElementById('saldoNum');
+            if (result && numEl) {
+                numEl.textContent = d.saldo ?? '—';
+                result.style.display = 'flex';
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Saldo MultiFacturas',
+                html: `<div style="text-align:center;padding:.5rem 0">
+                    <div style="font-size:3rem;font-weight:800;color:var(--color-vigma)">${d.saldo ?? '—'}</div>
+                    <div style="color:#9090b0;margin-top:.25rem">timbres disponibles</div>
+                    ${d.mensaje ? `<div style="margin-top:.75rem;font-size:.82rem;color:#9090b0;border-top:1px solid #eee;padding-top:.75rem">${d.mensaje}</div>` : ''}
+                </div>`,
+                confirmButtonColor: 'var(--color-vigma)',
+                confirmButtonText: 'Cerrar'
+            });
+        } catch(err) {
+            Swal.fire({ icon:'error', title:'Error al consultar', text: err.message, confirmButtonColor:'var(--color-danger)' });
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Consultar Saldo'; }
+        }
+    }
+
+    /* ── Toggle Activo / Suspender ── */
+    function toggleStatus(tenantId, isActive) {
+        const accion = isActive ? 'suspender' : 'activar';
+        Swal.fire({
+            title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} tenant?`,
+            text: `¿Estás seguro de que deseas ${accion} este tenant?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: isActive ? 'var(--color-warning)' : 'var(--color-success)',
+            cancelButtonColor: '#9090b0',
+            confirmButtonText: `Sí, ${accion}`,
+            cancelButtonText: 'Cancelar'
+        }).then(res => {
+            if (!res.isConfirmed) return;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            fetch(`/Monitor/Tenants/ToggleActivo/${tenantId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token ?? '' }
+            }).then(r => {
+                if (r.ok) {
+                    Swal.fire({
+                        icon: 'success', title: '¡Completado!',
+                        text: `Tenant ${accion}do correctamente`,
+                        timer: 1400, showConfirmButton: false
+                    }).then(() => location.reload());
+                } else throw new Error('Error al procesar');
+            }).catch(e => Swal.fire({ icon:'error', title:'Error', text: e.message }));
+        });
+    }
+
+    /* ── Regenerar API Key ── */
+    function regenerarApiKey(tenantId) {
+        Swal.fire({
+            title: '⚠️ Regenerar API Key',
+            html: `
+                <div style="text-align:left;margin:1rem 0;">
+                    <p><strong>¿Regenerar la API Key de este tenant?</strong></p>
+                    <p style="color:#9090b0;font-size:0.9rem;margin:0.5rem 0;">
+                        La API Key anterior dejarà de funcionar inmediatamente.
+                        <br/>Asegúrate de actualizar cualquier integración que use la key actual.
+                    </p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--color-danger)',
+            cancelButtonColor: '#9090b0',
+            confirmButtonText: 'Sí, regenerar',
+            cancelButtonText: 'Cancelar'
+        }).then(res => {
+            if (!res.isConfirmed) return;
+            realizarRegeneracion(tenantId);
+        });
+    }
+
+    async function realizarRegeneracion(tenantId) {
+        try {
+            // Obtener token CSRF
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            // Mostrar modal de carga
+            Swal.fire({
+                title: 'Regenerando API Key...',
+                html: '<i class="bi bi-hourglass-split" style="font-size:2rem;color:var(--color-vigma);"></i>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+
+            // Hacer la llamada al endpoint
+            const response = await fetch(`/tenants/${tenantId}/rotar-api-key-json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token ?? ''
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.ok) {
+                throw new Error(data.mensaje || 'Error al regenerar la API Key');
+            }
+
+            // Mostrar la nueva key
+            mostrarNuevaApiKey(data);
+
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'No se pudo regenerar la API Key',
+                confirmButtonColor: 'var(--color-danger)'
+            });
+        }
+    }
+
+    function mostrarNuevaApiKey(data) {
+        Swal.fire({
+            title: '✅ API Key Regenerada',
+            html: `
+                <div style="text-align:left;padding:1rem;">
+                    <div style="background:rgba(91,91,214,0.07);border:1.5px solid rgba(91,91,214,0.25);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+                        <p style="font-size:0.75rem;color:#9090b0;margin:0 0 0.5rem 0;text-transform:uppercase;font-weight:bold;">Nueva API Key</p>
+                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                            <code style="
+                                flex:1;
+                                padding:0.75rem;
+                                background:var(--bg-light-page);
+                                border-radius:6px;
+                                border:1px solid var(--bg-light-muted);
+                                font-family:monospace;
+                                font-size:0.85rem;
+                                word-break:break-all;
+                                color:var(--color-dark);
+                            " id="newApiKeyDisplay">${data.newApiKey}</code>
+                            <button
+                                onclick="copiarNuevaKey('${data.newApiKey}')"
+                                style="
+                                    padding:0.75rem 1rem;
+                                    background:var(--color-vigma);
+                                    color:white;
+                                    border:none;
+                                    border-radius:6px;
+                                    cursor:pointer;
+                                    font-size:0.9rem;
+                                    font-weight:bold;
+                                    transition:0.2s;
+                                    white-space:nowrap;
+                                "
+                                onmouseover="this.style.opacity='0.8'"
+                                onmouseout="this.style.opacity='1'"
+                            >
+                                <i class="bi bi-clipboard"></i> Copiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(255,193,7,0.1);border:1.5px solid rgba(255,193,7,0.25);border-radius:8px;padding:1rem;margin-bottom:1rem;">
+                        <p style="margin:0;color:var(--color-warning);font-weight:bold;display:flex;align-items:center;gap:0.5rem;">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Importante
+                        </p>
+                        <p style="margin:0.5rem 0 0 0;font-size:0.9rem;color:#9090b0;">
+                            Copia la nueva API Key ahora. <strong>Por seguridad, no podrás verla de nuevo.</strong>
+                        </p>
+                    </div>
+
+                    <div style="background:rgba(17,153,142,0.08);border:1.5px solid rgba(17,153,142,0.25);border-radius:8px;padding:1rem;">
+                        <p style="margin:0;color:var(--color-success);font-weight:bold;display:flex;align-items:center;gap:0.5rem;">
+                            <i class="bi bi-info-circle-fill"></i> Detalles
+                        </p>
+                        <p style="margin:0.5rem 0 0 0;font-size:0.85rem;color:#9090b0;">
+                            <strong>Tenant:</strong> ${data.tenantNombre}<br/>
+                            <strong>Ambiente:</strong> ${data.ambiente}<br/>
+                            <strong>Timestamp:</strong> ${new Date().toLocaleString()}
+                        </p>
+                    </div>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonColor: 'var(--color-vigma)',
+            confirmButtonText: 'Entendido, cerrar',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(() => {
+            // Recargar los datos del tenant para actualizar el display de la key
+            location.reload();
+        });
+    }
+
+    function copiarNuevaKey(key) {
+        navigator.clipboard.writeText(key).then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Copiada!',
+                text: 'La API Key se copió al portapapeles',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }).catch(() => {
+            alert('No se pudo copiar automáticamente. Por favor, cópiala manualmente.');
+        });
+    }
+</script>
+}

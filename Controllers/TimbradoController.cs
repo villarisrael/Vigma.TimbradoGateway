@@ -154,7 +154,36 @@ public class TimbradoController : ControllerBase
     // ********************************************checar estados y estadisticas *****///////////
 
 
- private void CapturarHeadersAdicionales()  // captura si viene cuenta, idcliente, tipo, referencia
+    /// <summary>
+    /// POST /v1/timbrar/xml
+    /// El cliente manda el CFDI XML sin el atributo Sello.
+    /// El gateway lee el keyPEM del tenant y delega sellado+timbrado a FacturaLO PLUS.
+    /// Solo disponible para tenants con pac_proveedor = 'facturalo'.
+    /// </summary>
+    [HttpPost("xml")]
+    public async Task<IActionResult> TimbrarDesdeXml([FromBody] TimbradoXmlRequest? req, CancellationToken ct)
+    {
+        CapturarHeadersAdicionales();
+        var adicionales = _headersAdicionales
+            .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+        if (!TryGetApiKey(out var apiKey)) return ApiKeyMissing();
+
+        if (req is null || string.IsNullOrWhiteSpace(req.xml))
+            return BadRequest(new { ok = false, mensaje = "El campo 'xml' es requerido." });
+
+        try
+        {
+            var resp = await _svc.TimbrarDesdeXmlAsync(apiKey, req.xml, adicionales, ct);
+            return Ok(resp);
+        }
+        catch (UnauthorizedAccessException ex)  { return Unauthorized(new { ok = false, mensaje = ex.Message }); }
+        catch (ArgumentException ex)             { return BadRequest(new { ok = false, mensaje = ex.Message }); }
+        catch (InvalidOperationException ex)     { return BadRequest(new { ok = false, mensaje = ex.Message }); }
+        catch (Exception ex)                     { return StatusCode(500, new { ok = false, mensaje = ex.Message }); }
+    }
+
+    private void CapturarHeadersAdicionales()  // captura si viene cuenta, idcliente, tipo, referencia
     {
         var list = new List<KeyValuePair<string, string>>();
 

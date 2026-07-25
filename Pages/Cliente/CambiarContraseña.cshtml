@@ -1,0 +1,233 @@
+@page
+@model Vigma.TimbradoGateway.Pages.Cliente.CambiarContraseñaModel
+@{
+    ViewData["Title"] = "Cambiar Contraseña";
+    Layout = "/Pages/Shared/_LayoutCliente.cshtml";
+}
+
+<style>
+.cp-page {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.cp-card {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+body[data-theme="dark"] .cp-card {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.cp-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    background: rgba(102,126,234,0.05);
+}
+
+body[data-theme="dark"] .cp-card-header {
+    border-color: #374151;
+}
+
+.cp-card-header-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.cp-card-header-text h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.cp-card-header-text p {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+body[data-theme="dark"] .cp-card-header-text p {
+    color: #9ca3af;
+}
+
+.cp-body {
+    padding: 1.5rem;
+}
+
+.cp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+}
+
+.cp-field:last-of-type {
+    margin-bottom: 0;
+}
+
+.cp-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.cp-input {
+    width: 100%;
+    padding: 0.6rem 0.875rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    font-family: inherit;
+}
+
+body[data-theme="dark"] .cp-input {
+    background: #111827;
+    border-color: #374151;
+    color: #f3f4f6;
+}
+
+.cp-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
+
+.cp-input::placeholder {
+    color: #9ca3af;
+}
+
+.cp-error {
+    font-size: 0.78rem;
+    color: #ef4444;
+}
+
+.cp-hint {
+    font-size: 0.78rem;
+    color: #9ca3af;
+}
+
+.cp-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+    background: rgba(0,0,0,0.02);
+}
+
+body[data-theme="dark"] .cp-footer {
+    border-color: #374151;
+    background: rgba(255,255,255,0.02);
+}
+
+.cp-alert-success {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-left: 4px solid #10b981;
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    color: #065f46;
+    font-weight: 500;
+}
+
+body[data-theme="dark"] .cp-alert-success {
+    color: #a7f3d0;
+}
+</style>
+
+<div class="cp-page">
+    <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem;">Cambiar Contraseña</h2>
+        <p style="font-size: 0.875rem; color: #6b7280;">
+            Usuario: <strong>@Model.UsuarioEmail</strong>
+        </p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="cp-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            @Model.SuccessMessage
+        </div>
+    }
+
+    <div class="cp-card">
+        <div class="cp-card-header">
+            <div class="cp-card-header-icon">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <div class="cp-card-header-text">
+                <h3>Nueva contraseña</h3>
+                <p>Ingresa tu contraseña actual y elige una nueva</p>
+            </div>
+        </div>
+
+        <form method="post" class="cp-body" id="formCambiarPass">
+            <div class="cp-field">
+                <label class="cp-label" asp-for="Input.ContraseñaActual">
+                    Contraseña Actual <span style="color:#ef4444">*</span>
+                </label>
+                <input class="cp-input" asp-for="Input.ContraseñaActual"
+                       type="password" placeholder="Tu contraseña actual" autocomplete="current-password" />
+                <span class="cp-error" asp-validation-for="Input.ContraseñaActual"></span>
+            </div>
+
+            <div class="cp-field">
+                <label class="cp-label" asp-for="Input.ContraseñaNueva">
+                    Contraseña Nueva <span style="color:#ef4444">*</span>
+                </label>
+                <input class="cp-input" asp-for="Input.ContraseñaNueva"
+                       type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6" />
+                <span class="cp-hint">Debe tener al menos 6 caracteres y ser diferente a la actual.</span>
+                <span class="cp-error" asp-validation-for="Input.ContraseñaNueva"></span>
+            </div>
+
+            <div class="cp-field" style="margin-bottom: 0;">
+                <label class="cp-label" asp-for="Input.Confirmar">
+                    Confirmar Contraseña <span style="color:#ef4444">*</span>
+                </label>
+                <input class="cp-input" asp-for="Input.Confirmar"
+                       type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password" />
+                <span class="cp-error" asp-validation-for="Input.Confirmar"></span>
+            </div>
+        </form>
+
+        <div class="cp-footer">
+            <button type="submit" form="formCambiarPass" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Cambiar Contraseña
+            </button>
+            <a href="/Cliente/Dashboard" class="btn"
+               style="background: var(--color-bg); border: 1.5px solid var(--color-border); color: var(--color-text);">
+                Cancelar
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

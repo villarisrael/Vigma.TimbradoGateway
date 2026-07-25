@@ -1,0 +1,668 @@
+@page "{id:long}"
+@model Vigma.TimbradoGateway.Pages.Monitor.Clientes.EditarModel
+@{
+    ViewData["Title"] = $"Editar — {Model.Input.Nombre}";
+}
+
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+
+<style>
+.ct-page  { padding: var(--space-5); max-width: 860px; }
+
+/* Header */
+.ct-header { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5); }
+
+.ct-header-icon {
+    width: 52px; height: 52px; border-radius: var(--radius-md);
+    background: var(--vigma-gradient); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--text-2xl); flex-shrink: 0;
+    box-shadow: 0 6px 18px rgba(91,91,214,0.35);
+}
+
+.ct-header-text h2 {
+    font-family: var(--font-titles); font-weight: var(--weight-bold); font-size: var(--text-2xl);
+    background: var(--vigma-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: var(--space-1);
+}
+
+.ct-header-text p { font-size: var(--text-sm); color: var(--color-txt-light); margin: 0; }
+[data-theme="dark"] .ct-header-text p { color: #9090b0; }
+
+/* Alerts */
+.ct-alert-success {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    background: rgba(17,153,142,0.08); border: 1px solid rgba(17,153,142,0.3);
+    border-left: 4px solid var(--color-success); border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4); font-size: var(--text-sm); color: #11998e;
+    font-weight: var(--weight-medium);
+}
+
+.ct-alert-error {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    background: rgba(255,65,108,0.08); border: 1px solid rgba(255,65,108,0.3);
+    border-left: 4px solid var(--color-danger); border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4); font-size: var(--text-sm); color: var(--color-danger);
+    font-weight: var(--weight-medium);
+}
+
+/* Form card */
+.ct-form-card {
+    background: var(--bg-light-card); border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05); overflow: hidden;
+    margin-bottom: var(--space-5);
+}
+
+[data-theme="dark"] .ct-form-card { background: var(--bg-dark-card); border-color: rgba(255,255,255,0.06); }
+
+.ct-section { padding: var(--space-5); }
+.ct-section + .ct-section { border-top: 1px solid var(--bg-light-muted); }
+[data-theme="dark"] .ct-section + .ct-section { border-color: var(--bg-dark-muted); }
+
+.ct-section-label {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+    color: #f7971e; background: rgba(247,151,30,0.1);
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius-full);
+    width: fit-content; margin-bottom: var(--space-4);
+}
+
+.ct-field { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.ct-field:last-child { margin-bottom: 0; }
+
+.ct-label { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-dark); }
+[data-theme="dark"] .ct-label { color: #e0e0f0; }
+
+.ct-input {
+    width: 100%; padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--bg-light-muted); border-radius: var(--radius-md);
+    background: var(--bg-light-page); color: var(--color-dark);
+    font-family: var(--font-body); font-size: var(--text-sm);
+    transition: var(--transition-fast); outline: none;
+}
+
+[data-theme="dark"] .ct-input { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); color: #e0e0f0; }
+.ct-input:focus { border-color: var(--color-vigma); box-shadow: 0 0 0 3px rgba(91,91,214,0.12); }
+.ct-input::placeholder { color: #9090b0; }
+.ct-hint { font-size: var(--text-xs); color: #9090b0; margin-top: var(--space-1); }
+.ct-error { font-size: var(--text-xs); color: var(--color-danger); margin-top: var(--space-1); }
+
+.ct-check-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-light-subtle); border-radius: var(--radius-md);
+    cursor: pointer; transition: var(--transition-fast);
+}
+
+[data-theme="dark"] .ct-check-row { background: var(--bg-dark-subtle); }
+.ct-check-row:hover { background: var(--bg-light-muted); }
+[data-theme="dark"] .ct-check-row:hover { background: var(--bg-dark-muted); }
+.ct-check-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--color-vigma); cursor: pointer; flex-shrink: 0; }
+.ct-check-label { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-dark); cursor: pointer; user-select: none; }
+[data-theme="dark"] .ct-check-label { color: #e0e0f0; }
+
+.ct-form-footer {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-light-subtle); border-top: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .ct-form-footer { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); }
+
+/* Tenant section card */
+.tn-section-card {
+    background: var(--bg-light-card); border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.04); overflow: hidden;
+    margin-bottom: var(--space-4);
+}
+
+[data-theme="dark"] .tn-section-card { background: var(--bg-dark-card); border-color: rgba(255,255,255,0.05); }
+
+.tn-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--bg-light-muted);
+    background: var(--bg-light-subtle);
+}
+
+[data-theme="dark"] .tn-section-header { border-color: var(--bg-dark-muted); background: var(--bg-dark-subtle); }
+
+.tn-section-title {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-dark);
+}
+
+[data-theme="dark"] .tn-section-title { color: #e0e0f0; }
+
+.tn-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 var(--space-2);
+    background: rgba(91,91,214,0.12); border-radius: var(--radius-full);
+    font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--color-vigma);
+}
+
+.tn-list { list-style: none; margin: 0; padding: 0; }
+
+.tn-list-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--bg-light-muted);
+    transition: var(--transition-fast);
+}
+
+[data-theme="dark"] .tn-list-item { border-color: var(--bg-dark-muted); }
+.tn-list-item:last-child { border-bottom: none; }
+.tn-list-item:hover { background: var(--bg-light-subtle); }
+[data-theme="dark"] .tn-list-item:hover { background: var(--bg-dark-subtle); }
+
+.tn-item-info { display: flex; align-items: center; gap: var(--space-3); }
+
+.tn-avatar {
+    width: 32px; height: 32px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(91,91,214,0.12), rgba(139,47,201,0.12));
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-vigma);
+    flex-shrink: 0;
+}
+
+.tn-item-name { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-dark); }
+[data-theme="dark"] .tn-item-name { color: #e0e0f0; }
+
+.tn-item-status {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: var(--weight-semibold);
+    padding: 2px 7px; border-radius: var(--radius-full);
+}
+
+.tn-item-status-on  { background: rgba(17,153,142,0.1);  color: #11998e; }
+.tn-item-status-off { background: var(--bg-light-subtle); color: #9090b0; border: 1px solid var(--bg-light-muted); }
+[data-theme="dark"] .tn-item-status-off { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); }
+
+.tn-btn-assign {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; border-radius: var(--radius-md); font-size: var(--text-xs);
+    font-weight: var(--weight-semibold); cursor: pointer; border: 1.5px solid transparent;
+    transition: var(--transition-fast); font-family: var(--font-body); white-space: nowrap;
+    background: none;
+}
+
+.tn-btn-unassign {
+    border-color: rgba(247,151,30,0.4); color: var(--color-warning);
+}
+.tn-btn-unassign:hover { background: rgba(247,151,30,0.1); border-color: var(--color-warning); }
+
+.tn-btn-do-assign {
+    border-color: rgba(91,91,214,0.4); color: var(--color-vigma);
+}
+.tn-btn-do-assign:hover { background: rgba(91,91,214,0.1); border-color: var(--color-vigma); }
+
+.tn-empty-msg {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--text-sm); color: #9090b0;
+}
+
+/* Logo area */
+.ct-logo-current {
+    display: flex; align-items: center; gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-light-subtle); border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+}
+
+[data-theme="dark"] .ct-logo-current { background: var(--bg-dark-subtle); }
+
+.ct-logo-thumb {
+    width: 72px; height: 72px; border-radius: var(--radius-md);
+    border: 2px solid var(--bg-light-muted); overflow: hidden;
+    background: white; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .ct-logo-thumb { border-color: var(--bg-dark-muted); background: var(--bg-dark-page); }
+.ct-logo-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+
+.ct-logo-info { flex: 1; min-width: 0; }
+.ct-logo-path { font-size: var(--text-xs); color: #9090b0; word-break: break-all; margin-bottom: var(--space-2); }
+
+.ct-file-input {
+    width: 100%; padding: var(--space-2) var(--space-3);
+    border: 1.5px solid var(--bg-light-muted); border-radius: var(--radius-md);
+    background: var(--bg-light-page); color: var(--color-dark);
+    font-family: var(--font-body); font-size: var(--text-sm); cursor: pointer;
+}
+
+[data-theme="dark"] .ct-file-input { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); color: #e0e0f0; }
+
+/* Usuarios section */
+.usr-form-panel {
+    padding: var(--space-5);
+    border-top: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .usr-form-panel { border-color: var(--bg-dark-muted); }
+
+.ct-section-label-blue {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+    color: var(--color-vigma); background: rgba(91,91,214,0.1);
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius-full);
+    width: fit-content; margin-bottom: var(--space-4);
+}
+
+.usr-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); }
+@@media (max-width: 640px) { .usr-grid { grid-template-columns: 1fr; } }
+
+.usr-btn-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.usr-item-email { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-dark); }
+[data-theme="dark"] .usr-item-email { color: #e0e0f0; }
+.usr-item-name { font-size: var(--text-xs); color: #9090b0; }
+
+.usr-btn-deactivate {
+    border-color: rgba(255,65,108,0.35); color: var(--color-danger);
+}
+.usr-btn-deactivate:hover { background: rgba(255,65,108,0.08); border-color: var(--color-danger); }
+
+.usr-btn-activate {
+    border-color: rgba(17,153,142,0.35); color: var(--color-success);
+}
+.usr-btn-activate:hover { background: rgba(17,153,142,0.08); border-color: var(--color-success); }
+</style>
+
+<div class="main-content">
+    <div class="ct-page">
+
+        <!-- Header -->
+        <div class="ct-header">
+            <div class="ct-header-icon">
+                <i class="bi bi-pencil-fill"></i>
+            </div>
+            <div class="ct-header-text">
+                <h2>Editar Cliente</h2>
+                <p>Modifica los datos del distribuidor y gestiona sus tenants</p>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+        {
+            <div class="ct-alert-success">
+                <i class="bi bi-check-circle-fill"></i> @Model.SuccessMessage
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="ct-alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i> @Model.ErrorMessage
+            </div>
+        }
+
+        <!-- Form datos -->
+        <form method="post" asp-page-handler="Guardar" enctype="multipart/form-data" class="ct-form-card">
+            <input type="hidden" asp-for="Input.Id" />
+
+            <div class="ct-section">
+                <div class="ct-section-label">
+                    <i class="bi bi-building"></i> Datos del cliente
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="Input.Nombre">
+                        Nombre / Razón Social <span style="color:var(--color-danger)">*</span>
+                    </label>
+                    <input class="ct-input" asp-for="Input.Nombre"
+                           placeholder="Ej: Distribuidora Comercial del Norte, S.A." />
+                    <span class="ct-error" asp-validation-for="Input.Nombre"></span>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="Input.Rfc">RFC</label>
+                    <input class="ct-input" asp-for="Input.Rfc"
+                           placeholder="Ej: DCN850101XXX"
+                           style="text-transform:uppercase"
+                           maxlength="13" />
+                    <span class="ct-hint">Opcional. Máximo 13 caracteres.</span>
+                    <span class="ct-error" asp-validation-for="Input.Rfc"></span>
+                </div>
+
+                <!-- Logo -->
+                <div class="ct-field">
+                    <label class="ct-label">Logo del Cliente</label>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Input.LogoPath))
+                    {
+                        <div class="ct-logo-current">
+                            <div class="ct-logo-thumb">
+                                <img src="@Model.Input.LogoPath?v=@Model.Input.Id" alt="Logo actual" />
+                            </div>
+                            <div class="ct-logo-info">
+                                <div class="ct-logo-path">@Model.Input.LogoPath</div>
+                                <div style="display:flex; gap:var(--space-2);">
+                                    <label class="ct-label" style="margin-bottom:0; font-size:var(--text-xs);">
+                                        Reemplazar:
+                                    </label>
+                                </div>
+                                <input type="file" name="LogoFile" accept=".png,.jpg,.jpeg,.gif,.webp"
+                                       class="ct-file-input" style="margin-top:var(--space-2);"
+                                       onchange="previewLogoEdit(this)" />
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="logoPreviewEdit" style="display:none; margin-bottom:var(--space-2);">
+                            <div class="ct-logo-thumb" style="width:80px;height:80px;">
+                                <img id="logoPreviewImg" src="" alt="Preview" />
+                            </div>
+                        </div>
+                        <input type="file" name="LogoFile" accept=".png,.jpg,.jpeg,.gif,.webp"
+                               class="ct-file-input" onchange="previewLogoEdit(this)" />
+                        <span class="ct-hint">PNG, JPG, GIF o WEBP. Máx. 5 MB.</span>
+                    }
+                    <span class="ct-error" asp-validation-for="LogoFile"></span>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-check-row" for="Input_Activo">
+                        <input type="checkbox" asp-for="Input.Activo" id="Input_Activo" />
+                        <span class="ct-check-label">Cliente activo</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="ct-form-footer">
+                <button class="vg-btn vg-btn-primary" type="submit">
+                    <i class="bi bi-check-lg"></i> Guardar Cambios
+                </button>
+                <a class="vg-btn vg-btn-outline" asp-page="Index">
+                    Cancelar
+                </a>
+                @if (!string.IsNullOrWhiteSpace(Model.Input.LogoPath))
+                {
+                    <form method="post" asp-page-handler="EliminarLogo" style="display:inline;">
+                        <input type="hidden" name="clienteId" value="@Model.Input.Id" />
+                        <button type="submit" class="vg-btn vg-btn-outline"
+                                style="color:var(--color-danger); border-color:rgba(255,65,108,0.35);"
+                                onclick="return confirm('¿Eliminar el logo actual?')">
+                            <i class="bi bi-trash3"></i> Quitar Logo
+                        </button>
+                    </form>
+                }
+                <a class="vg-btn vg-btn-outline" asp-page="Detalles" asp-route-id="@Model.Input.Id"
+                   style="margin-left:auto;">
+                    <i class="bi bi-eye-fill"></i> Ver Detalles
+                </a>
+            </div>
+        </form>
+
+        <!-- Usuarios del Cliente -->
+        <div class="tn-section-card">
+            <div class="tn-section-header">
+                <div class="tn-section-title">
+                    <i class="bi bi-people-fill" style="color:var(--color-vigma)"></i>
+                    Usuarios del Cliente
+                    <span class="tn-count">@Model.UsuariosCliente.Count</span>
+                </div>
+            </div>
+
+            @if (!Model.UsuariosCliente.Any())
+            {
+                <div class="tn-empty-msg">
+                    <i class="bi bi-info-circle"></i>
+                    Este cliente no tiene usuarios. Crea uno con el formulario de abajo.
+                </div>
+            }
+            else
+            {
+                <ul class="tn-list">
+                    @foreach (var u in Model.UsuariosCliente)
+                    {
+                        <li class="tn-list-item">
+                            <div class="tn-item-info">
+                                <div class="tn-avatar">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="usr-item-email">@u.Usuario</div>
+                                    @if (!string.IsNullOrWhiteSpace(u.Nombre))
+                                    {
+                                        <div class="usr-item-name">@u.Nombre</div>
+                                    }
+                                    <div class="usr-item-name">
+                                        Creado @u.Creado.ToLocalTime().ToString("dd/MM/yyyy")
+                                    </div>
+                                </div>
+                                @if (u.Activo)
+                                {
+                                    <span class="tn-item-status tn-item-status-on">
+                                        <i class="bi bi-circle-fill" style="font-size:6px"></i> Activo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="tn-item-status tn-item-status-off">
+                                        <i class="bi bi-circle" style="font-size:6px"></i> Inactivo
+                                    </span>
+                                }
+                            </div>
+                            <div style="display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap;">
+                                <!-- Cambiar contraseña -->
+                                <form method="post" asp-page-handler="CambiarContraseña"
+                                      style="display:flex; gap:var(--space-2); align-items:center;">
+                                    <input type="hidden" name="clienteId"  value="@Model.Input.Id" />
+                                    <input type="hidden" name="usuarioId" value="@u.Id" />
+                                    <input type="password" name="nuevaContraseña"
+                                           class="ct-input"
+                                           style="width:160px; padding:5px 10px; font-size:var(--text-xs);"
+                                           placeholder="Nueva contraseña"
+                                           minlength="6" required />
+                                    <button type="submit" class="tn-btn-assign"
+                                            style="border-color:rgba(91,91,214,0.4); color:var(--color-vigma);"
+                                            onclick="return confirm('¿Cambiar la contraseña de @Html.Raw(u.Usuario.Replace("'", "\\'"))?')">
+                                        <i class="bi bi-key-fill"></i> Cambiar
+                                    </button>
+                                </form>
+
+                                @if (u.Activo)
+                                {
+                                    <form method="post" asp-page-handler="DesactivarUsuario">
+                                        <input type="hidden" name="clienteId"  value="@Model.Input.Id" />
+                                        <input type="hidden" name="usuarioId" value="@u.Id" />
+                                        <button type="submit" class="tn-btn-assign usr-btn-deactivate"
+                                                onclick="return confirm('¿Desactivar al usuario @Html.Raw(u.Usuario.Replace("'", "\\'"))?')">
+                                            <i class="bi bi-person-dash-fill"></i> Desactivar
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form method="post" asp-page-handler="ReactivarUsuario">
+                                        <input type="hidden" name="clienteId"  value="@Model.Input.Id" />
+                                        <input type="hidden" name="usuarioId" value="@u.Id" />
+                                        <button type="submit" class="tn-btn-assign usr-btn-activate">
+                                            <i class="bi bi-person-check-fill"></i> Reactivar
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+
+            <!-- Formulario nuevo usuario -->
+            <form method="post" asp-page-handler="CrearUsuario" class="usr-form-panel">
+                <input type="hidden" name="clienteId" value="@Model.Input.Id" />
+                <div class="ct-section-label-blue" style="margin-bottom:var(--space-3);">
+                    <i class="bi bi-person-plus-fill"></i> Agregar nuevo usuario
+                </div>
+                <div class="usr-grid">
+                    <div class="ct-field" style="margin-bottom:0;">
+                        <label class="ct-label" asp-for="NuevoUsuario.Email">Email *</label>
+                        <input class="ct-input" asp-for="NuevoUsuario.Email"
+                               type="email" placeholder="usuario@email.com" />
+                        <span class="ct-error" asp-validation-for="NuevoUsuario.Email"></span>
+                    </div>
+                    <div class="ct-field" style="margin-bottom:0;">
+                        <label class="ct-label" asp-for="NuevoUsuario.Password">Contraseña *</label>
+                        <input class="ct-input" asp-for="NuevoUsuario.Password"
+                               type="password" placeholder="Mín. 6 caracteres" />
+                        <span class="ct-error" asp-validation-for="NuevoUsuario.Password"></span>
+                    </div>
+                    <div class="ct-field" style="margin-bottom:0;">
+                        <label class="ct-label" asp-for="NuevoUsuario.Nombre">Nombre</label>
+                        <input class="ct-input" asp-for="NuevoUsuario.Nombre"
+                               placeholder="Nombre de contacto" />
+                    </div>
+                </div>
+                <div class="usr-btn-row">
+                    <button class="vg-btn vg-btn-primary" type="submit">
+                        <i class="bi bi-person-plus-fill"></i> Crear Usuario
+                    </button>
+                    <span style="font-size:var(--text-xs); color:#9090b0;">
+                        Rol: Cliente &bull; Contraseña hasheada con BCrypt
+                    </span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tenants asignados -->
+        <div class="tn-section-card">
+            <div class="tn-section-header">
+                <div class="tn-section-title">
+                    <i class="bi bi-hdd-stack-fill" style="color:var(--color-vigma)"></i>
+                    Tenants asignados
+                    <span class="tn-count">@Model.TenantsAsignados.Count</span>
+                </div>
+            </div>
+
+            @if (!Model.TenantsAsignados.Any())
+            {
+                <div class="tn-empty-msg">
+                    <i class="bi bi-info-circle"></i>
+                    Este cliente no tiene tenants asignados. Asigna algunos desde la lista de abajo.
+                </div>
+            }
+            else
+            {
+                <ul class="tn-list">
+                    @foreach (var t in Model.TenantsAsignados)
+                    {
+                        <li class="tn-list-item">
+                            <div class="tn-item-info">
+                                <div class="tn-avatar">@t.Nombre.Substring(0, 1).ToUpper()</div>
+                                <div>
+                                    <div class="tn-item-name">@t.Nombre</div>
+                                </div>
+                                @if (t.Activo)
+                                {
+                                    <span class="tn-item-status tn-item-status-on">
+                                        <i class="bi bi-circle-fill" style="font-size:6px"></i> Activo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="tn-item-status tn-item-status-off">
+                                        <i class="bi bi-circle" style="font-size:6px"></i> Inactivo
+                                    </span>
+                                }
+                            </div>
+                            <form method="post" asp-page-handler="DesasignarTenant">
+                                <input type="hidden" name="clienteId" value="@Model.Input.Id" />
+                                <input type="hidden" name="tenantId"  value="@t.Id" />
+                                <button type="submit" class="tn-btn-assign tn-btn-unassign"
+                                        onclick="return confirm('¿Desasignar a @Html.Raw(t.Nombre.Replace("'", "\\'"))? Pasará a la Oficina.')">
+                                    <i class="bi bi-x-lg"></i> Desasignar
+                                </button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <!-- Tenants disponibles -->
+        <div class="tn-section-card">
+            <div class="tn-section-header">
+                <div class="tn-section-title">
+                    <i class="bi bi-hdd-stack" style="color:#9090b0"></i>
+                    Tenants disponibles (sin cliente)
+                    <span class="tn-count" style="background:rgba(144,144,176,0.12); color:#9090b0;">
+                        @Model.TenantsDisponibles.Count
+                    </span>
+                </div>
+            </div>
+
+            @if (!Model.TenantsDisponibles.Any())
+            {
+                <div class="tn-empty-msg">
+                    <i class="bi bi-info-circle"></i>
+                    No hay tenants disponibles sin cliente asignado.
+                </div>
+            }
+            else
+            {
+                <ul class="tn-list">
+                    @foreach (var t in Model.TenantsDisponibles)
+                    {
+                        <li class="tn-list-item">
+                            <div class="tn-item-info">
+                                <div class="tn-avatar">@t.Nombre.Substring(0, 1).ToUpper()</div>
+                                <div>
+                                    <div class="tn-item-name">@t.Nombre</div>
+                                </div>
+                                @if (t.Activo)
+                                {
+                                    <span class="tn-item-status tn-item-status-on">
+                                        <i class="bi bi-circle-fill" style="font-size:6px"></i> Activo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="tn-item-status tn-item-status-off">
+                                        <i class="bi bi-circle" style="font-size:6px"></i> Inactivo
+                                    </span>
+                                }
+                            </div>
+                            <form method="post" asp-page-handler="AsignarTenant">
+                                <input type="hidden" name="clienteId" value="@Model.Input.Id" />
+                                <input type="hidden" name="tenantId"  value="@t.Id" />
+                                <button type="submit" class="tn-btn-assign tn-btn-do-assign">
+                                    <i class="bi bi-plus-lg"></i> Asignar
+                                </button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+    function previewLogoEdit(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                // Si existe el preview dinámico (sin logo)
+                const previewDiv = document.getElementById('logoPreviewEdit');
+                const previewImg = document.getElementById('logoPreviewImg');
+                if (previewDiv && previewImg) {
+                    previewImg.src = e.target.result;
+                    previewDiv.style.display = 'block';
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    </script>
+}

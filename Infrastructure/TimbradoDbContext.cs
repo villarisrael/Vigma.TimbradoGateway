@@ -10,6 +10,7 @@ public class TimbradoDbContext : DbContext
 {
     public TimbradoDbContext(DbContextOptions<TimbradoDbContext> opt) : base(opt) { }
 
+    public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<Certificado> Certificados => Set<Certificado>();
     public DbSet<TimbradoOkLog> TimbradoOkLogs => Set<TimbradoOkLog>();
@@ -33,6 +34,30 @@ public class TimbradoDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // ── NUEVO: Configuración de Cliente ──────────────────────────────────
+        modelBuilder.Entity<Cliente>(e =>
+        {
+            e.ToTable("clientes");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(120).IsRequired();
+            e.Property(x => x.Rfc).HasColumnName("rfc").HasMaxLength(13);
+            e.Property(x => x.LogoPath).HasColumnName("logo_path").HasMaxLength(300);
+            e.Property(x => x.Activo).HasColumnName("activo");
+            e.Property(x => x.CreadoUtc).HasColumnName("creado_utc");
+
+            // Relaciones
+            e.HasMany(x => x.Tenants)
+                .WithOne(x => x.Cliente)
+                .HasForeignKey(x => x.ClienteId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasMany(x => x.UsuariosOficina)
+                .WithOne(x => x.Cliente)
+                .HasForeignKey(x => x.ClienteId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
         modelBuilder.Entity<Tenant>(e =>
         {
             e.ToTable("tenants");
@@ -48,6 +73,12 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.PacProduccion).HasColumnName("pac_produccion");
             e.Property(x => x.actualizado_utc).HasColumnName("actualizado_utc");
             e.Property(x => x.creado_utc).HasColumnName("creado_utc");
+            e.Property(x => x.LogoPath).HasColumnName("logo_path").HasMaxLength(500);
+            e.Property(x => x.PacProveedor).HasColumnName("pac_proveedor").HasMaxLength(20);
+            e.Property(x => x.PacApikeyFacturalo).HasColumnName("pac_apikey_facturalo").HasMaxLength(64);
+            e.Property(x => x.PacApikeyFacturaloTest).HasColumnName("pac_apikey_facturalo_test").HasMaxLength(64);
+            e.Property(x => x.ClienteId).HasColumnName("cliente_id"); // NUEVO
+            e.Ignore(x => x.PacApikeyFacturaloActiva); // propiedad calculada, no se persiste
         });
 
         modelBuilder.Entity<Certificado>(e =>
@@ -81,6 +112,36 @@ public class TimbradoDbContext : DbContext
             e.Property(x => x.Usuario).HasMaxLength(60).IsRequired();
             e.Property(x => x.PasswordHash).HasMaxLength(255).IsRequired();
             e.Property(x => x.Rol).HasMaxLength(30).IsRequired();
+            e.Property(x => x.ClienteId).HasColumnName("cliente_id"); // NUEVO
+        });
+
+        // ── NUEVO: Configuración de TimbradoOkLog ──────────────────────────────
+        modelBuilder.Entity<TimbradoOkLog>(e =>
+        {
+            e.ToTable("timbrado_ok_log");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasColumnName("id");
+            e.Property(x => x.TenantId).HasColumnName("tenantid");
+            e.Property(x => x.RfcEmisor).HasColumnName("rfcemisor").HasMaxLength(13);
+            e.Property(x => x.Origen).HasColumnName("origen").HasMaxLength(20);
+            e.Property(x => x.TipoDeComprobante).HasColumnName("tipo_de_comprobante").HasMaxLength(1);
+            e.Property(x => x.Serie).HasColumnName("serie").HasMaxLength(25);
+            e.Property(x => x.Folio).HasColumnName("folio").HasMaxLength(50);
+            e.Property(x => x.Uuid).HasColumnName("uuid").HasMaxLength(36).HasColumnType("varchar(36)"); // ✅ VARCHAR no GUID
+            e.Property(x => x.codigo_Mf).HasColumnName("codigo_mf").HasMaxLength(20);
+            e.Property(x => x.mensaje_Mf).HasColumnName("mensaje_mf").HasMaxLength(400);
+            e.Property(x => x.xmlTimbrado).HasColumnName("xml_timbrado").HasColumnType("LONGTEXT");
+            e.Property(x => x.Cancelada).HasColumnName("cancelada");
+            e.Property(x => x.Saldo).HasColumnName("saldo").HasColumnType("decimal(18,2)");
+            e.Property(x => x.Servidor).HasColumnName("servidor").HasMaxLength(80);
+            e.Property(x => x.Ejecucion).HasColumnName("ejecucion").HasColumnType("decimal(10,2)");
+            e.Property(x => x.Abortar).HasColumnName("abortar");
+            e.Property(x => x.Pac).HasColumnName("pac").HasMaxLength(40);
+            e.Property(x => x.MfProduccion).HasColumnName("mf_produccion").HasMaxLength(2);
+            e.Property(x => x.VersionKit).HasColumnName("version_kit").HasMaxLength(30);
+            e.Property(x => x.DuracionMs).HasColumnName("duracion_ms");
+            e.Property(x => x.created_utc).HasColumnName("created_utc");
+            e.Property(x => x.Adicionales).HasColumnName("adicionales");
         });
 
         modelBuilder.Entity<CancelacionLog>(e =>

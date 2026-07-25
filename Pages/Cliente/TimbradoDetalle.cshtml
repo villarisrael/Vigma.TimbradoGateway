@@ -1,0 +1,367 @@
+@page "{id:long}"
+@model TimbradoDetalleModel
+@{
+    ViewData["Title"] = "Detalle del Timbrado";
+    Layout = "/Pages/Shared/_LayoutCliente.cshtml";
+}
+
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    .detail-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    body[data-theme="dark"] .detail-card {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .detail-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-value {
+        font-size: 0.95rem;
+        color: var(--color-text);
+        word-break: break-all;
+    }
+
+    .detail-value code {
+        background: var(--color-bg);
+        padding: 0.4rem 0.6rem;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+
+    .badge-cancelada {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-vigente {
+        background: #dcfce7;
+        color: #15803d;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .header-back {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-back a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.5rem 1rem;
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #333;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    body[data-theme="dark"] .header-back a {
+        background: #374151;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+
+    .header-back a:hover {
+        background: #e5e7eb;
+        border-color: #9ca3af;
+    }
+</style>
+
+<div class="container-fluid" style="max-width: 1200px; padding: 0 2rem;">
+    <div class="header-back">
+        <a href="/Cliente/Timbrados">
+            <i class="bi bi-chevron-left"></i> Volver a Timbrados
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @Model.Error
+        </div>
+    }
+
+    @if (Model.Timbrado != null)
+    {
+        <!-- ── Encabezado ── -->
+        <div class="detail-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h1 style="margin: 0; font-size: 1.5rem;">
+                        <i class="bi bi-receipt-cutoff"></i> Timbrado #@Model.Timbrado.Id
+                    </h1>
+                    <p style="margin: 0.5rem 0 0 0; color: #6b7280; font-size: 0.9rem;">
+                        @Model.Timbrado.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss UTC")
+                    </p>
+                </div>
+                <div>
+                    @if (Model.Timbrado.Cancelada)
+                    {
+                        <span class="badge-cancelada">
+                            <i class="bi bi-x-circle"></i> Cancelada
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge-vigente">
+                            <i class="bi bi-check-circle"></i> Vigente
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Datos Principales ── -->
+        <div class="detail-card">
+            <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                <i class="bi bi-info-circle me-2"></i> Información Principal
+            </h3>
+            <div class="detail-row">
+                <div class="detail-item">
+                    <div class="detail-label">UUID</div>
+                    <div class="detail-value"><code>@Model.Timbrado.Uuid</code></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">RFC Emisor</div>
+                    <div class="detail-value"><code>@Model.Timbrado.RfcEmisor</code></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Serie</div>
+                    <div class="detail-value">@(string.IsNullOrWhiteSpace(Model.Timbrado.Serie) ? "N/A" : Model.Timbrado.Serie)</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Folio</div>
+                    <div class="detail-value">@(string.IsNullOrWhiteSpace(Model.Timbrado.Folio) ? "N/A" : Model.Timbrado.Folio)</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Origen</div>
+                    <div class="detail-value">@(string.IsNullOrWhiteSpace(Model.Timbrado.Origen) ? "N/A" : Model.Timbrado.Origen)</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Tipo de Comprobante</div>
+                    <div class="detail-value">@(string.IsNullOrWhiteSpace(Model.Timbrado.TipoDeComprobante) ? "N/A" : Model.Timbrado.TipoDeComprobante)</div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Timbrado.Fecha) || !string.IsNullOrWhiteSpace(Model.Timbrado.Total))
+        {
+            <!-- ── Datos del Comprobante ── -->
+            <div class="detail-card">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                    <i class="bi bi-file-earmark-text me-2"></i> Comprobante
+                </h3>
+                <div class="detail-row">
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.Fecha))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Fecha de Expedición</div>
+                            <div class="detail-value">@Model.Timbrado.Fecha</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.Subtotal))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Subtotal</div>
+                            <div class="detail-value">@Model.Timbrado.Subtotal</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.Total))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Total</div>
+                            <div class="detail-value">@Model.Timbrado.Total</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.Moneda))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Moneda</div>
+                            <div class="detail-value">@Model.Timbrado.Moneda</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.FormaPago))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Forma de Pago</div>
+                            <div class="detail-value">@Model.Timbrado.FormaPago</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.MetodoPago))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Método de Pago</div>
+                            <div class="detail-value">@Model.Timbrado.MetodoPago</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Timbrado.NombreEmisor) || !string.IsNullOrWhiteSpace(Model.Timbrado.NombreReceptor))
+        {
+            <!-- ── Emisor y Receptor ── -->
+            <div class="detail-card">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                    <i class="bi bi-people me-2"></i> Partes
+                </h3>
+                <div class="detail-row">
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.NombreEmisor))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Emisor</div>
+                            <div class="detail-value">@Model.Timbrado.NombreEmisor</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.RegimenFiscalEmisor))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Régimen Fiscal (Emisor)</div>
+                            <div class="detail-value">@Model.Timbrado.RegimenFiscalEmisor</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.NombreReceptor))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">Receptor</div>
+                            <div class="detail-value">@Model.Timbrado.NombreReceptor</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Timbrado.RfcReceptor))
+                    {
+                        <div class="detail-item">
+                            <div class="detail-label">RFC Receptor</div>
+                            <div class="detail-value"><code>@Model.Timbrado.RfcReceptor</code></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- ── Estatus y Mensaje ── -->
+        <div class="detail-card">
+            <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                <i class="bi bi-clipboard-check me-2"></i> Estado
+            </h3>
+            <div class="detail-row">
+                <div class="detail-item">
+                    <div class="detail-label">Código MF</div>
+                    <div class="detail-value">@(string.IsNullOrWhiteSpace(Model.Timbrado.CodigoMf) ? "OK" : Model.Timbrado.CodigoMf)</div>
+                </div>
+                <div class="detail-item" style="grid-column: 1 / -1;">
+                    <div class="detail-label">Mensaje MF</div>
+                    <div class="detail-value">@(string.IsNullOrWhiteSpace(Model.Timbrado.MensajeMf) ? "OK" : Model.Timbrado.MensajeMf)</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Saldo</div>
+                    <div class="detail-value">@(Model.Timbrado.Saldo?.ToString("N2") ?? "N/A")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── XML Timbrado ── -->
+        @if (!string.IsNullOrWhiteSpace(Model.Timbrado.XmlFormateado))
+        {
+            <div class="detail-card">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                    <i class="bi bi-code me-2"></i> XML Timbrado
+                </h3>
+                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 6px; padding: 1rem; overflow-x: auto; max-height: 400px; overflow-y: auto;">
+                    <pre style="margin: 0; font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--color-text); white-space: pre-wrap; word-wrap: break-word;"><code>@Model.Timbrado.XmlFormateado</code></pre>
+                </div>
+            </div>
+        }
+
+        <!-- ── Botones de Acción ── -->
+        <div class="detail-card" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="#" onclick="window.history.back(); return false;" class="btn btn-secondary">
+                <i class="bi bi-chevron-left"></i> Atrás
+            </a>
+            @if (!Model.Timbrado.Cancelada && !string.IsNullOrWhiteSpace(Model.Timbrado.MensajeMf))
+            {
+                <button type="button" class="btn btn-danger" onclick="abrirModalCancelar('@Model.Timbrado.Id', '@Model.Timbrado.Uuid', '@Model.Timbrado.RfcEmisor')">
+                    <i class="bi bi-x-circle"></i> Cancelar Timbrado
+                </button>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal Cancelar -->
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Cancelar Timbrado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Cancelar">
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas cancelar este timbrado?</p>
+                    <input type="hidden" name="id" id="cancelId" />
+                    <div class="mb-3">
+                        <label class="form-label">Motivo de Cancelación</label>
+                        <select name="motivo" class="form-select">
+                            <option value="02">02 - Errores sin relación</option>
+                            <option value="03">03 - No se llevó a cabo la operación</option>
+                            <option value="04">04 - Operación nominativa en factura global</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Cancelación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function abrirModalCancelar(id, uuid, rfc) {
+        document.getElementById('cancelId').value = id;
+        const modal = new bootstrap.Modal(document.getElementById('modalCancelar'));
+        modal.show();
+    }
+</script>

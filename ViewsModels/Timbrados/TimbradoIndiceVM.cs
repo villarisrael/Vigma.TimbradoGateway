@@ -9,6 +9,8 @@ namespace Vigma.TimbradoGateway.ViewModels.Timbrados
     {
         public long? TenantId { get; set; }
         public string? RfcEmisor { get; set; }
+        public string? Uuid { get; set; }
+        public string? Folio { get; set; }
         public DateTime? FechaInicio { get; set; }
         public DateTime? FechaFinal { get; set; }
 
@@ -72,5 +74,34 @@ namespace Vigma.TimbradoGateway.ViewModels.Timbrados
         public DateTime CreatedUtc { get; set; }
         public string? JsonFormateado { get; set; }
         public string? Adicionales { get; set; }
+
+        // ── Campos parseados del XML timbrado ────────────────────────────────
+        // Comprobante
+        public string? Fecha { get; set; }
+        public string? FechaTimbrado { get; set; }
+        public string? Subtotal { get; set; }
+        public string? Total { get; set; }
+        public string? FormaPago { get; set; }
+        public string? MetodoPago { get; set; }
+        public string? Moneda { get; set; }
+        public string? TipoCambio { get; set; }
+        public string? LugarExpedicion { get; set; }
+        public string? NoCertificado { get; set; }
+        public string? NoCertificadoSAT { get; set; }
+        public string? CondicionesDePago { get; set; }
+        // Emisor
+        public string? NombreEmisor { get; set; }
+        public string? RegimenFiscalEmisor { get; set; }
+        // Receptor
+        public string? RfcReceptor { get; set; }
+        public string? NombreReceptor { get; set; }
+        public string? UsoCFDI { get; set; }
+        public string? DomicilioFiscalReceptor { get; set; }
+        public string? RegimenFiscalReceptor { get; set; }
+        // ── Sellos y cadena original ──────────────────────────────────────────
+        public string? SelloSAT { get; set; }          // tfd:TimbreFiscalDigital/@SelloSAT
+        public string? SelloCFD { get; set; }          // cfdi:Comprobante/@Sello
+        public string? Certificado { get; set; }       // cfdi:Comprobante/@Certificado (base64)
+        public string? CadenaOriginalTFD { get; set; } // Construida: ||Ver|UUID|Fecha|RfcProv|NoCertSAT||
     }
 }

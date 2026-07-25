@@ -353,17 +353,30 @@ public sealed class IniToMfRequestMapper
             // Impuestos de concepto (MF: Impuestos:{Traslados:[...], Retenciones:[...]})
             var impConcepto = new Dictionary<string, object?>();
 
-            if (c.Impuestos?.Traslados?.Count > 0)
-            {
-                impConcepto["Traslados"] = c.Impuestos.Traslados.Select(t => new Dictionary<string, object?>
+            var trasladosValidos = c.Impuestos?.Traslados?
+                .Where(t =>
+                    t.Base != null ||
+                    t.Impuesto != null ||
+                    t.TipoFactor != null ||
+                    t.TasaOCuota != null ||
+                    t.Importe != null
+                )
+                .Select(t => new Dictionary<string, object?>
                 {
                     ["Base"] = t.Base,
                     ["Impuesto"] = t.Impuesto,
                     ["TipoFactor"] = t.TipoFactor,
                     ["TasaOCuota"] = t.TasaOCuota,
                     ["Importe"] = t.Importe
-                }).ToList();
+                })
+                .ToList();
+
+            if (trasladosValidos?.Count > 0)
+            {
+                impConcepto["Traslados"] = trasladosValidos;
             }
+
+
 
             if (c.Impuestos?.Retenciones?.Count > 0)
             {
@@ -405,31 +418,49 @@ public sealed class IniToMfRequestMapper
         var i = doc.Impuestos;
         if (i == null) return null;
 
-        var impuestos = new Dictionary<string, object?>
-        {
-            ["TotalImpuestosTrasladados"] = i.TotalImpuestosTrasladados,
-         //   ["TotalImpuestosRetenidos"] = i.TotalImpuestosRetenidos
-        };
+        // ── Guardia temprana ────────────────────────────────────────────────────
+        // Si TotalImpuestosTrasladados es null (sin impuesto real) Y todos los
+        // traslados son Exento (importe null) Y no hay retenciones → no emitir el
+        // nodo. Evita el error SAT "Base del Traslado ≠ suma de bases en conceptos"
+        // cuando el concepto usa ObjetoImp=01 (no objeto de impuesto).
+        bool todosExentoSinImporte =
+            i.Translados?.Count > 0 &&
+            i.Translados.All(t =>
+                !t.importe.HasValue &&
+                string.Equals(t.TipoFactor, "Exento", StringComparison.OrdinalIgnoreCase));
 
-        // MF en tus ejemplos usa "translados" (minúsculas)
+        bool hayRetenciones = i.Retenciones?.Count > 0;
+
+        if (!i.TotalImpuestosTrasladados.HasValue && todosExentoSinImporte && !hayRetenciones)
+            return null;
+
+        // ── Construcción del nodo ───────────────────────────────────────────────
+        var impuestos = new Dictionary<string, object?>();
+
+        // IMPORTANTE: no agregar la clave si el valor es null — con Dictionary<string,object?>
+        // System.Text.Json escribe el null aunque WhenWritingNull esté activo.
+        if (i.TotalImpuestosTrasladados.HasValue)
+            impuestos["TotalImpuestosTrasladados"] = i.TotalImpuestosTrasladados;
+
+        // MF usa "translados" (minúsculas)
         if (i.Translados?.Count > 0)
         {
             impuestos["translados"] = i.Translados.Select(t => new Dictionary<string, object?>
             {
-                ["Base"] = t.Base,
-                ["impuesto"] = t.impuesto,
-                ["tasa"] = t.tasa,
-                ["importe"] = t.importe,
+                ["Base"]       = t.Base,
+                ["impuesto"]   = t.impuesto,
+                ["tasa"]       = t.tasa,
+                ["importe"]    = t.importe,
                 ["TipoFactor"] = t.TipoFactor
             }).ToList();
         }
 
-        if (i.Retenciones?.Count > 0)
+        if (hayRetenciones)
         {
-            impuestos["retenciones"] = i.Retenciones.Select(r => new Dictionary<string, object?>
+            impuestos["retenciones"] = i.Retenciones!.Select(r => new Dictionary<string, object?>
             {
                 ["impuesto"] = r.Impuesto,
-                ["importe"] = r.Importe
+                ["importe"]  = r.Importe
             }).ToList();
         }
 
@@ -440,13 +471,7 @@ public sealed class IniToMfRequestMapper
                 impuestos[kv.Key] = kv.Value;
         }
 
-        // Si no hay nada útil, regresamos null
-        var hasAny =
-            i.TotalImpuestosTrasladados.HasValue ||
-          
-            i.Translados?.Count > 0;
-
-        return hasAny ? impuestos : null;
+        return impuestos.Count > 0 ? impuestos : null;
     }
 
     private static Dictionary<string, object?> MapPagos20(IniPagos20 p20)

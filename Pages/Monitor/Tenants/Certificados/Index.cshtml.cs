@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Vigma.TimbradoGateway.Infrastructure;
 using Vigma.TimbradoGateway.Models;
+using Vigma.TimbradoGateway.Util;
 
 namespace Vigma.TimbradoGateway.Pages.Monitor.Tenants.Certificados;
 
@@ -26,10 +27,15 @@ public class IndexModel : PageModel
         TenantNombre = t.Nombre;
 
         Items = await _db.Certificados
+            .AsNoTracking()
             .Where(c => c.TenantId == tenantId)
             .OrderByDescending(c => c.Activo)
             .ThenBy(c => c.RFC)
             .ToListAsync();
+
+        // Decodificar número de certificado de hex SAT a formato de 20 dígitos legible
+        foreach (var item in Items)
+            item.NoCertificado = CertificadoReader.DecodificarNoCertificadoSat(item.NoCertificado);
 
         return Page();
     }

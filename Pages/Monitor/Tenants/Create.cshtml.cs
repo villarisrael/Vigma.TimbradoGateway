@@ -13,15 +13,24 @@ namespace Vigma.TimbradoGateway.Pages.Monitor.Tenants
     {
         private readonly TimbradoDbContext _db;
         private readonly CryptoService _crypto;
+        private readonly IWebHostEnvironment _env;
 
-        public CreateModel(TimbradoDbContext db, CryptoService crypto)
+        private static readonly string[] _allowedExt  = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+        private static readonly string[] _allowedMime = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+        private const long MaxLogoBytes = 5 * 1024 * 1024;
+
+        public CreateModel(TimbradoDbContext db, CryptoService crypto, IWebHostEnvironment env)
         {
-            _db = db;
+            _db     = db;
             _crypto = crypto;
+            _env    = env;
         }
 
         [BindProperty]
         public InputModel Input { get; set; } = new();
+
+        [BindProperty]
+        public IFormFile? LogoFile { get; set; }
 
         // Para mostrar una sola vez
         public string? PlainApiKey { get; set; }
@@ -83,6 +92,29 @@ namespace Vigma.TimbradoGateway.Pages.Monitor.Tenants
             await _db.SaveChangesAsync();
 
             CreatedTenantId = tenant.Id;
+
+            // 4) Logo opcional
+            if (LogoFile is { Length: > 0 })
+            {
+                var ext = Path.GetExtension(LogoFile.FileName).ToLowerInvariant();
+                if (_allowedExt.Contains(ext)
+                    && _allowedMime.Contains(LogoFile.ContentType.ToLowerInvariant())
+                    && LogoFile.Length <= MaxLogoBytes)
+                {
+                    var logosDir = Path.Combine(_env.WebRootPath, "logos");
+                    Directory.CreateDirectory(logosDir);
+
+                    var fileName = $"tenant_{tenant.Id}{ext}";
+                    var filePath = Path.Combine(logosDir, fileName);
+
+                    await using var stream = new FileStream(filePath, FileMode.Create);
+                    await LogoFile.CopyToAsync(stream);
+
+                    tenant.LogoPath       = $"/logos/{fileName}";
+                    tenant.actualizado_utc = DateTime.UtcNow;
+                    await _db.SaveChangesAsync();
+                }
+            }
 
             // Regresa a la misma página para mostrar la ApiKey
             return Page();

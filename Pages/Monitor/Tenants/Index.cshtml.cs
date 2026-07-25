@@ -29,6 +29,7 @@ public class IndexModel : PageModel
         public string ApiKeyMasked { get; set; } = "";
         public string RfcsResumen { get; set; } = "";
         public DateTime? CertVigenciaFinUtc { get; set; }
+        public string? LogoPath { get; set; }
     }
 
     public async Task OnGetAsync(string? q, int? activo)
@@ -70,8 +71,9 @@ public class IndexModel : PageModel
                 Activo = t.Activo,
                 pac_produccion = t.PacProduccion,
                 ApiKeyMasked = $"tg_live_************************{t.ApiKeyLast4}",
-                RfcsResumen = rfcs.Count == 0 ? "—" : string.Join(", ", rfcs.Take(3)) + (rfcs.Count > 3 ? "..." : ""),
-                CertVigenciaFinUtc = minVigFin
+                RfcsResumen = rfcs.Count == 0 ? "ï¿½" : string.Join(", ", rfcs.Take(3)) + (rfcs.Count > 3 ? "..." : ""),
+                CertVigenciaFinUtc = minVigFin,
+                LogoPath           = t.LogoPath
             };
         }).ToList();
     }
@@ -95,7 +97,7 @@ public class IndexModel : PageModel
 
         tenant.PacProduccion = !tenant.PacProduccion;
 
-        // regla: si está en modo prueba, NO timbra producción
+        // regla: si estï¿½ en modo prueba, NO timbra producciï¿½n
         // (eso lo aplicas en TimbradoService al elegir UrlWsTest/UrlWsProd)
         tenant.actualizado_utc = DateTime.UtcNow; // si aplica
         await _db.SaveChangesAsync();

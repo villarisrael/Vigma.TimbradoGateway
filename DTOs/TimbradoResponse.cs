@@ -1,21 +1,40 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Vigma.TimbradoGateway.Utils;
 
 namespace Vigma.TimbradoGateway.DTOs;
 
 public class TimbradoResponse
 {
     // === Formato simple (tu WS interno / gateway) ===
+    /// <summary>
+    /// Usa conversor personalizado para aceptar tanto bool (true/false) como string ("true"/"false")
+    /// proveniente de FacturaLO que devuelve {"ok": "true"} en lugar de {"ok": true}
+    /// </summary>
+    [JsonPropertyName("ok")]
+    [JsonConverter(typeof(BooleanStringConverter))]
     public bool ok { get; set; }
+
+    [JsonPropertyName("uuid")]
     public string? uuid { get; set; }
 
     // En el formato simple viene aquí; en el formato real lo normalizamos desde "cfdi"
+    [JsonPropertyName("xmlTimbrado")]
     public string? xmlTimbrado { get; set; }
 
+    [JsonPropertyName("codigo")]
     public string? codigo { get; set; }
+
+    [JsonPropertyName("mensaje")]
     public string? mensaje { get; set; }
+
+    [JsonPropertyName("error")]
     public string? error { get; set; }
+
+    [JsonPropertyName("rawPac")]
     public string? rawPac { get; set; }
+
+    [JsonPropertyName("logId")]
     public long logId { get; set; }
 
     // === Formato “real” (respuesta MF expandida) ===

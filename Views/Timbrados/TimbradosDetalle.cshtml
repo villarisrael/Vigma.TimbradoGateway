@@ -1,13 +1,146 @@
-﻿@model Vigma.TimbradoGateway.ViewModels.Timbrados.TimbradoDetalleVM
+@model Vigma.TimbradoGateway.ViewModels.Timbrados.TimbradoDetalleVM
 @{
     ViewData["Title"] = $"Timbrado #{Model.Id} - Detalle";
     Layout = "_Layout";
     var fileNameXml = $"{Model.Uuid}.xml";
+
+    string V(string? val) => string.IsNullOrWhiteSpace(val) ? "—" : val;
 }
 
 <link href="~/css/Gstyle.css" rel="stylesheet" />
 <link href="~/css/Errores.css" rel="stylesheet" />
 <link href="~/css/Timbrado.css" rel="stylesheet" />
+
+<style>
+    /* ── Comprobante detail grid ─────────────────────────────── */
+    .cfdi-section {
+        margin-top: 16px;
+    }
+    .cfdi-section-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6c757d;
+        padding: 0 0 8px 2px;
+        margin: 0 0 4px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .cfdi-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px 20px;
+        padding-top: 10px;
+    }
+    .cfdi-field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .cfdi-label {
+        font-size: 10.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6c757d;
+    }
+    .cfdi-value {
+        font-size: 13px;
+        color: var(--color-dark);
+        font-weight: 500;
+        word-break: break-word;
+    }
+    .cfdi-value.mono {
+        font-family: monospace;
+        font-size: 12px;
+    }
+    .cfdi-value.na {
+        color: #adb5bd;
+        font-weight: 400;
+    }
+    @@media (max-width: 768px) {
+        .cfdi-fields { grid-template-columns: 1fr 1fr; }
+    }
+    .cfdi-full-card {
+        margin-top: 0;
+    }
+    /* ── Sellos card ─────────────────────────────────────────── */
+    .sello-block {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .sello-label {
+        font-size: 10.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6c757d;
+    }
+    .sello-value {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 11.5px;
+        color: var(--color-dark);
+        background: var(--bg-light-subtle);
+        border: 1px solid rgba(0,0,0,0.07);
+        border-radius: 8px;
+        padding: 8px 10px;
+        word-break: break-all;
+        line-height: 1.5;
+        max-height: 80px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+    }
+    .sello-copy-btn {
+        align-self: flex-end;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-primary);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 4px;
+        transition: opacity 0.15s;
+    }
+    .sello-copy-btn:hover { opacity: 0.7; }
+    .sellos-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .sellos-grid .sello-block.full-width {
+        grid-column: 1 / -1;
+    }
+    @@media (max-width: 768px) {
+        .sellos-grid { grid-template-columns: 1fr; }
+    }
+    /* ── Dark mode overrides ─────────────────────────────────── */
+    [data-theme="dark"] .cfdi-section-title {
+        color: #9090b0;
+        border-bottom-color: rgba(255, 255, 255, 0.07);
+    }
+    [data-theme="dark"] .cfdi-label {
+        color: #9090b0;
+    }
+    [data-theme="dark"] .cfdi-value {
+        color: #e0e0f0;
+    }
+    [data-theme="dark"] .cfdi-value.na {
+        color: #55556a;
+    }
+    [data-theme="dark"] .sello-label {
+        color: #9090b0;
+    }
+    [data-theme="dark"] .sello-value {
+        color: #e0e0f0;
+        background: var(--bg-dark-subtle);
+        border-color: rgba(255,255,255,0.07);
+    }
+</style>
 
 <div class="errores-page">
 
@@ -29,6 +162,15 @@
                     <span class="tb-pill tb-pill-ok">
                         <i class="bi bi-check-circle-fill"></i> Vigente
                     </span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.XmlTimbrado))
+                {
+                    <a href="@Url.Action("DescargarPdf", "Timbrados", new { id = Model.Id })"
+                       class="vg-btn vg-btn-primary"
+                       title="Descargar representación impresa del CFDI en PDF"
+                       target="_blank">
+                        <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                    </a>
                 }
                 <a href="@Url.Action("Index", "Timbrados")" class="vg-btn vg-btn-outline">
                     <i class="bi bi-arrow-left"></i> Volver al índice
@@ -58,79 +200,227 @@
         </div>
     </div>
 
-    <!-- ── Info cards (3 columnas) ── -->
-    <div class="td-info-grid">
+    <!-- ── Tarjeta grande: datos del comprobante ── -->
+    <div class="errores-ring-card cfdi-full-card">
 
-        <!-- Tarjeta 1: RFC, Origen, Tipo -->
-        <div class="errores-ring-card timbrado-cards-row">
-            <div class="ed-info-section">
-                <span class="ec-label"><i class="bi bi-building"></i> RFC Emisor</span>
-                <code class="ec-rfc td-rfc-large">@Model.RfcEmisor</code>
-            </div>
-            <div class="ed-divider"></div>
-            <div class="ed-info-section">
-                <span class="ec-label"><i class="bi bi-box-arrow-in-right"></i> Origen</span>
-                <span class="ed-info-value">@(!string.IsNullOrWhiteSpace(Model.Origen) ? Model.Origen : "—")</span>
-            </div>
-            <div class="ed-divider"></div>
-            <div class="ed-info-section">
-                <span class="ec-label"><i class="bi bi-file-earmark-text"></i> Tipo de comprobante</span>
-                @if (!string.IsNullOrWhiteSpace(Model.TipoDeComprobante))
-                {
-                    <span class="tb-pill tb-pill-ok" style="width:fit-content">
-                        <i class="bi bi-file-earmark-check"></i> @Model.TipoDeComprobante
-                    </span>
-                }
-                else
-                {
-                    <span class="ec-na">N/A</span>
-                }
+        <!-- EMISOR ──────────────────────────────────── -->
+        <div class="cfdi-section">
+            <p class="cfdi-section-title"><i class="bi bi-building"></i> Emisor</p>
+            <div class="cfdi-fields">
+                <div class="cfdi-field">
+                    <span class="cfdi-label">RFC Emisor</span>
+                    <span class="cfdi-value mono">@V(Model.RfcEmisor)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Nombre Emisor</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.NombreEmisor) ? "na" : "")">@V(Model.NombreEmisor)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Régimen Fiscal</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.RegimenFiscalEmisor) ? "na" : "")">@V(Model.RegimenFiscalEmisor)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Lugar Expedición</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.LugarExpedicion) ? "na" : "")">@V(Model.LugarExpedicion)</span>
+                </div>
             </div>
         </div>
 
-        <!-- Tarjeta 2: Serie, Folio, UUID -->
-        <div class="errores-ring-card timbrado-cards-row">
-            <div class="ed-info-section">
-                <span class="ec-label"><i class="bi bi-collection"></i> Serie</span>
-                <span class="ed-info-value">@(!string.IsNullOrWhiteSpace(Model.Serie) ? Model.Serie : "—")</span>
-            </div>
-            <div class="ed-divider"></div>
-            <div class="ed-info-section">
-                <span class="ec-label"><i class="bi bi-hash"></i> Folio</span>
-                <span class="ed-info-value">@(!string.IsNullOrWhiteSpace(Model.Folio) ? Model.Folio : "—")</span>
-            </div>
-            <div class="ed-divider"></div>
-            <div class="ed-info-section">
-                <span class="ec-label"><i class="bi bi-patch-check"></i> UUID</span>
-                <code class="ec-rfc td-uuid-full" title="@Model.Uuid">@Model.Uuid</code>
+        <div class="ed-divider" style="margin:14px 0;"></div>
+
+        <!-- RECEPTOR ────────────────────────────────── -->
+        <div class="cfdi-section">
+            <p class="cfdi-section-title"><i class="bi bi-person-badge"></i> Receptor</p>
+            <div class="cfdi-fields">
+                <div class="cfdi-field">
+                    <span class="cfdi-label">RFC Receptor</span>
+                    <span class="cfdi-value mono">@V(Model.RfcReceptor)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Nombre Receptor</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.NombreReceptor) ? "na" : "")">@V(Model.NombreReceptor)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Uso CFDI</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.UsoCFDI) ? "na" : "")">@V(Model.UsoCFDI)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Domicilio Fiscal</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.DomicilioFiscalReceptor) ? "na" : "")">@V(Model.DomicilioFiscalReceptor)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Régimen Fiscal Receptor</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.RegimenFiscalReceptor) ? "na" : "")">@V(Model.RegimenFiscalReceptor)</span>
+                </div>
             </div>
         </div>
 
-        <!-- Tarjeta 3: Mensaje MF -->
-        <div class="errores-ring-card timbrado-cards-row">
-            <div class="ed-info-section">
-                <span class="ec-label"><i class="bi bi-chat-dots-fill"></i> Mensaje MF</span>
-                @if (!string.IsNullOrWhiteSpace(Model.MensajeMf))
-                {
-                    <div class="td-msg-box td-msg-warn">
-                        <i class="bi bi-info-circle-fill td-msg-icon warn"></i>
-                        <p>@Model.MensajeMf</p>
-                    </div>
-                }
-                else
-                {
-                    <div class="td-msg-box td-msg-ok">
-                        <i class="bi bi-check-circle-fill td-msg-icon ok"></i>
-                        <p>OK — Sin observaciones</p>
-                    </div>
-                }
+        <div class="ed-divider" style="margin:14px 0;"></div>
+
+        <!-- COMPROBANTE ─────────────────────────────── -->
+        <div class="cfdi-section">
+            <p class="cfdi-section-title"><i class="bi bi-receipt"></i> Comprobante</p>
+            <div class="cfdi-fields">
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Tipo de Comprobante</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.TipoDeComprobante))
+                    {
+                        <span class="tb-pill tb-pill-ok" style="width:fit-content;font-size:11px;">
+                            <i class="bi bi-file-earmark-check"></i> @Model.TipoDeComprobante
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="cfdi-value na">—</span>
+                    }
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Origen</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.Origen) ? "na" : "")">@V(Model.Origen)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Serie</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.Serie) ? "na" : "")">@V(Model.Serie)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Folio</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.Folio) ? "na" : "")">@V(Model.Folio)</span>
+                </div>
+                <div class="cfdi-field" style="grid-column: span 2;">
+                    <span class="cfdi-label">UUID</span>
+                    <span class="cfdi-value mono" style="font-size:12px;">@V(Model.Uuid)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Fecha Emisión</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.Fecha) ? "na" : "")">@V(Model.Fecha)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Fecha Timbrado</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.FechaTimbrado) ? "na" : "")">@V(Model.FechaTimbrado)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Subtotal</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.Subtotal) ? "na" : "")">@V(Model.Subtotal)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Total</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.Total) ? "na" : "")">@V(Model.Total)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Moneda</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.Moneda) ? "na" : "")">@V(Model.Moneda)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Tipo de Cambio</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.TipoCambio) ? "na" : "")">@V(Model.TipoCambio)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Forma de Pago</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.FormaPago) ? "na" : "")">@V(Model.FormaPago)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Método de Pago</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.MetodoPago) ? "na" : "")">@V(Model.MetodoPago)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">Condiciones de Pago</span>
+                    <span class="cfdi-value @(string.IsNullOrWhiteSpace(Model.CondicionesDePago) ? "na" : "")">@V(Model.CondicionesDePago)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">No. Certificado</span>
+                    <span class="cfdi-value mono @(string.IsNullOrWhiteSpace(Model.NoCertificado) ? "na" : "")">@V(Model.NoCertificado)</span>
+                </div>
+                <div class="cfdi-field">
+                    <span class="cfdi-label">No. Certificado SAT</span>
+                    <span class="cfdi-value mono @(string.IsNullOrWhiteSpace(Model.NoCertificadoSAT) ? "na" : "")">@V(Model.NoCertificadoSAT)</span>
+                </div>
             </div>
         </div>
 
     </div>
 
+    <!-- ── Tarjeta: Sellos y cadena original ── -->
+    <div class="errores-ring-card cfdi-full-card">
+
+        <div class="cfdi-section" style="margin-top:0;">
+            <p class="cfdi-section-title"><i class="bi bi-shield-lock"></i> Sellos &amp; Cadena Original</p>
+        </div>
+
+        <!-- Números de certificado (compactos, en grid normal) -->
+        <div class="cfdi-fields" style="margin-bottom:14px;">
+            <div class="cfdi-field">
+                <span class="cfdi-label">No. Certificado (emisor)</span>
+                <span class="cfdi-value mono @(string.IsNullOrWhiteSpace(Model.NoCertificado) ? "na" : "")">@V(Model.NoCertificado)</span>
+            </div>
+            <div class="cfdi-field">
+                <span class="cfdi-label">No. Certificado SAT</span>
+                <span class="cfdi-value mono @(string.IsNullOrWhiteSpace(Model.NoCertificadoSAT) ? "na" : "")">@V(Model.NoCertificadoSAT)</span>
+            </div>
+        </div>
+
+        <div class="ed-divider" style="margin:0 0 14px 0;"></div>
+
+        <!-- Cadena original, SelloSAT, SelloCFD, Certificado -->
+        <div class="sellos-grid">
+
+            @if (!string.IsNullOrWhiteSpace(Model.CadenaOriginalTFD))
+            {
+                <div class="sello-block full-width">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="sello-label"><i class="bi bi-link-45deg"></i> Cadena Original TFD</span>
+                        <button class="sello-copy-btn" onclick="copiarTexto(this, 'cadena-tfd')">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                    <div class="sello-value" id="cadena-tfd">@Model.CadenaOriginalTFD</div>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.SelloSAT))
+            {
+                <div class="sello-block full-width">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="sello-label"><i class="bi bi-patch-check-fill"></i> Sello SAT</span>
+                        <button class="sello-copy-btn" onclick="copiarTexto(this, 'sello-sat')">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                    <div class="sello-value" id="sello-sat">@Model.SelloSAT</div>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.SelloCFD))
+            {
+                <div class="sello-block full-width">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="sello-label"><i class="bi bi-pen-fill"></i> Sello CFD (emisor)</span>
+                        <button class="sello-copy-btn" onclick="copiarTexto(this, 'sello-cfd')">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                    <div class="sello-value" id="sello-cfd">@Model.SelloCFD</div>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Certificado))
+            {
+                <div class="sello-block full-width">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="sello-label"><i class="bi bi-file-earmark-lock2"></i> Certificado (base64)</span>
+                        <button class="sello-copy-btn" onclick="copiarTexto(this, 'certificado-b64')">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                    <div class="sello-value" id="certificado-b64">@Model.Certificado</div>
+                </div>
+            }
+
+        </div>
+
+    </div>
+
     <!-- ── XML Viewer ── -->
-    <div class="ed-json-card">
+    <div class="ed-json-card" style="margin-top:16px;">
 
         <div class="ed-json-header">
             <div>
@@ -194,6 +484,19 @@
             div.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${mensaje}`;
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 3000);
+        }
+
+        async function copiarTexto(btn, elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            try {
+                await navigator.clipboard.writeText(el.innerText.trim());
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2"></i> Copiado';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            } catch {
+                mostrarNotificacion('Error al copiar', 'error');
+            }
         }
 
         async function copiarXML() {

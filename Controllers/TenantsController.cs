@@ -60,6 +60,49 @@ namespace Vigma.TimbradoGateway.Controllers
             return RedirectToAction(nameof(ApiKeyRotada), new { id = tenant.Id });
         }
 
+        /// <summary>
+        /// POST /tenants/{id}/rotar-api-key-json
+        /// Genera nueva API Key y devuelve JSON (para llamadas AJAX desde el modal)
+        /// </summary>
+        [HttpPost("{id:long}/rotar-api-key-json")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RotarApiKeyJson(long id, CancellationToken ct)
+        {
+            try
+            {
+                var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Id == id, ct);
+                if (tenant == null)
+                    return NotFound(new { ok = false, mensaje = "Tenant no encontrado." });
+
+                // Generar nueva API Key
+                var newKey = tenant.PacProduccion
+                    ? ApiKeyGenerator.GenerateLiveKey()
+                    : ApiKeyGenerator.GenerateTestKey();
+
+                // Guardar hash + last4 + rotated
+                tenant.ApiKeyHash = ApiKeyGenerator.Hash(newKey);
+                tenant.ApiKeyLast4 = ApiKeyGenerator.Last4(newKey);
+                tenant.ApiKeyRotatedUtc = DateTime.UtcNow;
+                tenant.ApiKeyEnc = _crypto.EncryptToBase64(newKey);
+
+                await _db.SaveChangesAsync(ct);
+
+                return Ok(new
+                {
+                    ok = true,
+                    mensaje = "API Key regenerada correctamente.",
+                    newApiKey = newKey,
+                    tenantId = tenant.Id,
+                    tenantNombre = tenant.Nombre,
+                    ambiente = tenant.PacProduccion ? "Producción" : "Pruebas"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { ok = false, mensaje = $"Error al regenerar la API Key: {ex.Message}" });
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> ApiKeyRotada(long id, CancellationToken ct)
         {
@@ -71,6 +114,41 @@ namespace Vigma.TimbradoGateway.Controllers
             ViewBag.NewApiKey = TempData["NewApiKey"] as string;
 
             return View(tenant);
+        }
+
+        /// <summary>
+        /// Devuelve datos de credenciales del tenant (con password descifrado) para el panel lateral del Index.
+        /// GET /tenants/{id}/detalles
+        /// </summary>
+        [HttpGet("{id:long}/detalles")]
+        public async Task<IActionResult> Detalles(long id, CancellationToken ct)
+        {
+            var tenant = await _db.Tenants.AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id, ct);
+
+            if (tenant == null) return NotFound(new { ok = false });
+
+            string? pacPassword = null;
+            if (!string.IsNullOrWhiteSpace(tenant.PacPasswordEnc))
+            {
+                try { pacPassword = _crypto.DecryptFromBase64(tenant.PacPasswordEnc); }
+                catch { /* se deja null si no se puede descifrar */ }
+            }
+
+            return Ok(new
+            {
+                id = tenant.Id,
+                nombre = tenant.Nombre,
+                activo = tenant.Activo,
+                logoPath = tenant.LogoPath,
+                apiKeyMasked = $"tg_live_************************{tenant.ApiKeyLast4}",
+                pacUsuario = tenant.PacUsuario,
+                pacPassword,
+                pacProduccion = tenant.PacProduccion,
+                pacApikeyFacturalo = tenant.PacApikeyFacturalo,
+                pacApikeyFacturaloTest = tenant.PacApikeyFacturaloTest,
+                pacProveedor = tenant.PacProveedor
+            });
         }
 
         // GET /tenants/saldo-timbres?tenantId=123
@@ -111,11 +189,17 @@ namespace Vigma.TimbradoGateway.Controllers
                 // Si tu 'PacUsuario' es el RFC y 'pacPassword' es la clave MF: OK.
                 var resp = await _mfSaldo.ConsultarSaldoAsync(urlWs, tenant.PacUsuario, pacPassword, ct);
 
+                // El PAC puede responder "OK" (codigo 0) pero sin mandar el dato de
+                // saldo (xsi:nil="true"). Si pasa eso, no lo mostramos como 0 real.
+                var mensaje = resp.Mensaje;
+                if (resp.Ok && resp.Saldo == null)
+                    mensaje = "MultiFacturas respondió OK pero no envió el dato de saldo. Es un problema de su servicio, contacta a su soporte.";
+
                 return Ok(new
                 {
                     ok = resp.Ok,
                     codigo = resp.Codigo,
-                    mensaje = resp.Mensaje,
+                    mensaje,
                     saldo = resp.Saldo,
                     tenantId = tenant.Id,
                     tenantNombre = tenant.Nombre

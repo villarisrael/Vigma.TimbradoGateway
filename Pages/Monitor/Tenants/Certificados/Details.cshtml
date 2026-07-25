@@ -1,266 +1,785 @@
 @page "/Monitor/Tenants/{tenantId:int}/Certificados/Details/{certId:int}"
 @model Vigma.TimbradoGateway.Pages.Monitor.Tenants.Certificados.DetailsModel
 @{
-    ViewData["Title"] = $"Detalle de Certificado - {Model.RFC}";
+    ViewData["Title"] = $"Certificado {Model.RFC}";
+
+    var diasRestantes = Model.VigenciaFinUtc.HasValue
+        ? (Model.VigenciaFinUtc.Value - DateTime.UtcNow).Days
+        : (int?)null;
+
+    var vigClase = diasRestantes.HasValue
+        ? (diasRestantes > 90 ? "ok" : diasRestantes > 0 ? "warn" : "exp")
+        : "none";
 }
 
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+
 <style>
-    .card {
-        border: none;
-        border-radius: 8px;
-    }
+/* ═══════════════════════════════════════════════════════════════════════════
+   DETALLE CERTIFICADO — Vigma Design System
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-    .card-header {
-        border-radius: 8px 8px 0 0 !important;
-    }
+.dc-page {
+    padding: var(--space-5);
+    max-width: var(--container-xl);
+    margin: 0 auto;
+}
 
-    code {
-        font-size: 0.9em;
-        color: #d63384;
-    }
+/* ─── Breadcrumb ─────────────────────────────────────────────────────────── */
+.dc-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: #9090b0;
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+}
 
-    pre {
-        font-size: 0.85em;
-        max-height: 200px;
-        overflow-y: auto;
-    }
+.dc-breadcrumb a {
+    color: var(--color-vigma);
+    text-decoration: none;
+    font-weight: var(--weight-medium);
+    transition: opacity .18s;
+}
 
-    dt {
-        font-weight: 600;
-        color: #495057;
-    }
+.dc-breadcrumb a:hover { opacity: .7; }
 
-    dd {
-        color: #212529;
-    }
+.dc-breadcrumb .sep    { color: var(--bg-light-muted); user-select: none; }
+.dc-breadcrumb .active { color: var(--color-dark); font-weight: var(--weight-semibold); }
+
+[data-theme="dark"] .dc-breadcrumb .active { color: #e0e0f0; }
+
+/* ─── Hero ───────────────────────────────────────────────────────────────── */
+.dc-hero {
+    background: var(--vigma-gradient);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5) var(--space-6);
+    margin-bottom: var(--space-4);
+    box-shadow: 0 8px 32px rgba(91,91,214,0.25);
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    position: relative;
+    overflow: hidden;
+}
+
+.dc-hero::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.dc-hero-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-lg);
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.dc-hero-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+
+.dc-hero-rfc {
+    font-family: var(--font-titles);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-2xl);
+    color: white;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-1);
+}
+
+.dc-hero-sub {
+    font-size: var(--text-sm);
+    color: rgba(255,255,255,0.72);
+    margin-bottom: var(--space-3);
+}
+
+.dc-hero-badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.dc-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: white;
+}
+
+.dc-hero-badge.ok   { background: rgba(56,239,125,0.32); border: 1px solid rgba(56,239,125,0.5); }
+.dc-hero-badge.warn { background: rgba(247,151,30,0.4);  border: 1px solid rgba(247,151,30,0.55); }
+.dc-hero-badge.exp  { background: rgba(255,65,108,0.4);  border: 1px solid rgba(255,65,108,0.55); }
+.dc-hero-badge.off  { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
+.dc-hero-badge.info { background: rgba(255,255,255,0.2);  border: 1px solid rgba(255,255,255,0.35); }
+
+/* ─── Alertas ────────────────────────────────────────────────────────────── */
+.dc-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5) var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-3);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    position: relative;
+}
+
+.dc-alert-close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: .45;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0;
+    transition: opacity .2s;
+}
+
+.dc-alert-close:hover { opacity: 1; }
+
+.dc-alert-err  { background: rgba(255,65,108,0.08);  border: 1px solid rgba(255,65,108,0.25);  color: #c0203e; }
+.dc-alert-warn { background: rgba(247,151,30,0.08);  border: 1px solid rgba(247,151,30,0.3);   color: #b36a00; }
+.dc-alert-info { background: rgba(91,91,214,0.08);   border: 1px solid rgba(91,91,214,0.2);    color: var(--color-vigma); }
+
+[data-theme="dark"] .dc-alert-err  { color: #ff8099; }
+[data-theme="dark"] .dc-alert-warn { color: #ffc166; }
+[data-theme="dark"] .dc-alert-info { color: #a0a0f0; }
+
+/* ─── Grid ───────────────────────────────────────────────────────────────── */
+.dc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+@@media (max-width: 900px) { .dc-grid { grid-template-columns: 1fr; } }
+
+/* ─── Cards ──────────────────────────────────────────────────────────────── */
+.dc-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .dc-card {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,0.06);
+}
+
+.dc-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--bg-light-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+[data-theme="dark"] .dc-card-header { border-color: var(--bg-dark-muted); }
+
+.dc-card-header.primary { color: var(--color-vigma);      background: rgba(91,91,214,0.04); }
+.dc-card-header.teal    { color: var(--color-throughput); background: rgba(15,155,142,0.04); }
+.dc-card-header.dark    { color: var(--color-dark);       background: rgba(44,62,80,0.04); }
+.dc-card-header.warning { color: var(--color-warning);    background: rgba(247,151,30,0.04); }
+
+[data-theme="dark"] .dc-card-header.dark { color: #c0c0d8; background: rgba(255,255,255,0.02); }
+
+.dc-card-body { padding: var(--space-5); }
+
+/* ─── Filas info ─────────────────────────────────────────────────────────── */
+.dc-info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .dc-info-row { border-color: var(--bg-dark-muted); }
+
+.dc-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.dc-info-row:first-child { padding-top: 0; }
+
+.dc-info-label {
+    flex: 0 0 140px;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    color: #9090b0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding-top: 2px;
+}
+
+.dc-info-value {
+    flex: 1;
+    font-size: var(--text-sm);
+    color: var(--color-dark);
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+[data-theme="dark"] .dc-info-value { color: #c8c8e8; }
+
+/* ─── Badges ─────────────────────────────────────────────────────────────── */
+.dc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+}
+
+.dc-badge-ok   { background: rgba(17,153,142,0.1);  color: #11998e; border: 1px solid rgba(17,153,142,0.25); }
+.dc-badge-warn { background: rgba(247,151,30,0.1);  color: #d98500; border: 1px solid rgba(247,151,30,0.3); }
+.dc-badge-exp  { background: rgba(255,65,108,0.1);  color: #e02050; border: 1px solid rgba(255,65,108,0.25); }
+.dc-badge-off  { background: var(--bg-light-subtle); color: #9090b0; border: 1px solid var(--bg-light-muted); }
+
+[data-theme="dark"] .dc-badge-off { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); }
+
+/* ─── Barra de vigencia ──────────────────────────────────────────────────── */
+.dc-vigencia-bar-wrap {
+    margin-top: var(--space-2);
+    background: var(--bg-light-subtle);
+    border-radius: var(--radius-full);
+    height: 6px;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .dc-vigencia-bar-wrap { background: var(--bg-dark-subtle); }
+
+.dc-vigencia-bar { height: 100%; border-radius: var(--radius-full); }
+.dc-vigencia-bar.ok   { background: var(--success-gradient); }
+.dc-vigencia-bar.warn { background: var(--warning-gradient); }
+.dc-vigencia-bar.exp  { background: var(--danger-gradient); width: 100% !important; }
+
+/* ─── Archivos ───────────────────────────────────────────────────────────── */
+.dc-file-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-light-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+    border: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .dc-file-row {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+}
+
+.dc-file-row:last-child { margin-bottom: 0; }
+
+.dc-file-icon {
+    width: 40px; height: 40px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+}
+
+.dc-file-icon.cer { background: rgba(91,91,214,0.1);  color: var(--color-vigma); }
+.dc-file-icon.key { background: rgba(247,151,30,0.1); color: var(--color-warning); }
+
+.dc-file-info  { flex: 1; min-width: 0; }
+
+.dc-file-ext {
+    font-size: 11px;
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9090b0;
+    margin-bottom: 2px;
+}
+
+.dc-file-path {
+    font-family: "Consolas", monospace;
+    font-size: 11.5px;
+    color: var(--color-dark);
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+[data-theme="dark"] .dc-file-path { color: #c0c0d8; }
+
+/* ─── Técnicos ───────────────────────────────────────────────────────────── */
+.dc-tech-label {
+    font-size: 11px;
+    font-weight: var(--weight-bold);
+    color: #9090b0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-2);
+    margin-top: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.dc-tech-label:first-child { margin-top: 0; }
+
+.dc-code-block {
+    background: var(--bg-light-subtle);
+    border: 1px solid var(--bg-light-muted);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 12px;
+    color: var(--color-dark);
+    max-height: 130px;
+    overflow-y: auto;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+[data-theme="dark"] .dc-code-block {
+    background: var(--bg-dark-subtle);
+    border-color: var(--bg-dark-muted);
+    color: #c0c0d8;
+}
+
+.dc-code-block::-webkit-scrollbar { width: 4px; }
+.dc-code-block::-webkit-scrollbar-track { background: transparent; }
+.dc-code-block::-webkit-scrollbar-thumb { background: var(--bg-light-muted); border-radius: 4px; }
+[data-theme="dark"] .dc-code-block::-webkit-scrollbar-thumb { background: var(--bg-dark-muted); }
+
+/* ─── Toolbar ────────────────────────────────────────────────────────────── */
+.dc-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] .dc-toolbar {
+    background: var(--bg-dark-card);
+    border-color: rgba(255,255,255,0.06);
+}
+
+.dc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--bg-light-muted);
+    background: transparent;
+    color: var(--color-dark);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .dc-btn { border-color: var(--bg-dark-muted); color: #c0c0d8; }
+
+.dc-btn:hover {
+    border-color: var(--color-vigma);
+    color: var(--color-vigma);
+    background: rgba(91,91,214,0.07);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(91,91,214,0.12);
+}
+
+.dc-btn.primary {
+    background: var(--vigma-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+.dc-btn.primary:hover {
+    box-shadow: 0 4px 16px rgba(91,91,214,0.38);
+    color: white;
+}
 </style>
 
-<div class="container-fluid py-4">
+<div class="main-content">
+<div class="dc-page">
+
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-page="/Monitor/Tenants/Index">Tenants</a></li>
-            <li class="breadcrumb-item"><a asp-page="/Monitor/Tenants/Details" asp-route-id="@Model.TenantId">@Model.TenantNombre</a></li>
-            <li class="breadcrumb-item active">Certificado @Model.RFC</li>
-        </ol>
-    </nav>
+    <div class="dc-breadcrumb">
+        <a href="/Monitor/Tenants"><i class="bi bi-house-fill"></i> Tenants</a>
+        <span class="sep">/</span>
+        <a href="/Monitor/Tenants/Detalle/@Model.TenantId">@Model.TenantNombre</a>
+        <span class="sep">/</span>
+        <a href="/Monitor/Tenants/@Model.TenantId/Certificados">Certificados</a>
+        <span class="sep">/</span>
+        <span class="active">@Model.RFC</span>
+    </div>
 
-    <!-- Título -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>
-            <i class="bi bi-file-earmark-lock2"></i>
-            Detalle de Certificado
-        </h2>
-        <div>
-            @if (Model.Activo)
-            {
-                <span class="badge bg-success fs-6">ACTIVO</span>
-            }
-            else
-            {
-                <span class="badge bg-secondary fs-6">INACTIVO</span>
-            }
+    <!-- Hero -->
+    <div class="dc-hero">
+        <div class="dc-hero-icon">
+            <i class="bi bi-file-earmark-lock2-fill"></i>
+        </div>
+        <div class="dc-hero-info">
+            <div class="dc-hero-rfc">@Model.RFC</div>
+            <div class="dc-hero-sub">
+                @(!string.IsNullOrWhiteSpace(Model.RazonSocial) ? Model.RazonSocial : $"Tenant: {Model.TenantNombre}")
+            </div>
+            <div class="dc-hero-badges">
 
-            @if (Model.CertificadoLeido && Model.EsValido)
-            {
-                <span class="badge bg-success fs-6 ms-2">✓ VÁLIDO</span>
-            }
-            else if (Model.CertificadoLeido && !Model.EsValido)
-            {
-                <span class="badge bg-danger fs-6 ms-2">✗ EXPIRADO</span>
-            }
+                @* Estado activo/inactivo *@
+                @if (Model.Activo)
+                {
+                    <span class="dc-hero-badge ok"><i class="bi bi-circle-fill" style="font-size:7px"></i> Activo</span>
+                }
+                else
+                {
+                    <span class="dc-hero-badge off"><i class="bi bi-circle" style="font-size:7px"></i> Inactivo</span>
+                }
+
+                @* Validez *@
+                @if (Model.CertificadoLeido)
+                {
+                    if (Model.EsValido && diasRestantes > 90)
+                    {
+                        <span class="dc-hero-badge ok"><i class="bi bi-shield-check"></i> Válido — @diasRestantes días</span>
+                    }
+                    else if (Model.EsValido)
+                    {
+                        <span class="dc-hero-badge warn"><i class="bi bi-exclamation-triangle-fill"></i> Por vencer — @diasRestantes días</span>
+                    }
+                    else
+                    {
+                        <span class="dc-hero-badge exp"><i class="bi bi-x-circle-fill"></i> Expirado</span>
+                    }
+                }
+
+                @* No. Certificado *@
+                @if (!string.IsNullOrWhiteSpace(Model.NoCertificado))
+                {
+                    <span class="dc-hero-badge info"><i class="bi bi-upc-scan"></i> No. @Model.NoCertificado</span>
+                }
+
+            </div>
         </div>
     </div>
 
-    <!-- Mensajes de Error/Advertencia -->
+    <!-- Alertas -->
     @if (!string.IsNullOrEmpty(Model.MensajeError))
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="dc-alert dc-alert-err">
             <i class="bi bi-exclamation-triangle-fill"></i>
-            <strong>Error:</strong> @Model.MensajeError
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div><strong>Error:</strong> @Model.MensajeError</div>
+            <button class="dc-alert-close" onclick="this.parentElement.remove()" title="Cerrar">✕</button>
         </div>
     }
 
     @if (!string.IsNullOrEmpty(Model.MensajeAdvertencia))
     {
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <div class="dc-alert dc-alert-warn">
             <i class="bi bi-exclamation-circle-fill"></i>
-            <strong>Advertencia:</strong> @Model.MensajeAdvertencia
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div><strong>Advertencia:</strong> @Model.MensajeAdvertencia</div>
+            <button class="dc-alert-close" onclick="this.parentElement.remove()" title="Cerrar">✕</button>
         </div>
     }
 
-    <div class="row">
-        <!-- Columna Izquierda: Información Principal -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información Principal</h5>
+    @if (!string.IsNullOrEmpty(Model.MensajeInfo))
+    {
+        <div class="dc-alert dc-alert-info">
+            <i class="bi bi-check-circle-fill"></i>
+            <div>@Model.MensajeInfo</div>
+            <button class="dc-alert-close" onclick="this.parentElement.remove()" title="Cerrar">✕</button>
+        </div>
+    }
+
+    <!-- Grid principal -->
+    <div class="dc-grid">
+
+        <!-- ══ Columna izquierda ══ -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+
+            <!-- Información Principal -->
+            <div class="dc-card">
+                <div class="dc-card-header primary">
+                    <i class="bi bi-info-circle-fill"></i> Información Principal
                 </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">RFC:</dt>
-                        <dd class="col-sm-8"><strong class="text-primary">@Model.RFC</strong></dd>
+                <div class="dc-card-body">
 
-                        <dt class="col-sm-4">Razón Social:</dt>
-                        <dd class="col-sm-8">@Model.RazonSocial</dd>
+                    <div class="dc-info-row">
+                        <div class="dc-info-label">RFC</div>
+                        <div class="dc-info-value">
+                            <strong style="color:var(--color-vigma);font-size:var(--text-base);font-family:monospace;">
+                                @Model.RFC
+                            </strong>
+                        </div>
+                    </div>
 
-                        <dt class="col-sm-4">Tenant:</dt>
-                        <dd class="col-sm-8">@Model.TenantNombre</dd>
+                    @if (!string.IsNullOrWhiteSpace(Model.RazonSocial))
+                    {
+                        <div class="dc-info-row">
+                            <div class="dc-info-label">Razón Social</div>
+                            <div class="dc-info-value">@Model.RazonSocial</div>
+                        </div>
+                    }
 
-                        <dt class="col-sm-4">Estado:</dt>
-                        <dd class="col-sm-8">
+                    <div class="dc-info-row">
+                        <div class="dc-info-label">Tenant</div>
+                        <div class="dc-info-value">
+                            <a href="/Monitor/Tenants/Detalle/@Model.TenantId"
+                               style="color:var(--color-vigma);text-decoration:none;font-weight:var(--weight-semibold);">
+                                <i class="bi bi-building"></i> @Model.TenantNombre
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="dc-info-row">
+                        <div class="dc-info-label">Estado</div>
+                        <div class="dc-info-value">
                             @if (Model.Activo)
                             {
-                                <span class="badge bg-success">Activo</span>
+                                <span class="dc-badge dc-badge-ok"><i class="bi bi-circle-fill" style="font-size:7px"></i> Activo</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">Inactivo</span>
+                                <span class="dc-badge dc-badge-off"><i class="bi bi-circle" style="font-size:7px"></i> Inactivo</span>
                             }
-                        </dd>
-                    </dl>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- Información del Certificado -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Datos del Certificado</h5>
+            <!-- Datos del Certificado -->
+            <div class="dc-card">
+                <div class="dc-card-header teal">
+                    <i class="bi bi-file-earmark-text-fill"></i> Datos del Certificado
                 </div>
-                <div class="card-body">
+                <div class="dc-card-body">
+
                     @if (Model.CertificadoLeido)
                     {
-                        <dl class="row mb-0">
-                            <dt class="col-sm-5">No. Certificado:</dt>
-                            <dd class="col-sm-7"><code>@Model.NoCertificado</code></dd>
+                        @if (!string.IsNullOrWhiteSpace(Model.NoCertificado))
+                        {
+                            <div class="dc-info-row">
+                                <div class="dc-info-label">No. Certificado</div>
+                                <div class="dc-info-value">
+                                    <span style="font-family:monospace;font-size:13px;color:var(--color-throughput);">
+                                        @Model.NoCertificado
+                                    </span>
+                                </div>
+                            </div>
+                        }
 
-                            <dt class="col-sm-5">Vigencia Inicio:</dt>
-                            <dd class="col-sm-7">
+                        <div class="dc-info-row">
+                            <div class="dc-info-label">Vigencia Inicio</div>
+                            <div class="dc-info-value">
                                 @if (Model.VigenciaInicioUtc.HasValue)
                                 {
-                                    <span>@Model.VigenciaInicioUtc.Value.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
+                                    <span>@Model.VigenciaInicioUtc.Value.ToString("dd/MM/yyyy")</span>
+                                    <small style="color:#9090b0;font-size:11px;margin-left:6px;">
+                                        @Model.VigenciaInicioUtc.Value.ToString("HH:mm") UTC
+                                    </small>
                                 }
-                                else
-                                {
-                                    <span class="text-muted">No disponible</span>
-                                }
-                            </dd>
+                                else { <span style="color:#9090b0;font-style:italic">No disponible</span> }
+                            </div>
+                        </div>
 
-                            <dt class="col-sm-5">Vigencia Fin:</dt>
-                            <dd class="col-sm-7">
+                        <div class="dc-info-row">
+                            <div class="dc-info-label">Vigencia Fin</div>
+                            <div class="dc-info-value">
                                 @if (Model.VigenciaFinUtc.HasValue)
                                 {
-                                    <span>@Model.VigenciaFinUtc.Value.ToString("yyyy-MM-dd HH:mm:ss") UTC</span>
+                                    <span>@Model.VigenciaFinUtc.Value.ToString("dd/MM/yyyy")</span>
+                                    <small style="color:#9090b0;font-size:11px;margin-left:6px;">
+                                        @Model.VigenciaFinUtc.Value.ToString("HH:mm") UTC
+                                    </small>
 
-                                    @* Mostrar días restantes si está vigente *@
-                                    @if (Model.EsValido)
+                                    if (diasRestantes.HasValue)
                                     {
-                                        var diasRestantes = (Model.VigenciaFinUtc.Value - DateTime.UtcNow).Days;
-                                        <br />
-                                        <small class="text-muted">
-                                            (@diasRestantes días restantes)
-                                        </small>
+                                        <div style="margin-top:var(--space-2);">
+                                            @{
+                                                var bc = diasRestantes > 90 ? "dc-badge-ok"
+                                                       : diasRestantes > 0  ? "dc-badge-warn"
+                                                       :                      "dc-badge-exp";
+                                            }
+                                            <span class="dc-badge @bc">
+                                                @if (diasRestantes > 0) { <i class="bi bi-clock"></i> @($"{diasRestantes} días restantes") }
+                                                else { <i class="bi bi-x-circle"></i> @("Expirado") }
+                                            </span>
+                                        </div>
+
+                                        if (diasRestantes >= 0)
+                                        {
+                                            var pct = Math.Min(100, (double)diasRestantes / 3650 * 100);
+                                            <div class="dc-vigencia-bar-wrap" style="margin-top:var(--space-2);">
+                                                <div class="dc-vigencia-bar @vigClase"
+                                                     style="width:@pct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                            </div>
+                                        }
                                     }
                                 }
-                                else
-                                {
-                                    <span class="text-muted">No disponible</span>
-                                }
-                            </dd>
+                                else { <span style="color:#9090b0;font-style:italic">No disponible</span> }
+                            </div>
+                        </div>
 
-                            <dt class="col-sm-5">Estado de Validez:</dt>
-                            <dd class="col-sm-7">
+                        <div class="dc-info-row">
+                            <div class="dc-info-label">Validez</div>
+                            <div class="dc-info-value">
                                 @if (Model.EsValido)
                                 {
-                                    <span class="badge bg-success">✓ VÁLIDO</span>
+                                    <span class="dc-badge dc-badge-ok"><i class="bi bi-shield-check"></i> Válido</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger">✗ EXPIRADO O NO VÁLIDO</span>
+                                    <span class="dc-badge dc-badge-exp"><i class="bi bi-shield-x"></i> Expirado o inválido</span>
                                 }
-                            </dd>
-                        </dl>
+                            </div>
+                        </div>
                     }
                     else
                     {
-                        <div class="alert alert-warning mb-0">
-                            <i class="bi bi-exclamation-triangle"></i>
-                            No se pudo leer el archivo del certificado.
+                        <div class="dc-alert dc-alert-warn" style="margin:0;">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>No se pudo leer el archivo .cer del certificado.</div>
                         </div>
+
+                        @if (Model.VigenciaFinUtc.HasValue)
+                        {
+                            <div style="margin-top:var(--space-4);">
+                                <div class="dc-info-row" style="padding-top:0;">
+                                    <div class="dc-info-label">Vencimiento</div>
+                                    <div class="dc-info-value">
+                                        @Model.VigenciaFinUtc.Value.ToString("dd/MM/yyyy")
+                                        <small style="color:#9090b0;font-size:11px;margin-left:4px;">(dato en BD)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     }
                 </div>
             </div>
+
         </div>
 
-        <!-- Columna Derecha: Archivos y Detalles Técnicos -->
-        <div class="col-lg-6">
-            <!-- Archivos -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="bi bi-folder2-open"></i> Archivos</h5>
-                </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Certificado (.cer):</dt>
-                        <dd class="col-sm-8">
-                            <code class="text-break">@Model.CerPath</code>
-                            @if (System.IO.File.Exists(Model.CerPath))
-                            {
-                                <span class="badge bg-success ms-2">✓ Existe</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger ms-2">✗ No encontrado</span>
-                            }
-                        </dd>
+        <!-- ══ Columna derecha ══ -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
 
-                        <dt class="col-sm-4">Llave (.key):</dt>
-                        <dd class="col-sm-8">
-                            <code class="text-break">@Model.KeyPath</code>
-                            @if (System.IO.File.Exists(Model.KeyPath))
-                            {
-                                <span class="badge bg-success ms-2">✓ Existe</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger ms-2">✗ No encontrado</span>
-                            }
-                        </dd>
-                    </dl>
+            <!-- Archivos -->
+            <div class="dc-card">
+                <div class="dc-card-header warning">
+                    <i class="bi bi-folder2-open"></i> Archivos del Certificado
+                </div>
+                <div class="dc-card-body">
+
+                    <div class="dc-file-row">
+                        <div class="dc-file-icon cer">
+                            <i class="bi bi-file-earmark-lock2"></i>
+                        </div>
+                        <div class="dc-file-info">
+                            <div class="dc-file-ext">.cer — Certificado público</div>
+                            <div class="dc-file-path">@Model.CerPath</div>
+                        </div>
+                        @if (System.IO.File.Exists(Model.CerPath))
+                        {
+                            <span class="dc-badge dc-badge-ok"><i class="bi bi-check-lg"></i> Existe</span>
+                        }
+                        else
+                        {
+                            <span class="dc-badge dc-badge-exp"><i class="bi bi-x-lg"></i> No encontrado</span>
+                        }
+                    </div>
+
+                    <div class="dc-file-row">
+                        <div class="dc-file-icon key">
+                            <i class="bi bi-key-fill"></i>
+                        </div>
+                        <div class="dc-file-info">
+                            <div class="dc-file-ext">.key — Llave privada</div>
+                            <div class="dc-file-path">@Model.KeyPath</div>
+                        </div>
+                        @if (System.IO.File.Exists(Model.KeyPath))
+                        {
+                            <span class="dc-badge dc-badge-ok"><i class="bi bi-check-lg"></i> Existe</span>
+                        }
+                        else
+                        {
+                            <span class="dc-badge dc-badge-exp"><i class="bi bi-x-lg"></i> No encontrado</span>
+                        }
+                    </div>
+
                 </div>
             </div>
 
-            <!-- Detalles Técnicos (Subject e Issuer) -->
-            @if (Model.CertificadoLeido)
+            <!-- Detalles Técnicos -->
+            @if (Model.CertificadoLeido &&
+                 (!string.IsNullOrWhiteSpace(Model.CertSubject) || !string.IsNullOrWhiteSpace(Model.CertIssuer)))
             {
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="bi bi-code-square"></i> Detalles Técnicos</h5>
+                <div class="dc-card">
+                    <div class="dc-card-header dark">
+                        <i class="bi bi-code-square"></i> Detalles Técnicos
                     </div>
-                    <div class="card-body">
-                        <h6 class="text-muted">Subject (Titular):</h6>
-                        <pre class="bg-light p-3 rounded"><code>@Model.CertSubject</code></pre>
+                    <div class="dc-card-body">
 
-                        <h6 class="text-muted mt-3">Issuer (Emisor):</h6>
-                        <pre class="bg-light p-3 rounded"><code>@Model.CertIssuer</code></pre>
+                        @if (!string.IsNullOrWhiteSpace(Model.CertSubject))
+                        {
+                            <div class="dc-tech-label"><i class="bi bi-person-vcard"></i> Subject (Titular)</div>
+                            <div class="dc-code-block">@Model.CertSubject</div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.CertIssuer))
+                        {
+                            <div class="dc-tech-label" style="margin-top:var(--space-4);"><i class="bi bi-building"></i> Issuer (Emisor)</div>
+                            <div class="dc-code-block">@Model.CertIssuer</div>
+                        }
+
                     </div>
                 </div>
             }
+
         </div>
     </div>
 
-    <!-- Botones de Acción -->
-    <div class="mt-4">
-        <a asp-page="/Monitor/Tenants/Details" asp-route-id="@Model.TenantId" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al Tenant
+    <!-- Toolbar acciones -->
+    <div class="dc-toolbar">
+        <a class="dc-btn" href="/Monitor/Tenants/@Model.TenantId/Certificados">
+            <i class="bi bi-arrow-left"></i> Volver a Certificados
         </a>
-        <a asp-page="./Edit" asp-route-tenantId="@Model.TenantId" asp-route-certId="@Model.CertId" class="btn btn-primary">
-            <i class="bi bi-pencil"></i> Editar
+        <a class="dc-btn" href="/Monitor/Tenants/Detalle/@Model.TenantId">
+            <i class="bi bi-building"></i> Ver Tenant
+        </a>
+        <a class="dc-btn primary"
+           href="/Monitor/Tenants/@Model.TenantId/Certificados/Edit/@Model.CertId">
+            <i class="bi bi-pencil-fill"></i> Editar Certificado
         </a>
     </div>
+
 </div>
-
-
-
+</div>

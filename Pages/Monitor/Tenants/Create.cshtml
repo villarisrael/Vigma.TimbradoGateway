@@ -338,7 +338,7 @@
         }
 
         <!-- ── Form card ────────────────────────────────────────────── -->
-        <form method="post" class="ct-form-card">
+        <form method="post" enctype="multipart/form-data" class="ct-form-card">
 
             <!-- Sección general -->
             <div class="ct-section">
@@ -401,6 +401,31 @@
                 </div>
             </div>
 
+            <!-- Sección Logo (opcional) -->
+            <div class="ct-section">
+                <div class="ct-section-label">🖼️ Logo del tenant <span style="font-weight:400;opacity:.7;">(opcional)</span></div>
+
+                <div class="ct-field">
+                    <label class="ct-label">Imagen (PNG, JPG, WEBP · máx 5 MB)</label>
+                    <input class="ct-input"
+                           type="file"
+                           name="LogoFile"
+                           id="logoFileCreate"
+                           accept=".png,.jpg,.jpeg,.webp,.gif"
+                           onchange="previewCreateLogo(this)"
+                           style="padding: var(--space-2);" />
+                    <span class="ct-hint">Puedes subirlo después desde la lista de tenants.</span>
+                </div>
+
+                <div id="createLogoPreview" style="display:none; margin-top:var(--space-3);">
+                    <img id="createLogoImg"
+                         src="#" alt="preview"
+                         style="max-height:90px; border-radius:var(--radius-md);
+                                border:1.5px solid var(--bg-light-muted); padding:6px;
+                                background:var(--bg-light-subtle); object-fit:contain;" />
+                </div>
+            </div>
+
             <!-- Footer acciones -->
             <div class="ct-form-footer">
                 <button class="vg-btn vg-btn-primary" type="submit">
@@ -418,4 +443,21 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewCreateLogo(inp) {
+            const file = inp.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                alert('El archivo supera 5 MB.');
+                inp.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('createLogoImg').src = e.target.result;
+                document.getElementById('createLogoPreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 }

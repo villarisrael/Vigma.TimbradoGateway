@@ -206,7 +206,7 @@ public class DetailsModel : PageModel
     private void UsarDatosDeBD(Certificado certificadoBD)
     {
         CertificadoLeido = false;
-        NoCertificado = certificadoBD.NoCertificado;
+        NoCertificado = CertificadoReader.DecodificarNoCertificadoSat(certificadoBD.NoCertificado);
         VigenciaInicioUtc = certificadoBD.VigenciaInicio;
         VigenciaFinUtc = certificadoBD.VigenciaFin;
         EsValido = false;

@@ -152,6 +152,9 @@ public class CreateModel : PageModel
 
                 await _openssl.RunAsync(
                     $"pkcs8 -inform DER -in \"{keyDer}\" -passin pass:\"{Escape(KeyPassword)}\" -out \"{keyPem}\"");
+
+                // ===== Verificar que .cer y .key son del mismo par =====
+                await _openssl.VerificarParClavesAsync(cerDer, keyDer, KeyPassword);
             }
             else // PFX
             {
@@ -162,6 +165,8 @@ public class CreateModel : PageModel
 
                 await _openssl.RunAsync(
                     $"pkcs12 -in \"{pfxOriginal}\" -nocerts -out \"{keyPem}\" -passin pass:\"{Escape(KeyPassword)}\" -passout pass:\"{Escape(KeyPassword)}\"");
+
+                // En PFX el .cer y .key salen del mismo archivo, no es necesario verificar el par.
             }
 
             // ===== Cert info =====
@@ -178,11 +183,16 @@ public class CreateModel : PageModel
 
             c.CerPath = cerDer;
             c.KeyPath = keyDer;
+            c.CerPemPath = cerPem;     // ✅ ahora también persistimos las rutas .pem
+            c.KeyPemPath = keyPem;     //    (necesarias para FacturaLO PLUS)
+            c.TipoCarga = Modo;        // CERKEY | PFX
+            if (Modo == "PFX") c.PfxPath = pfxOriginal;
             c.KeyPasswordEnc = KeyPassword; // MVP: luego ciframos
             c.Activo = true;
             c.VigenciaInicio = certInfo.VigenciaInicio;
             c.VigenciaFin = certInfo.VigenciaFin;
             c.NoCertificado = certInfo.NoCertificado;
+            c.ActualizadoUtc = DateTime.UtcNow;
 
 
             await _db.SaveChangesAsync();

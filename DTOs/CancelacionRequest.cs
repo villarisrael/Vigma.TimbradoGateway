@@ -31,4 +31,20 @@ public sealed class CancelacionRequest
     /// <summary>UUID del CFDI sustituto (solo requerido cuando Motivo = "01")</summary>
     [MaxLength(36)]
     public string? UuidSustitucion { get; set; }
+
+    /// <summary>
+    /// RFC del receptor del CFDI a cancelar.
+    /// Requerido cuando el PAC activo del tenant es FacturaLO (cancelarPEM).
+    /// Ignorado en cancelación vía MultiFacturas.
+    /// </summary>
+    [MaxLength(13)]
+    public string? RfcReceptor { get; set; }
+
+    /// <summary>
+    /// Total exacto del CFDI a cancelar (tal como aparece en el XML).
+    /// Requerido cuando el PAC activo del tenant es FacturaLO (cancelarPEM).
+    /// Ignorado en cancelación vía MultiFacturas.
+    /// </summary>
+    [MaxLength(20)]
+    public string? Total { get; set; }
 }

@@ -360,4 +360,8 @@ MigrationBackup/
 .ionide/
 
 # Fody - auto-generated XML schema
-FodyWeavers.xsdfirebase-service-account.json
+FodyWeavers.xsd
+
+# Secrets / credenciales locales
+firebase-service-account.json
+appsettings.json

@@ -1,0 +1,293 @@
+@page
+@model Vigma.TimbradoGateway.Pages.Monitor.Clientes.CrearModel
+@{
+    ViewData["Title"] = "Nuevo Cliente";
+}
+
+<link href="~/css/Gstyle.css" rel="stylesheet" />
+
+<style>
+.ct-page  { padding: var(--space-5); max-width: 680px; }
+
+/* Header */
+.ct-header { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5); }
+
+.ct-header-icon {
+    width: 52px; height: 52px; border-radius: var(--radius-md);
+    background: var(--vigma-gradient);
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--text-2xl); flex-shrink: 0;
+    box-shadow: 0 6px 18px rgba(91,91,214,0.35);
+    color: white;
+}
+
+.ct-header-text h2 {
+    font-family: var(--font-titles); font-weight: var(--weight-bold);
+    font-size: var(--text-2xl);
+    background: var(--vigma-gradient);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: var(--space-1);
+}
+
+.ct-header-text p { font-size: var(--text-sm); color: var(--color-txt-light); margin: 0; }
+[data-theme="dark"] .ct-header-text p { color: #9090b0; }
+
+/* Form card */
+.ct-form-card {
+    background: var(--bg-light-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+    margin-bottom: var(--space-5);
+}
+
+[data-theme="dark"] .ct-form-card { background: var(--bg-dark-card); border-color: rgba(255,255,255,0.06); }
+
+.ct-section { padding: var(--space-5); }
+.ct-section + .ct-section { border-top: 1px solid var(--bg-light-muted); }
+[data-theme="dark"] .ct-section + .ct-section { border-color: var(--bg-dark-muted); }
+
+.ct-section-label {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+    color: #f7971e; background: rgba(247,151,30,0.1);
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius-full);
+    width: fit-content; margin-bottom: var(--space-4);
+}
+
+.ct-section-label-blue {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: var(--text-xs); font-weight: var(--weight-semibold);
+    color: var(--color-vigma); background: rgba(91,91,214,0.1);
+    padding: var(--space-1) var(--space-3); border-radius: var(--radius-full);
+    width: fit-content; margin-bottom: var(--space-4);
+}
+
+/* Fields */
+.ct-field { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.ct-field:last-child { margin-bottom: 0; }
+
+.ct-label { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-dark); }
+[data-theme="dark"] .ct-label { color: #e0e0f0; }
+
+.ct-input {
+    width: 100%; padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--bg-light-muted); border-radius: var(--radius-md);
+    background: var(--bg-light-page); color: var(--color-dark);
+    font-family: var(--font-body); font-size: var(--text-sm);
+    transition: var(--transition-fast); outline: none;
+}
+
+[data-theme="dark"] .ct-input { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); color: #e0e0f0; }
+.ct-input:focus { border-color: var(--color-vigma); box-shadow: 0 0 0 3px rgba(91,91,214,0.12); }
+.ct-input::placeholder { color: #9090b0; }
+
+.ct-hint { font-size: var(--text-xs); color: #9090b0; margin-top: var(--space-1); }
+.ct-error { font-size: var(--text-xs); color: var(--color-danger); margin-top: var(--space-1); }
+
+/* Logo preview */
+.ct-logo-preview {
+    width: 80px; height: 80px; border-radius: var(--radius-md);
+    border: 2px dashed var(--bg-light-muted);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; background: var(--bg-light-subtle);
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .ct-logo-preview { border-color: var(--bg-dark-muted); background: var(--bg-dark-subtle); }
+
+.ct-logo-preview img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+
+.ct-logo-row { display: flex; align-items: center; gap: var(--space-4); }
+.ct-logo-row .ct-field { flex: 1; margin-bottom: 0; }
+
+/* File input */
+.ct-file-input {
+    width: 100%; padding: var(--space-2) var(--space-3);
+    border: 1.5px solid var(--bg-light-muted); border-radius: var(--radius-md);
+    background: var(--bg-light-page); color: var(--color-dark);
+    font-family: var(--font-body); font-size: var(--text-sm);
+    cursor: pointer;
+}
+
+[data-theme="dark"] .ct-file-input { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); color: #e0e0f0; }
+
+/* Checkbox */
+.ct-check-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-light-subtle); border-radius: var(--radius-md);
+    cursor: pointer; transition: var(--transition-fast);
+}
+
+[data-theme="dark"] .ct-check-row { background: var(--bg-dark-subtle); }
+.ct-check-row:hover { background: var(--bg-light-muted); }
+[data-theme="dark"] .ct-check-row:hover { background: var(--bg-dark-muted); }
+
+.ct-check-row input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--color-vigma);
+    cursor: pointer; flex-shrink: 0;
+}
+
+.ct-check-label {
+    font-size: var(--text-sm); font-weight: var(--weight-medium);
+    color: var(--color-dark); cursor: pointer; user-select: none;
+}
+
+[data-theme="dark"] .ct-check-label { color: #e0e0f0; }
+
+/* Footer */
+.ct-form-footer {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-light-subtle);
+    border-top: 1px solid var(--bg-light-muted);
+}
+
+[data-theme="dark"] .ct-form-footer { background: var(--bg-dark-subtle); border-color: var(--bg-dark-muted); }
+
+/* Usuario opcional info */
+.ct-optional-note {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(91,91,214,0.05); border-radius: var(--radius-md);
+    border: 1px solid rgba(91,91,214,0.12);
+    font-size: var(--text-xs); color: #9090b0;
+    margin-bottom: var(--space-4);
+}
+</style>
+
+<div class="main-content">
+    <div class="ct-page">
+
+        <!-- Header -->
+        <div class="ct-header">
+            <div class="ct-header-icon">
+                <i class="bi bi-building-add"></i>
+            </div>
+            <div class="ct-header-text">
+                <h2>Nuevo Cliente</h2>
+                <p>Registra un nuevo distribuidor en el sistema</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" class="ct-form-card">
+
+            <!-- Información general -->
+            <div class="ct-section">
+                <div class="ct-section-label">
+                    <i class="bi bi-info-circle-fill"></i> Información del cliente
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="Input.Nombre">
+                        Nombre / Razón Social <span style="color:var(--color-danger)">*</span>
+                    </label>
+                    <input class="ct-input" asp-for="Input.Nombre"
+                           placeholder="Ej: Distribuidora Comercial del Norte, S.A." />
+                    <span class="ct-error" asp-validation-for="Input.Nombre"></span>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="Input.Rfc">RFC</label>
+                    <input class="ct-input" asp-for="Input.Rfc"
+                           placeholder="Ej: DCN850101XXX"
+                           style="text-transform:uppercase"
+                           maxlength="13" />
+                    <span class="ct-hint">Opcional. Máximo 13 caracteres. Se guardará en mayúsculas.</span>
+                    <span class="ct-error" asp-validation-for="Input.Rfc"></span>
+                </div>
+
+                <!-- Logo upload -->
+                <div class="ct-field">
+                    <label class="ct-label">Logo del Cliente</label>
+                    <div class="ct-logo-row">
+                        <div class="ct-logo-preview" id="logoPreview">
+                            <i class="bi bi-image" style="font-size:var(--text-2xl); color:#9090b0;"></i>
+                        </div>
+                        <div class="ct-field" style="margin-bottom:0;">
+                            <input type="file" name="LogoFile" id="LogoFile" accept=".png,.jpg,.jpeg,.gif,.webp"
+                                   class="ct-file-input" onchange="previewLogo(this)" />
+                            <span class="ct-hint">Opcional. PNG, JPG, GIF o WEBP. Máx. 5 MB.</span>
+                            <span class="ct-error" asp-validation-for="LogoFile"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-check-row" for="Input_Activo">
+                        <input type="checkbox" asp-for="Input.Activo" id="Input_Activo" />
+                        <span class="ct-check-label">Cliente activo</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Crear usuario cliente (opcional) -->
+            <div class="ct-section">
+                <div class="ct-section-label-blue">
+                    <i class="bi bi-person-plus-fill"></i> Crear Usuario Cliente (opcional)
+                </div>
+
+                <div class="ct-optional-note">
+                    <i class="bi bi-info-circle-fill" style="color:var(--color-vigma);"></i>
+                    Puedes crear el usuario ahora o hacerlo después desde la pantalla de edición.
+                    Si llenas Email y Contraseña se creará automáticamente con Rol "Cliente".
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="UsuarioInput.Email">Email (usuario de acceso)</label>
+                    <input class="ct-input" asp-for="UsuarioInput.Email"
+                           type="email" placeholder="Ej: contacto@distribuidor.com" />
+                    <span class="ct-error" asp-validation-for="UsuarioInput.Email"></span>
+                </div>
+
+                <div class="ct-field">
+                    <label class="ct-label" asp-for="UsuarioInput.Password">Contraseña</label>
+                    <input class="ct-input" asp-for="UsuarioInput.Password"
+                           type="password" placeholder="Mínimo 6 caracteres" />
+                    <span class="ct-hint">Mínimo 6 caracteres. Se guardará hasheada con BCrypt.</span>
+                    <span class="ct-error" asp-validation-for="UsuarioInput.Password"></span>
+                </div>
+
+                <div class="ct-field" style="margin-bottom:0;">
+                    <label class="ct-label" asp-for="UsuarioInput.Nombre">Nombre completo</label>
+                    <input class="ct-input" asp-for="UsuarioInput.Nombre"
+                           placeholder="Ej: Juan García" />
+                    <span class="ct-hint">Opcional. Nombre de la persona de contacto.</span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="ct-form-footer">
+                <button class="vg-btn vg-btn-primary" type="submit">
+                    <i class="bi bi-check-lg"></i> Crear Cliente
+                </button>
+                <a class="vg-btn vg-btn-outline" asp-page="Index">
+                    Cancelar
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+    function previewLogo(input) {
+        const preview = document.getElementById('logoPreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:100%;height:100%;object-fit:contain;padding:4px;" />`;
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.innerHTML = '<i class="bi bi-image" style="font-size:var(--text-2xl); color:#9090b0;"></i>';
+        }
+    }
+    </script>
+}
